@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>はじめてのLIFFアプリ</title>
+    
+    <!-- LIFFのプログラムを読み込む（LINEが提供しているもの） -->
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    
+    <style>
+        /* デザイン設定 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .info-box {
+            background: #f0f4ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .info-box h2 {
+            color: #667eea;
+            font-size: 18px;
+            margin-top: 0;
+        }
+        
+        .info-box p {
+            color: #555;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        
+        button {
+            background: #06c755;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #05b04d;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+        }
+        
+        .error {
+            background: #ffe0e0;
+            border: 2px solid #ff6b6b;
+            border-radius: 10px;
+            padding: 20px;
+            color: #c92a2a;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 はじめてのLIFFアプリ</h1>
+        
+        <!-- 読み込み中の表示 -->
+        <div id="loading" class="loading">
+            <p>読み込み中...</p>
+        </div>
+        
+        <!-- LINEでログインしていない場合のエラー表示 -->
+        <div id="error" class="error" style="display: none;">
+            <p><strong>エラー:</strong> このアプリはLINEから開いてください。</p>
+        </div>
+        
+        <!-- メインコンテンツ（最初は非表示） -->
+        <div id="content" style="display: none;">
+            <div class="info-box">
+                <h2>👤 あなたの情報</h2>
+                <p><strong>名前:</strong> <span id="userName">---</span></p>
+                <p><strong>ユーザーID:</strong> <span id="userId">---</span></p>
+            </div>
+            
+            <button onclick="sendMessage()">
+                💬 LINEにメッセージを送る
+            </button>
+            
+            <button onclick="closeApp()" style="background: #999; margin-top: 10px;">
+                ✕ アプリを閉じる
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // ここからがプログラムの本体です
+        // ========================================
+        
+        // LIFF IDをここに入れる（後でLINE Developersから取得します）
+        const LIFF_ID = 'YOUR_LIFF_ID_HERE'; // ← あとで書き換えます
+        
+        // LIFFアプリを初期化（起動）する
+        window.onload = function() {
+            initializeLiff();
+        };
+        
+        function initializeLiff() {
+            liff.init({
+                liffId: LIFF_ID // LIFF IDを使って初期化
+            })
+            .then(() => {
+                // 初期化が成功したら...
+                
+                // LINEにログインしているかチェック
+                if (liff.isLoggedIn()) {
+                    // ログインしている場合：ユーザー情報を取得
+                    getUserProfile();
+                } else {
+                    // ログインしていない場合：ログイン画面へ
+                    liff.login();
+                }
+            })
+            .catch((err) => {
+                // エラーが発生した場合
+                console.error('LIFFの初期化に失敗しました:', err);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').innerHTML = 
+                    '<p><strong>エラー:</strong> ' + err.message + '</p>' +
+                    '<p>LIFF IDが正しく設定されているか確認してください。</p>';
+            });
+        }
+        
+        // ユーザーのプロフィール情報を取得して表示
+        function getUserProfile() {
+            liff.getProfile()
+                .then(profile => {
+                    // プロフィール取得成功
+                    document.getElementById('userName').textContent = profile.displayName;
+                    document.getElementById('userId').textContent = profile.userId;
+                    
+                    // 読み込み中を非表示、メインコンテンツを表示
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                })
+                .catch((err) => {
+                    console.error('プロフィール取得に失敗しました:', err);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error').style.display = 'block';
+                });
+        }
+        
+        // LINEにメッセージを送信する
+        function sendMessage() {
+            if (!liff.isInClient()) {
+                // LINEアプリ内で開いていない場合
+                alert('この機能はLINEアプリ内でのみ使用できます');
+                return;
+            }
+            
+            // メッセージを送信
+            liff.sendMessages([{
+                type: 'text',
+                text: '👋 はじめてのLIFFアプリから送信しました！\n\nこれからふたりのらんきんぐアプリを作っていきます 🎮'
+            }])
+            .then(() => {
+                alert('メッセージを送信しました！');
+            })
+            .catch((err) => {
+                console.error('メッセージ送信に失敗しました:', err);
+                alert('メッセージの送信に失敗しました');
+            });
+        }
+        
+        // アプリを閉じる
+        function closeApp() {
+            liff.closeWindow();
+        }
+    </script>
+</body>
+</html>
+
