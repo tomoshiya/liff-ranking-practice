@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>はじめてのLIFFアプリ</title>
+    <title>ふたりのらんきんぐ</title>
     
     <!-- LIFFのプログラムを読み込む（LINEが提供しているもの） -->
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -15,7 +15,7 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #FF6B9D 0%, #FFA8C5 100%);
             min-height: 100vh;
         }
         
@@ -27,32 +27,79 @@
         }
         
         h1 {
-            color: #333;
+            color: #FF6B9D;
             text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
             margin-bottom: 30px;
         }
         
-        .info-box {
-            background: #f0f4ff;
-            border-radius: 10px;
-            padding: 20px;
+        .theme-box {
+            background: linear-gradient(135deg, #FFF5F7 0%, #FFE8EF 100%);
+            border: 3px solid #FF6B9D;
+            border-radius: 15px;
+            padding: 25px;
             margin: 20px 0;
+            text-align: center;
         }
         
-        .info-box h2 {
-            color: #667eea;
+        .theme-box h2 {
+            color: #FF6B9D;
+            font-size: 20px;
+            margin: 0 0 10px 0;
+        }
+        
+        .theme-text {
+            color: #333;
             font-size: 18px;
-            margin-top: 0;
+            font-weight: bold;
+            line-height: 1.6;
         }
         
-        .info-box p {
-            color: #555;
+        .ranking-form {
+            margin: 25px 0;
+        }
+        
+        .rank-item {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        
+        .rank-label {
+            background: linear-gradient(135deg, #FF6B9D, #FFA8C5);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            min-width: 60px;
+            text-align: center;
             font-size: 16px;
-            margin: 10px 0;
+        }
+        
+        .rank-input {
+            flex: 1;
+            margin-left: 15px;
+            padding: 12px 15px;
+            border: 2px solid #FFD0E0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .rank-input:focus {
+            outline: none;
+            border-color: #FF6B9D;
         }
         
         button {
-            background: #06c755;
+            background: #FF6B9D;
             color: white;
             border: none;
             padding: 15px 30px;
@@ -62,15 +109,56 @@
             cursor: pointer;
             width: 100%;
             margin-top: 10px;
-            transition: background 0.3s;
+            transition: all 0.3s;
         }
         
         button:hover {
-            background: #05b04d;
+            background: #FF5089;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.3);
         }
         
         button:active {
             transform: scale(0.98);
+        }
+        
+        .secondary-button {
+            background: #6BCBFF;
+        }
+        
+        .secondary-button:hover {
+            background: #4DB8FF;
+        }
+        
+        .history-list {
+            margin: 25px 0;
+        }
+        
+        .history-item {
+            background: #f8f9fa;
+            border-left: 4px solid #FF6B9D;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .history-theme {
+            color: #FF6B9D;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .history-date {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .history-rankings {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.8;
         }
         
         .loading {
@@ -87,11 +175,20 @@
             color: #c92a2a;
             margin: 20px 0;
         }
+        
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎉 はじめてのLIFFアプリ</h1>
+        <h1>💕 ふたりのらんきんぐ</h1>
+        <p class="subtitle">お互いをもっと知るゲーム</p>
         
         <!-- 読み込み中の表示 -->
         <div id="loading" class="loading">
@@ -103,75 +200,152 @@
             <p><strong>エラー:</strong> このアプリはLINEから開いてください。</p>
         </div>
         
-        <!-- メインコンテンツ（最初は非表示） -->
-        <div id="content" style="display: none;">
-            <div class="info-box">
-                <h2>👤 あなたの情報</h2>
-                <p><strong>名前:</strong> <span id="userName">---</span></p>
-                <p><strong>ユーザーID:</strong> <span id="userId">---</span></p>
-            </div>
-            
-            <button onclick="sendMessage()">
-                💬 LINEにメッセージを送る
+        <!-- メイン画面 -->
+        <div id="mainScreen" class="screen">
+            <button onclick="startRanking()">
+                🎯 新しいお題でランキングを作る
             </button>
             
-            <button onclick="closeApp()" style="background: #999; margin-top: 10px;">
-                ✕ アプリを閉じる
+            <button onclick="showHistory()" class="secondary-button">
+                📋 過去のランキングを見る
+            </button>
+        </div>
+        
+        <!-- ランキング入力画面 -->
+        <div id="rankingScreen" class="screen">
+            <div class="theme-box">
+                <h2>📌 今回のお題</h2>
+                <p class="theme-text" id="currentTheme">---</p>
+            </div>
+            
+            <div class="ranking-form">
+                <div class="rank-item">
+                    <div class="rank-label">1位</div>
+                    <input type="text" class="rank-input" id="rank1" placeholder="1位を入力">
+                </div>
+                <div class="rank-item">
+                    <div class="rank-label">2位</div>
+                    <input type="text" class="rank-input" id="rank2" placeholder="2位を入力">
+                </div>
+                <div class="rank-item">
+                    <div class="rank-label">3位</div>
+                    <input type="text" class="rank-input" id="rank3" placeholder="3位を入力">
+                </div>
+                <div class="rank-item">
+                    <div class="rank-label">4位</div>
+                    <input type="text" class="rank-input" id="rank4" placeholder="4位を入力">
+                </div>
+                <div class="rank-item">
+                    <div class="rank-label">5位</div>
+                    <input type="text" class="rank-input" id="rank5" placeholder="5位を入力">
+                </div>
+            </div>
+            
+            <button onclick="saveRanking()">
+                💾 ランキングを保存する
+            </button>
+            
+            <button onclick="backToMain()" class="secondary-button">
+                ← メイン画面に戻る
+            </button>
+        </div>
+        
+        <!-- 履歴表示画面 -->
+        <div id="historyScreen" class="screen">
+            <h2 style="color: #FF6B9D; margin-bottom: 20px;">📋 過去のランキング</h2>
+            
+            <div id="historyList" class="history-list">
+                <!-- ここに履歴が表示されます -->
+            </div>
+            
+            <button onclick="backToMain()" class="secondary-button">
+                ← メイン画面に戻る
             </button>
         </div>
     </div>
 
     <script>
         // ========================================
-        // ここからがプログラムの本体です
+        // お題データ（28個）
         // ========================================
+        const THEMES = [
+            // エモーション系（8個）
+            '最近、嬉しかったことは？',
+            '最近、楽しかったことは？',
+            '最近、感謝を感じたことは？',
+            '最近、愛を感じたことは？',
+            '最近、ハマっていることは？',
+            '最近、悲しかったことは？',
+            '最近、ムカついたことは？',
+            '最近、不安に感じていることは？',
+            
+            // Year系（2個）
+            'この1年で、買ってよかったものは？',
+            'この1年で、行ってよかったお店は？',
+            
+            // パーソナリティ系（15個）
+            'わたしの好きな食べ物・料理TOP5',
+            'わたしの嫌い・苦手な食べ物・料理TOP5',
+            'わたしの好きな飲食店TOP5',
+            'わたしの好きな映画TOP5',
+            'わたしの好きな漫画・アニメTOP5',
+            'わたしの好きなゲームTOP5',
+            'わたしの好きな地域・エリアTOP5',
+            'わたしの叶えたい夢・目標TOP5',
+            'わたしの宝物TOP5',
+            'わたしの好きな本TOP5',
+            'わたしの欲しいものTOP5',
+            'わたしの会ってみたい人TOP5',
+            'わたしの尊敬する人TOP5',
+            'わたしの学生時代の得意科目TOP5',
+            'わたしの学生時代の苦手科目TOP5',
+            
+            // カップル系（3個）
+            'パートナーの好きなところTOP5',
+            'パートナーに感謝をした場面・シーンTOP5',
+            'パートナーを素敵と感じた場面・シーンTOP5'
+        ];
         
-        // LIFF IDをここに入れる（後でLINE Developersから取得します）
-        const LIFF_ID = '2008911809-CBLKsbT1'; // ← あとで書き換えます
+        // ========================================
+        // グローバル変数
+        // ========================================
+        const LIFF_ID = '2008911809-CBLKsbT1';
+        let currentTheme = '';
+        let userProfile = null;
         
-        // LIFFアプリを初期化（起動）する
+        // ========================================
+        // LIFF初期化
+        // ========================================
         window.onload = function() {
             initializeLiff();
         };
         
         function initializeLiff() {
             liff.init({
-                liffId: LIFF_ID // LIFF IDを使って初期化
+                liffId: LIFF_ID
             })
             .then(() => {
-                // 初期化が成功したら...
-                
-                // LINEにログインしているかチェック
                 if (liff.isLoggedIn()) {
-                    // ログインしている場合：ユーザー情報を取得
                     getUserProfile();
                 } else {
-                    // ログインしていない場合：ログイン画面へ
                     liff.login();
                 }
             })
             .catch((err) => {
-                // エラーが発生した場合
                 console.error('LIFFの初期化に失敗しました:', err);
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('error').style.display = 'block';
                 document.getElementById('error').innerHTML = 
-                    '<p><strong>エラー:</strong> ' + err.message + '</p>' +
-                    '<p>LIFF IDが正しく設定されているか確認してください。</p>';
+                    '<p><strong>エラー:</strong> ' + err.message + '</p>';
             });
         }
         
-        // ユーザーのプロフィール情報を取得して表示
         function getUserProfile() {
             liff.getProfile()
                 .then(profile => {
-                    // プロフィール取得成功
-                    document.getElementById('userName').textContent = profile.displayName;
-                    document.getElementById('userId').textContent = profile.userId;
-                    
-                    // 読み込み中を非表示、メインコンテンツを表示
+                    userProfile = profile;
                     document.getElementById('loading').style.display = 'none';
-                    document.getElementById('content').style.display = 'block';
+                    showScreen('mainScreen');
                 })
                 .catch((err) => {
                     console.error('プロフィール取得に失敗しました:', err);
@@ -180,34 +354,111 @@
                 });
         }
         
-        // LINEにメッセージを送信する
-        function sendMessage() {
-            if (!liff.isInClient()) {
-                // LINEアプリ内で開いていない場合
-                alert('この機能はLINEアプリ内でのみ使用できます');
-                return;
-            }
+        // ========================================
+        // 画面切り替え
+        // ========================================
+        function showScreen(screenId) {
+            // すべての画面を非表示
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(screen => screen.classList.remove('active'));
             
-            // メッセージを送信
-            liff.sendMessages([{
-                type: 'text',
-                text: '👋 はじめてのLIFFアプリから送信しました！\n\nこれからふたりのらんきんぐアプリを作っていきます 🎮'
-            }])
-            .then(() => {
-                alert('メッセージを送信しました！');
-            })
-            .catch((err) => {
-                console.error('メッセージ送信に失敗しました:', err);
-                alert('メッセージの送信に失敗しました');
-            });
+            // 指定された画面を表示
+            document.getElementById(screenId).classList.add('active');
         }
         
-        // アプリを閉じる
-        function closeApp() {
-            liff.closeWindow();
+        function backToMain() {
+            showScreen('mainScreen');
+        }
+        
+        // ========================================
+        // ランキング作成機能
+        // ========================================
+        function startRanking() {
+            // ランダムにお題を選ぶ
+            currentTheme = THEMES[Math.floor(Math.random() * THEMES.length)];
+            document.getElementById('currentTheme').textContent = currentTheme;
+            
+            // 入力欄をクリア
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById('rank' + i).value = '';
+            }
+            
+            // ランキング画面に切り替え
+            showScreen('rankingScreen');
+        }
+        
+        function saveRanking() {
+            // 入力値を取得
+            const rankings = [];
+            for (let i = 1; i <= 5; i++) {
+                const value = document.getElementById('rank' + i).value.trim();
+                if (value === '') {
+                    alert((i) + '位を入力してください！');
+                    return;
+                }
+                rankings.push(value);
+            }
+            
+            // LocalStorageから既存のデータを取得
+            let history = JSON.parse(localStorage.getItem('rankingHistory') || '[]');
+            
+            // 新しいデータを追加
+            const newRanking = {
+                theme: currentTheme,
+                rankings: rankings,
+                date: new Date().toISOString(),
+                userName: userProfile ? userProfile.displayName : '名無し'
+            };
+            
+            history.unshift(newRanking); // 配列の先頭に追加
+            
+            // 最大50件まで保持
+            if (history.length > 50) {
+                history = history.slice(0, 50);
+            }
+            
+            // LocalStorageに保存
+            localStorage.setItem('rankingHistory', JSON.stringify(history));
+            
+            alert('ランキングを保存しました！✨');
+            backToMain();
+        }
+        
+        // ========================================
+        // 履歴表示機能
+        // ========================================
+        function showHistory() {
+            const history = JSON.parse(localStorage.getItem('rankingHistory') || '[]');
+            const historyList = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">まだランキングがありません<br>新しいお題でランキングを作ってみましょう！</p>';
+            } else {
+                let html = '';
+                history.forEach((item, index) => {
+                    const date = new Date(item.date);
+                    const dateStr = date.getFullYear() + '年' + 
+                                  (date.getMonth() + 1) + '月' + 
+                                  date.getDate() + '日 ' + 
+                                  date.getHours() + ':' + 
+                                  String(date.getMinutes()).padStart(2, '0');
+                    
+                    html += '<div class="history-item">';
+                    html += '<div class="history-theme">' + item.theme + '</div>';
+                    html += '<div class="history-date">' + dateStr + ' by ' + item.userName + '</div>';
+                    html += '<div class="history-rankings">';
+                    item.rankings.forEach((rank, i) => {
+                        html += '<div>' + (i + 1) + '位: ' + rank + '</div>';
+                    });
+                    html += '</div>';
+                    html += '</div>';
+                });
+                historyList.innerHTML = html;
+            }
+            
+            showScreen('historyScreen');
         }
     </script>
 </body>
 </html>
-
 
