@@ -9,100 +9,117 @@
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     
     <style>
-        /* デザイン設定 */
+        /* ========================================
+           デザイン設定
+           ======================================== */
+        
+        /* 全体のリセット */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #FF6B9D 0%, #FFA8C5 100%);
+            padding: 15px;
+            background: linear-gradient(135deg, #E8F4F8 0%, #F0F8FF 100%);
             min-height: 100vh;
         }
         
         .container {
             background: white;
             border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 25px 20px;
+            box-shadow: 0 10px 30px rgba(74, 144, 226, 0.15);
         }
         
         h1 {
-            color: #FF6B9D;
+            color: #4A90E2;
             text-align: center;
             margin-bottom: 10px;
-            font-size: 28px;
+            font-size: 26px;
         }
         
         .subtitle {
             text-align: center;
-            color: #999;
-            font-size: 14px;
-            margin-bottom: 30px;
+            color: #666;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            padding: 0 10px;
         }
         
         .theme-box {
-            background: linear-gradient(135deg, #FFF5F7 0%, #FFE8EF 100%);
-            border: 3px solid #FF6B9D;
+            background: linear-gradient(135deg, #F0F8FF 0%, #E8F4F8 100%);
+            border: 3px solid #4A90E2;
             border-radius: 15px;
-            padding: 25px;
+            padding: 20px 15px;
             margin: 20px 0;
             text-align: center;
         }
         
         .theme-box h2 {
-            color: #FF6B9D;
-            font-size: 20px;
+            color: #4A90E2;
+            font-size: 18px;
             margin: 0 0 10px 0;
         }
         
         .theme-text {
             color: #333;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             line-height: 1.6;
+            word-break: break-all;
         }
         
         .ranking-form {
-            margin: 25px 0;
+            margin: 20px 0;
         }
         
         .rank-item {
             display: flex;
             align-items: center;
-            margin: 15px 0;
+            margin: 12px 0;
+            gap: 10px;
         }
         
         .rank-label {
-            background: linear-gradient(135deg, #FF6B9D, #FFA8C5);
+            background: linear-gradient(135deg, #4A90E2, #7AB8F5);
             color: white;
-            padding: 12px 20px;
+            padding: 12px 15px;
             border-radius: 10px;
             font-weight: bold;
-            min-width: 60px;
+            min-width: 50px;
             text-align: center;
-            font-size: 16px;
+            font-size: 15px;
+            flex-shrink: 0;
         }
         
         .rank-input {
             flex: 1;
-            margin-left: 15px;
-            padding: 12px 15px;
-            border: 2px solid #FFD0E0;
+            padding: 12px 12px;
+            border: 2px solid #B8D9F0;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 15px;
             transition: border-color 0.3s;
+            width: 100%;
+            min-width: 0;
         }
         
         .rank-input:focus {
             outline: none;
-            border-color: #FF6B9D;
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
         }
         
         button {
-            background: #FF6B9D;
+            background: #4A90E2;
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 15px 20px;
             border-radius: 10px;
             font-size: 16px;
             font-weight: bold;
@@ -110,12 +127,13 @@
             width: 100%;
             margin-top: 10px;
             transition: all 0.3s;
+            touch-action: manipulation;
         }
         
         button:hover {
-            background: #FF5089;
+            background: #3A7BC8;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.3);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
         }
         
         button:active {
@@ -123,30 +141,31 @@
         }
         
         .secondary-button {
-            background: #6BCBFF;
+            background: #50C878;
         }
         
         .secondary-button:hover {
-            background: #4DB8FF;
+            background: #3FB869;
         }
         
         .history-list {
-            margin: 25px 0;
+            margin: 20px 0;
         }
         
         .history-item {
             background: #f8f9fa;
-            border-left: 4px solid #FF6B9D;
+            border-left: 4px solid #4A90E2;
             border-radius: 8px;
             padding: 15px;
-            margin: 15px 0;
+            margin: 12px 0;
         }
         
         .history-theme {
-            color: #FF6B9D;
+            color: #4A90E2;
             font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 10px;
+            font-size: 15px;
+            margin-bottom: 8px;
+            word-break: break-all;
         }
         
         .history-date {
@@ -164,16 +183,17 @@
         .loading {
             text-align: center;
             color: #666;
-            padding: 40px;
+            padding: 40px 20px;
         }
         
         .error {
             background: #ffe0e0;
             border: 2px solid #ff6b6b;
             border-radius: 10px;
-            padding: 20px;
+            padding: 15px;
             color: #c92a2a;
             margin: 20px 0;
+            font-size: 14px;
         }
         
         .screen {
@@ -183,12 +203,77 @@
         .screen.active {
             display: block;
         }
+        
+        /* スマホ最適化 */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px 15px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .subtitle {
+                font-size: 12px;
+            }
+            
+            .theme-box {
+                padding: 15px 12px;
+            }
+            
+            .theme-box h2 {
+                font-size: 16px;
+            }
+            
+            .theme-text {
+                font-size: 15px;
+            }
+            
+            .rank-label {
+                min-width: 45px;
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+            
+            .rank-input {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            button {
+                padding: 14px 18px;
+                font-size: 15px;
+            }
+        }
+        
+        /* 極小画面対応 */
+        @media (max-width: 360px) {
+            .rank-item {
+                gap: 8px;
+            }
+            
+            .rank-label {
+                min-width: 40px;
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+            
+            .rank-input {
+                padding: 8px;
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>💕 ふたりのらんきんぐ</h1>
-        <p class="subtitle">お互いをもっと知るゲーム</p>
+        <h1>🎯 ふたりのらんきんぐ</h1>
+        <p class="subtitle">答えは相手の心の中に！<br>やればやるほど仲が深まるコミュニケーションゲーム</p>
         
         <!-- 読み込み中の表示 -->
         <div id="loading" class="loading">
@@ -252,7 +337,7 @@
         
         <!-- 履歴表示画面 -->
         <div id="historyScreen" class="screen">
-            <h2 style="color: #FF6B9D; margin-bottom: 20px;">📋 過去のランキング</h2>
+            <h2 style="color: #4A90E2; margin-bottom: 20px;">📋 過去のランキング</h2>
             
             <div id="historyList" class="history-list">
                 <!-- ここに履歴が表示されます -->
@@ -318,6 +403,7 @@
         // ========================================
         window.onload = function() {
             initializeLiff();
+            setupEnterKeyNavigation();
         };
         
         function initializeLiff() {
@@ -355,6 +441,27 @@
         }
         
         // ========================================
+        // Enterキーで次の入力欄に移動
+        // ========================================
+        function setupEnterKeyNavigation() {
+            for (let i = 1; i <= 5; i++) {
+                const input = document.getElementById('rank' + i);
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        if (i < 5) {
+                            // 次の入力欄にフォーカス
+                            document.getElementById('rank' + (i + 1)).focus();
+                        } else {
+                            // 5位の場合は保存ボタンにフォーカス
+                            this.blur();
+                        }
+                    }
+                });
+            }
+        }
+        
+        // ========================================
         // 画面切り替え
         // ========================================
         function showScreen(screenId) {
@@ -385,6 +492,11 @@
             
             // ランキング画面に切り替え
             showScreen('rankingScreen');
+            
+            // 1位の入力欄にフォーカス
+            setTimeout(() => {
+                document.getElementById('rank1').focus();
+            }, 100);
         }
         
         function saveRanking() {
@@ -394,6 +506,7 @@
                 const value = document.getElementById('rank' + i).value.trim();
                 if (value === '') {
                     alert((i) + '位を入力してください！');
+                    document.getElementById('rank' + i).focus();
                     return;
                 }
                 rankings.push(value);
@@ -432,7 +545,7 @@
             const historyList = document.getElementById('historyList');
             
             if (history.length === 0) {
-                historyList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">まだランキングがありません<br>新しいお題でランキングを作ってみましょう！</p>';
+                historyList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px 20px;">まだランキングがありません<br>新しいお題でランキングを作ってみましょう！</p>';
             } else {
                 let html = '';
                 history.forEach((item, index) => {
@@ -461,4 +574,3 @@
     </script>
 </body>
 </html>
-
