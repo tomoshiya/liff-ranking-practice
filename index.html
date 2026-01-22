@@ -569,64 +569,128 @@
                 rankings.push(value);
             }
             
-            // LocalStorageから既存のデータを取得
-            let history = JSON.parse(localStorage.getItem('rankingHistory') || '[]');
-            
-            // 新しいデータを追加
-            const newRanking = {
-                theme: currentTheme,
-                rankings: rankings,
-                date: new Date().toISOString(),
-                userName: userProfile ? userProfile.displayName : '名無し'
-            };
-            
-            history.unshift(newRanking); // 配列の先頭に追加
-            
-            // 最大50件まで保持
-            if (history.length > 50) {
-                history = history.slice(0, 50);
+            // Firebaseが初期化されているか確認
+            if (!database) {
+                alert('❌ データベース接続エラー。\nページを再読み込みしてください。');
+                return;
             }
             
-            // LocalStorageに保存
-            localStorage.setItem('rankingHistory', JSON.stringify(history));
+            if (!userProfile) {
+                alert('❌ ユーザー情報が取得できていません。');
+                return;
+            }
             
-            alert('ランキングを保存しました！✨');
-            backToMain();
+            // Firebaseに保存するデータを作成
+            const newRanking = {
+                userId: userProfile.userId,
+                userName: userProfile.displayName,
+                theme: currentTheme,
+                ranking: {
+                    "1": rankings[0],
+                    "2": rankings[1],
+                    "3": rankings[2],
+                    "4": rankings[3],
+                    "5": rankings[4]
+                },
+                createdAt: new Date().toISOString()
+            };
+            
+            // Firebaseに保存（ユニークなIDを自動生成）
+            const rankingsRef = database.ref('rankings');
+            const newRankingRef = rankingsRef.push();
+            
+            newRankingRef.set(newRanking)
+                .then(() => {
+                    alert('✅ ランキングを保存しました！\n\nFirebaseに正常に保存されました。');
+                    console.log('✅ ランキング保存成功:', newRanking);
+                    backToMain();
+                })
+                .catch((error) => {
+                    alert('❌ 保存エラー:\n' + error.message);
+                    console.error('❌ 保存エラー:', error);
+                });
         }
         
         // ========================================
-        // 履歴表示機能
+        // 履歴表示機能（Firebaseから取得）
         // ========================================
         function showHistory() {
-            const history = JSON.parse(localStorage.getItem('rankingHistory') || '[]');
             const historyList = document.getElementById('historyList');
             
-            if (history.length === 0) {
-                historyList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px 20px;">まだランキングがありません<br>新しいお題でランキングを作ってみましょう！</p>';
-            } else {
-                let html = '';
-                history.forEach((item, index) => {
-                    const date = new Date(item.date);
-                    const dateStr = date.getFullYear() + '年' + 
-                                  (date.getMonth() + 1) + '月' + 
-                                  date.getDate() + '日 ' + 
-                                  date.getHours() + ':' + 
-                                  String(date.getMinutes()).padStart(2, '0');
-                    
-                    html += '<div class="history-item">';
-                    html += '<div class="history-theme">' + item.theme + '</div>';
-                    html += '<div class="history-date">' + dateStr + ' by ' + item.userName + '</div>';
-                    html += '<div class="history-rankings">';
-                    item.rankings.forEach((rank, i) => {
-                        html += '<div>' + (i + 1) + '位: ' + rank + '</div>';
-                    });
-                    html += '</div>';
-                    html += '</div>';
-                });
-                historyList.innerHTML = html;
+            // ローディング表示
+            historyList.innerHTML = '<p style="text-align: center; color: #666; padding: 40px 20px;">読み込み中...</p>';
+            
+            // 画面切り替え
+            showScreen('historyScreen');
+            
+            // Firebaseが初期化されているか確認
+            if (!database) {
+                historyList.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 40px 20px;">❌ データベース接続エラー<br>ページを再読み込みしてください</p>';
+                return;
             }
             
-            showScreen('historyScreen');
+            if (!userProfile) {
+                historyList.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 40px 20px;">❌ ユーザー情報が取得できていません</p>';
+                return;
+            }
+            
+            // Firebaseから自分のランキングデータを取得
+            const rankingsRef = database.ref('rankings');
+            const userRankingsQuery = rankingsRef.orderByChild('userId').equalTo(userProfile.userId);
+            
+            userRankingsQuery.once('value')
+                .then((snapshot) => {
+                    const rankings = [];
+                    
+                    // データを配列に変換
+                    snapshot.forEach((childSnapshot) => {
+                        const data = childSnapshot.val();
+                        data.id = childSnapshot.key; // IDを追加
+                        rankings.push(data);
+                    });
+                    
+                    // 日付順にソート（新しい順）
+                    rankings.sort((a, b) => {
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                    });
+                    
+                    // 表示
+                    if (rankings.length === 0) {
+                        historyList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px 20px;">まだランキングがありません<br>新しいお題でランキングを作ってみましょう！</p>';
+                    } else {
+                        let html = '';
+                        rankings.forEach((item) => {
+                            const date = new Date(item.createdAt);
+                            const dateStr = date.getFullYear() + '年' + 
+                                          (date.getMonth() + 1) + '月' + 
+                                          date.getDate() + '日 ' + 
+                                          date.getHours() + ':' + 
+                                          String(date.getMinutes()).padStart(2, '0');
+                            
+                            html += '<div class="history-item">';
+                            html += '<div class="history-theme">' + item.theme + '</div>';
+                            html += '<div class="history-date">' + dateStr + ' by ' + item.userName + '</div>';
+                            html += '<div class="history-rankings">';
+                            
+                            // ranking オブジェクトから表示
+                            for (let i = 1; i <= 5; i++) {
+                                if (item.ranking && item.ranking[i.toString()]) {
+                                    html += '<div>' + i + '位: ' + item.ranking[i.toString()] + '</div>';
+                                }
+                            }
+                            
+                            html += '</div>';
+                            html += '</div>';
+                        });
+                        historyList.innerHTML = html;
+                    }
+                    
+                    console.log('✅ 履歴取得成功:', rankings.length + '件');
+                })
+                .catch((error) => {
+                    historyList.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 40px 20px;">❌ データ取得エラー<br>' + error.message + '</p>';
+                    console.error('❌ 履歴取得エラー:', error);
+                });
         }
         
         // ========================================
