@@ -213,6 +213,47 @@
             display: block;
         }
         
+        /* ドラッグ&ドロップ用スタイル */
+        .draggable-item {
+            background: #f8f9fa;
+            border: 2px solid #B8D9F0;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: grab;
+            touch-action: none;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        
+        .draggable-item.dragging {
+            opacity: 0.5;
+            transform: scale(1.05);
+            background: #E8F4F8;
+            border-color: #4A90E2;
+            cursor: grabbing;
+            box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+        }
+        
+        .draggable-item.drag-over {
+            border-color: #FF6B9D;
+            border-style: dashed;
+        }
+        
+        .drag-handle {
+            color: #999;
+            font-size: 20px;
+            padding: 0 10px;
+            cursor: grab;
+        }
+        
+        .dragging .drag-handle {
+            cursor: grabbing;
+        }
+        
         /* スマホ最適化 */
         @media (max-width: 480px) {
             body {
@@ -1476,21 +1517,29 @@
             showScreen('guessScreen');
         }
         
-        // 予想ランキングUIを生成
+        // 予想ランキングUIを生成（ドラッグ&ドロップ対応）
         function createGuessRankingUI(items) {
             const container = document.getElementById('guessRankingArea');
             container.innerHTML = '';
             
             items.forEach((item, index) => {
                 const itemDiv = document.createElement('div');
-                itemDiv.className = 'guess-item';
+                itemDiv.className = 'draggable-item';
                 itemDiv.setAttribute('data-index', index);
-                itemDiv.style.cssText = 'background: #f8f9fa; border: 2px solid #B8D9F0; border-radius: 10px; padding: 15px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center;';
+                itemDiv.setAttribute('data-item', item);
+                itemDiv.setAttribute('draggable', 'true');
                 
+                // ドラッグハンドル（≡アイコン）
+                const handleSpan = document.createElement('span');
+                handleSpan.className = 'drag-handle';
+                handleSpan.textContent = '≡';
+                
+                // テキスト
                 const textSpan = document.createElement('span');
                 textSpan.textContent = item;
-                textSpan.style.cssText = 'color: #333; font-size: 15px; flex: 1;';
+                textSpan.style.cssText = 'color: #333; font-size: 15px; flex: 1; padding: 0 10px;';
                 
+                // ボタンエリア
                 const buttonsDiv = document.createElement('div');
                 buttonsDiv.style.cssText = 'display: flex; gap: 5px;';
                 
@@ -1518,8 +1567,13 @@
                     buttonsDiv.appendChild(downBtn);
                 }
                 
+                itemDiv.appendChild(handleSpan);
                 itemDiv.appendChild(textSpan);
                 itemDiv.appendChild(buttonsDiv);
+                
+                // ドラッグイベント設定（リアルタイムゲーム用）
+                setupGameDragEvents(itemDiv);
+                
                 container.appendChild(itemDiv);
             });
             
@@ -1527,7 +1581,7 @@
             container.setAttribute('data-items', JSON.stringify(items));
         }
         
-        // 項目を移動
+        // 項目を移動（ボタン用）
         function moveItem(index, direction) {
             const container = document.getElementById('guessRankingArea');
             const items = JSON.parse(container.getAttribute('data-items'));
@@ -1544,6 +1598,116 @@
             
             // UIを再生成
             createGuessRankingUI(items);
+        }
+        
+        // リアルタイムゲーム用ドラッグイベント
+        function setupGameDragEvents(element) {
+            let draggedElement = null;
+            let touchStartY = 0;
+            let originalIndex = 0;
+            
+            // タッチスタート（スマホ）
+            element.addEventListener('touchstart', function(e) {
+                draggedElement = this;
+                originalIndex = parseInt(this.getAttribute('data-index'));
+                touchStartY = e.touches[0].clientY;
+                
+                this.classList.add('dragging');
+                
+                // 長押し判定（200ms）
+                setTimeout(() => {
+                    if (draggedElement === this) {
+                        // 振動フィードバック（対応デバイスのみ）
+                        if (navigator.vibrate) {
+                            navigator.vibrate(50);
+                        }
+                    }
+                }, 200);
+            }, { passive: true });
+            
+            // タッチムーブ（スマホ）
+            element.addEventListener('touchmove', function(e) {
+                if (!draggedElement) return;
+                
+                const touch = e.touches[0];
+                const currentY = touch.clientY;
+                const deltaY = currentY - touchStartY;
+                
+                // 移動量が十分か確認
+                if (Math.abs(deltaY) > 30) {
+                    const container = document.getElementById('guessRankingArea');
+                    const items = Array.from(container.children);
+                    const currentIndex = items.indexOf(draggedElement);
+                    
+                    // 上に移動
+                    if (deltaY < -30 && currentIndex > 0) {
+                        container.insertBefore(draggedElement, items[currentIndex - 1]);
+                        touchStartY = currentY;
+                        updateGameItemsOrder();
+                    }
+                    // 下に移動
+                    else if (deltaY > 30 && currentIndex < items.length - 1) {
+                        container.insertBefore(items[currentIndex + 1], draggedElement);
+                        touchStartY = currentY;
+                        updateGameItemsOrder();
+                    }
+                }
+            }, { passive: true });
+            
+            // タッチエンド（スマホ）
+            element.addEventListener('touchend', function(e) {
+                if (draggedElement) {
+                    draggedElement.classList.remove('dragging');
+                    draggedElement = null;
+                }
+            });
+            
+            // デスクトップ用ドラッグイベント
+            element.addEventListener('dragstart', function(e) {
+                draggedElement = this;
+                originalIndex = parseInt(this.getAttribute('data-index'));
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            
+            element.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                if (draggedElement === this) return;
+                
+                const container = document.getElementById('guessRankingArea');
+                const items = Array.from(container.children);
+                const draggedIndex = items.indexOf(draggedElement);
+                const targetIndex = items.indexOf(this);
+                
+                if (draggedIndex < targetIndex) {
+                    container.insertBefore(draggedElement, this.nextSibling);
+                } else {
+                    container.insertBefore(draggedElement, this);
+                }
+                
+                updateGameItemsOrder();
+            });
+            
+            element.addEventListener('dragend', function(e) {
+                this.classList.remove('dragging');
+                draggedElement = null;
+            });
+        }
+        
+        // リアルタイムゲーム：項目順序を更新
+        function updateGameItemsOrder() {
+            const container = document.getElementById('guessRankingArea');
+            const items = Array.from(container.children);
+            const newOrder = items.map((item, index) => {
+                item.setAttribute('data-index', index);
+                return item.getAttribute('data-item');
+            });
+            
+            // 現在の順序を保存
+            container.setAttribute('data-items', JSON.stringify(newOrder));
+            
+            // UIを再生成（ボタンの表示を更新）
+            createGuessRankingUI(newOrder);
         }
         
         // 予想を送信
@@ -1916,21 +2080,29 @@
                 });
         }
         
-        // 振り返り予想：UIを生成
+        // 振り返り予想：UIを生成（ドラッグ&ドロップ対応）
         function createReviewGuessUI(items) {
             const container = document.getElementById('reviewGuessArea');
             container.innerHTML = '';
             
             items.forEach((item, index) => {
                 const itemDiv = document.createElement('div');
-                itemDiv.className = 'review-guess-item';
+                itemDiv.className = 'draggable-item';
                 itemDiv.setAttribute('data-index', index);
-                itemDiv.style.cssText = 'background: #f8f9fa; border: 2px solid #B8D9F0; border-radius: 10px; padding: 15px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center;';
+                itemDiv.setAttribute('data-item', item);
+                itemDiv.setAttribute('draggable', 'true');
                 
+                // ドラッグハンドル（≡アイコン）
+                const handleSpan = document.createElement('span');
+                handleSpan.className = 'drag-handle';
+                handleSpan.textContent = '≡';
+                
+                // テキスト
                 const textSpan = document.createElement('span');
                 textSpan.textContent = item;
-                textSpan.style.cssText = 'color: #333; font-size: 15px; flex: 1;';
+                textSpan.style.cssText = 'color: #333; font-size: 15px; flex: 1; padding: 0 10px;';
                 
+                // ボタンエリア
                 const buttonsDiv = document.createElement('div');
                 buttonsDiv.style.cssText = 'display: flex; gap: 5px;';
                 
@@ -1958,13 +2130,128 @@
                     buttonsDiv.appendChild(downBtn);
                 }
                 
+                itemDiv.appendChild(handleSpan);
                 itemDiv.appendChild(textSpan);
                 itemDiv.appendChild(buttonsDiv);
+                
+                // ドラッグイベント設定
+                setupDragEvents(itemDiv);
+                
                 container.appendChild(itemDiv);
             });
             
             // 現在の項目リストを保存
             container.setAttribute('data-items', JSON.stringify(items));
+        }
+        
+        // ドラッグ&ドロップイベントを設定
+        function setupDragEvents(element) {
+            let draggedElement = null;
+            let touchStartY = 0;
+            let originalIndex = 0;
+            
+            // タッチスタート（スマホ）
+            element.addEventListener('touchstart', function(e) {
+                draggedElement = this;
+                originalIndex = parseInt(this.getAttribute('data-index'));
+                touchStartY = e.touches[0].clientY;
+                
+                this.classList.add('dragging');
+                
+                // 長押し判定（200ms）
+                setTimeout(() => {
+                    if (draggedElement === this) {
+                        // 振動フィードバック（対応デバイスのみ）
+                        if (navigator.vibrate) {
+                            navigator.vibrate(50);
+                        }
+                    }
+                }, 200);
+            }, { passive: true });
+            
+            // タッチムーブ（スマホ）
+            element.addEventListener('touchmove', function(e) {
+                if (!draggedElement) return;
+                
+                const touch = e.touches[0];
+                const currentY = touch.clientY;
+                const deltaY = currentY - touchStartY;
+                
+                // 移動量が十分か確認
+                if (Math.abs(deltaY) > 30) {
+                    const container = document.getElementById('reviewGuessArea');
+                    const items = Array.from(container.children);
+                    const currentIndex = items.indexOf(draggedElement);
+                    
+                    // 上に移動
+                    if (deltaY < -30 && currentIndex > 0) {
+                        container.insertBefore(draggedElement, items[currentIndex - 1]);
+                        touchStartY = currentY;
+                        updateReviewItemsOrder();
+                    }
+                    // 下に移動
+                    else if (deltaY > 30 && currentIndex < items.length - 1) {
+                        container.insertBefore(items[currentIndex + 1], draggedElement);
+                        touchStartY = currentY;
+                        updateReviewItemsOrder();
+                    }
+                }
+            }, { passive: true });
+            
+            // タッチエンド（スマホ）
+            element.addEventListener('touchend', function(e) {
+                if (draggedElement) {
+                    draggedElement.classList.remove('dragging');
+                    draggedElement = null;
+                }
+            });
+            
+            // デスクトップ用ドラッグイベント
+            element.addEventListener('dragstart', function(e) {
+                draggedElement = this;
+                originalIndex = parseInt(this.getAttribute('data-index'));
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            
+            element.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                if (draggedElement === this) return;
+                
+                const container = document.getElementById('reviewGuessArea');
+                const items = Array.from(container.children);
+                const draggedIndex = items.indexOf(draggedElement);
+                const targetIndex = items.indexOf(this);
+                
+                if (draggedIndex < targetIndex) {
+                    container.insertBefore(draggedElement, this.nextSibling);
+                } else {
+                    container.insertBefore(draggedElement, this);
+                }
+                
+                updateReviewItemsOrder();
+            });
+            
+            element.addEventListener('dragend', function(e) {
+                this.classList.remove('dragging');
+                draggedElement = null;
+            });
+        }
+        
+        // 振り返り予想：項目順序を更新
+        function updateReviewItemsOrder() {
+            const container = document.getElementById('reviewGuessArea');
+            const items = Array.from(container.children);
+            const newOrder = items.map((item, index) => {
+                item.setAttribute('data-index', index);
+                return item.getAttribute('data-item');
+            });
+            
+            // 現在の順序を保存
+            container.setAttribute('data-items', JSON.stringify(newOrder));
+            
+            // UIを再生成（ボタンの表示を更新）
+            createReviewGuessUI(newOrder);
         }
         
         // 振り返り予想：項目を移動
