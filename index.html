@@ -227,6 +227,7 @@
             touch-action: none;
             transition: all 0.2s ease;
             user-select: none;
+            position: relative;
         }
         
         .draggable-item.dragging {
@@ -236,11 +237,23 @@
             border-color: #4A90E2;
             cursor: grabbing;
             box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+            z-index: 1000;
         }
         
         .draggable-item.drag-over {
-            border-color: #FF6B9D;
-            border-style: dashed;
+            border-top: 3px solid #FF6B9D;
+        }
+        
+        .rank-number {
+            background: linear-gradient(135deg, #4A90E2, #7AB8F5);
+            color: white;
+            font-weight: bold;
+            padding: 8px 12px;
+            border-radius: 8px;
+            min-width: 45px;
+            text-align: center;
+            font-size: 14px;
+            margin-right: 10px;
         }
         
         .drag-handle {
@@ -1527,7 +1540,11 @@
                 itemDiv.className = 'draggable-item';
                 itemDiv.setAttribute('data-index', index);
                 itemDiv.setAttribute('data-item', item);
-                itemDiv.setAttribute('draggable', 'true');
+                
+                // 順位番号
+                const rankSpan = document.createElement('span');
+                rankSpan.className = 'rank-number';
+                rankSpan.textContent = (index + 1) + '位';
                 
                 // ドラッグハンドル（≡アイコン）
                 const handleSpan = document.createElement('span');
@@ -1567,6 +1584,7 @@
                     buttonsDiv.appendChild(downBtn);
                 }
                 
+                itemDiv.appendChild(rankSpan);
                 itemDiv.appendChild(handleSpan);
                 itemDiv.appendChild(textSpan);
                 itemDiv.appendChild(buttonsDiv);
@@ -1600,72 +1618,112 @@
             createGuessRankingUI(items);
         }
         
-        // リアルタイムゲーム用ドラッグイベント
+        // リアルタイムゲーム用ドラッグイベント（改善版：シームレス移動）
         function setupGameDragEvents(element) {
             let draggedElement = null;
-            let touchStartY = 0;
-            let originalIndex = 0;
+            let placeholder = null;
+            let isDragging = false;
             
             // タッチスタート（スマホ）
             element.addEventListener('touchstart', function(e) {
+                isDragging = false;
                 draggedElement = this;
-                originalIndex = parseInt(this.getAttribute('data-index'));
-                touchStartY = e.touches[0].clientY;
                 
-                this.classList.add('dragging');
-                
-                // 長押し判定（200ms）
+                // 200ms後にドラッグ開始
                 setTimeout(() => {
-                    if (draggedElement === this) {
-                        // 振動フィードバック（対応デバイスのみ）
+                    if (draggedElement === this && !isDragging) {
+                        isDragging = true;
+                        this.classList.add('dragging');
+                        
+                        // 振動フィードバック
                         if (navigator.vibrate) {
                             navigator.vibrate(50);
                         }
+                        
+                        // プレースホルダー作成
+                        placeholder = this.cloneNode(true);
+                        placeholder.style.opacity = '0.3';
+                        placeholder.style.pointerEvents = 'none';
                     }
                 }, 200);
             }, { passive: true });
             
             // タッチムーブ（スマホ）
             element.addEventListener('touchmove', function(e) {
-                if (!draggedElement) return;
+                if (!isDragging || !draggedElement) return;
                 
                 const touch = e.touches[0];
-                const currentY = touch.clientY;
-                const deltaY = currentY - touchStartY;
+                const touchY = touch.clientY;
                 
-                // 移動量が十分か確認
-                if (Math.abs(deltaY) > 30) {
-                    const container = document.getElementById('guessRankingArea');
-                    const items = Array.from(container.children);
-                    const currentIndex = items.indexOf(draggedElement);
+                // コンテナを取得
+                const container = document.getElementById('guessRankingArea');
+                const items = Array.from(container.children);
+                
+                // タッチ位置に最も近い要素を見つける
+                let closestElement = null;
+                let closestDistance = Infinity;
+                
+                items.forEach(item => {
+                    if (item === draggedElement) return;
                     
-                    // 上に移動
-                    if (deltaY < -30 && currentIndex > 0) {
-                        container.insertBefore(draggedElement, items[currentIndex - 1]);
-                        touchStartY = currentY;
-                        updateGameItemsOrder();
+                    const rect = item.getBoundingClientRect();
+                    const itemCenterY = rect.top + rect.height / 2;
+                    const distance = Math.abs(touchY - itemCenterY);
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestElement = item;
                     }
-                    // 下に移動
-                    else if (deltaY > 30 && currentIndex < items.length - 1) {
-                        container.insertBefore(items[currentIndex + 1], draggedElement);
-                        touchStartY = currentY;
-                        updateGameItemsOrder();
+                });
+                
+                // 最も近い要素の前または後に挿入
+                if (closestElement) {
+                    const rect = closestElement.getBoundingClientRect();
+                    const closestCenterY = rect.top + rect.height / 2;
+                    
+                    if (touchY < closestCenterY) {
+                        // 上に挿入
+                        if (closestElement !== draggedElement.nextSibling) {
+                            container.insertBefore(draggedElement, closestElement);
+                        }
+                    } else {
+                        // 下に挿入
+                        if (closestElement.nextSibling !== draggedElement) {
+                            container.insertBefore(draggedElement, closestElement.nextSibling);
+                        }
                     }
                 }
             }, { passive: true });
             
             // タッチエンド（スマホ）
             element.addEventListener('touchend', function(e) {
+                isDragging = false;
+                if (draggedElement) {
+                    draggedElement.classList.remove('dragging');
+                    
+                    // 順序を更新
+                    updateGameItemsOrder();
+                    
+                    draggedElement = null;
+                    placeholder = null;
+                }
+            });
+            
+            // タッチキャンセル
+            element.addEventListener('touchcancel', function(e) {
+                isDragging = false;
                 if (draggedElement) {
                     draggedElement.classList.remove('dragging');
                     draggedElement = null;
+                    placeholder = null;
                 }
             });
             
             // デスクトップ用ドラッグイベント
+            element.setAttribute('draggable', 'true');
+            
             element.addEventListener('dragstart', function(e) {
                 draggedElement = this;
-                originalIndex = parseInt(this.getAttribute('data-index'));
                 this.classList.add('dragging');
                 e.dataTransfer.effectAllowed = 'move';
             });
@@ -1675,21 +1733,21 @@
                 if (draggedElement === this) return;
                 
                 const container = document.getElementById('guessRankingArea');
-                const items = Array.from(container.children);
-                const draggedIndex = items.indexOf(draggedElement);
-                const targetIndex = items.indexOf(this);
+                const bounding = this.getBoundingClientRect();
+                const offset = e.clientY - bounding.top;
                 
-                if (draggedIndex < targetIndex) {
+                if (offset > bounding.height / 2) {
+                    // 下半分：この要素の後に挿入
                     container.insertBefore(draggedElement, this.nextSibling);
                 } else {
+                    // 上半分：この要素の前に挿入
                     container.insertBefore(draggedElement, this);
                 }
-                
-                updateGameItemsOrder();
             });
             
             element.addEventListener('dragend', function(e) {
                 this.classList.remove('dragging');
+                updateGameItemsOrder();
                 draggedElement = null;
             });
         }
@@ -2090,7 +2148,11 @@
                 itemDiv.className = 'draggable-item';
                 itemDiv.setAttribute('data-index', index);
                 itemDiv.setAttribute('data-item', item);
-                itemDiv.setAttribute('draggable', 'true');
+                
+                // 順位番号
+                const rankSpan = document.createElement('span');
+                rankSpan.className = 'rank-number';
+                rankSpan.textContent = (index + 1) + '位';
                 
                 // ドラッグハンドル（≡アイコン）
                 const handleSpan = document.createElement('span');
@@ -2130,6 +2192,7 @@
                     buttonsDiv.appendChild(downBtn);
                 }
                 
+                itemDiv.appendChild(rankSpan);
                 itemDiv.appendChild(handleSpan);
                 itemDiv.appendChild(textSpan);
                 itemDiv.appendChild(buttonsDiv);
@@ -2144,72 +2207,112 @@
             container.setAttribute('data-items', JSON.stringify(items));
         }
         
-        // ドラッグ&ドロップイベントを設定
+        // ドラッグ&ドロップイベントを設定（改善版：シームレス移動）
         function setupDragEvents(element) {
             let draggedElement = null;
-            let touchStartY = 0;
-            let originalIndex = 0;
+            let placeholder = null;
+            let isDragging = false;
             
             // タッチスタート（スマホ）
             element.addEventListener('touchstart', function(e) {
+                isDragging = false;
                 draggedElement = this;
-                originalIndex = parseInt(this.getAttribute('data-index'));
-                touchStartY = e.touches[0].clientY;
                 
-                this.classList.add('dragging');
-                
-                // 長押し判定（200ms）
+                // 200ms後にドラッグ開始
                 setTimeout(() => {
-                    if (draggedElement === this) {
-                        // 振動フィードバック（対応デバイスのみ）
+                    if (draggedElement === this && !isDragging) {
+                        isDragging = true;
+                        this.classList.add('dragging');
+                        
+                        // 振動フィードバック
                         if (navigator.vibrate) {
                             navigator.vibrate(50);
                         }
+                        
+                        // プレースホルダー作成
+                        placeholder = this.cloneNode(true);
+                        placeholder.style.opacity = '0.3';
+                        placeholder.style.pointerEvents = 'none';
                     }
                 }, 200);
             }, { passive: true });
             
             // タッチムーブ（スマホ）
             element.addEventListener('touchmove', function(e) {
-                if (!draggedElement) return;
+                if (!isDragging || !draggedElement) return;
                 
                 const touch = e.touches[0];
-                const currentY = touch.clientY;
-                const deltaY = currentY - touchStartY;
+                const touchY = touch.clientY;
                 
-                // 移動量が十分か確認
-                if (Math.abs(deltaY) > 30) {
-                    const container = document.getElementById('reviewGuessArea');
-                    const items = Array.from(container.children);
-                    const currentIndex = items.indexOf(draggedElement);
+                // コンテナを取得
+                const container = document.getElementById('reviewGuessArea');
+                const items = Array.from(container.children);
+                
+                // タッチ位置に最も近い要素を見つける
+                let closestElement = null;
+                let closestDistance = Infinity;
+                
+                items.forEach(item => {
+                    if (item === draggedElement) return;
                     
-                    // 上に移動
-                    if (deltaY < -30 && currentIndex > 0) {
-                        container.insertBefore(draggedElement, items[currentIndex - 1]);
-                        touchStartY = currentY;
-                        updateReviewItemsOrder();
+                    const rect = item.getBoundingClientRect();
+                    const itemCenterY = rect.top + rect.height / 2;
+                    const distance = Math.abs(touchY - itemCenterY);
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestElement = item;
                     }
-                    // 下に移動
-                    else if (deltaY > 30 && currentIndex < items.length - 1) {
-                        container.insertBefore(items[currentIndex + 1], draggedElement);
-                        touchStartY = currentY;
-                        updateReviewItemsOrder();
+                });
+                
+                // 最も近い要素の前または後に挿入
+                if (closestElement) {
+                    const rect = closestElement.getBoundingClientRect();
+                    const closestCenterY = rect.top + rect.height / 2;
+                    
+                    if (touchY < closestCenterY) {
+                        // 上に挿入
+                        if (closestElement !== draggedElement.nextSibling) {
+                            container.insertBefore(draggedElement, closestElement);
+                        }
+                    } else {
+                        // 下に挿入
+                        if (closestElement.nextSibling !== draggedElement) {
+                            container.insertBefore(draggedElement, closestElement.nextSibling);
+                        }
                     }
                 }
             }, { passive: true });
             
             // タッチエンド（スマホ）
             element.addEventListener('touchend', function(e) {
+                isDragging = false;
+                if (draggedElement) {
+                    draggedElement.classList.remove('dragging');
+                    
+                    // 順序を更新
+                    updateReviewItemsOrder();
+                    
+                    draggedElement = null;
+                    placeholder = null;
+                }
+            });
+            
+            // タッチキャンセル
+            element.addEventListener('touchcancel', function(e) {
+                isDragging = false;
                 if (draggedElement) {
                     draggedElement.classList.remove('dragging');
                     draggedElement = null;
+                    placeholder = null;
                 }
             });
             
             // デスクトップ用ドラッグイベント
+            element.setAttribute('draggable', 'true');
+            
             element.addEventListener('dragstart', function(e) {
                 draggedElement = this;
-                originalIndex = parseInt(this.getAttribute('data-index'));
                 this.classList.add('dragging');
                 e.dataTransfer.effectAllowed = 'move';
             });
@@ -2219,21 +2322,21 @@
                 if (draggedElement === this) return;
                 
                 const container = document.getElementById('reviewGuessArea');
-                const items = Array.from(container.children);
-                const draggedIndex = items.indexOf(draggedElement);
-                const targetIndex = items.indexOf(this);
+                const bounding = this.getBoundingClientRect();
+                const offset = e.clientY - bounding.top;
                 
-                if (draggedIndex < targetIndex) {
+                if (offset > bounding.height / 2) {
+                    // 下半分：この要素の後に挿入
                     container.insertBefore(draggedElement, this.nextSibling);
                 } else {
+                    // 上半分：この要素の前に挿入
                     container.insertBefore(draggedElement, this);
                 }
-                
-                updateReviewItemsOrder();
             });
             
             element.addEventListener('dragend', function(e) {
                 this.classList.remove('dragging');
+                updateReviewItemsOrder();
                 draggedElement = null;
             });
         }
