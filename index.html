@@ -352,40 +352,41 @@
         <div id="mainScreen" class="screen">
             <!-- ペア状態表示エリア（フェーズ4で追加） -->
             <div id="pairStatus" style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center;">
-                <p style="color: #666; font-size: 13px; margin-bottom: 8px;">👥 ペア状態</p>
+                <p style="color: #666; font-size: 13px; margin-bottom: 8px;">👥 ペアの設定状態</p>
                 <div id="pairStatusContent">
                     <p style="color: #999; font-size: 14px;">読み込み中...</p>
                 </div>
+                <!-- ペア設定ボタンを枠内に配置 -->
+                <button id="pairSettingButton" onclick="showPairScreen()" style="background: #9B59B6; margin-top: 10px; font-size: 14px; padding: 10px 15px;">
+                    ⚙️ ペアを設定する
+                </button>
             </div>
             
-            <!-- リアルタイムゲームボタン（フェーズ5-Aで追加） -->
-            <button onclick="startRealtimeGame()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); font-size: 17px; padding: 18px 20px;">
-                🎮 ふたりであそぶ
-            </button>
+            <!-- セクション1: ふたりであそぶ -->
+            <div style="margin-bottom: 20px;">
+                <p style="color: #999; font-size: 12px; margin-bottom: 10px; text-align: center;">━━━ ふたりであそぶ ━━━</p>
+                <button id="realtimeGameButton" onclick="startRealtimeGame()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); font-size: 17px; padding: 18px 20px;">
+                    🎮 ふたりであそぶ
+                </button>
+            </div>
             
-            <button onclick="startRanking()">
-                🎯 新しいお題でランキングを作る
-            </button>
+            <!-- セクション2: ひとりで試す -->
+            <div style="margin-bottom: 20px;">
+                <p style="color: #999; font-size: 12px; margin-bottom: 10px; text-align: center;">━━━ ひとりで試す ━━━</p>
+                <button onclick="startRanking()">
+                    🎯 新しいテーマでランキングを作る
+                </button>
+                <button onclick="showReviewList()" style="background: #9B59B6;">
+                    🔄 自分のランキングであそぶ
+                </button>
+                <button onclick="showHistory()" class="secondary-button">
+                    📋 過去の回答履歴を見る
+                </button>
+            </div>
             
-            <button onclick="showHistory()" class="secondary-button">
-                📋 過去のランキングを見る
-            </button>
-            
-            <!-- 振り返り予想ボタン（テスト用機能） -->
-            <button onclick="showReviewList()" style="background: #9B59B6;">
-                🔄 振り返り予想（一人で練習）
-            </button>
-            
-            <!-- ペア機能ボタン（フェーズ4で追加） -->
-            <button onclick="showPairScreen()" style="background: #9B59B6; margin-top: 10px;">
-                💑 ペア設定
-            </button>
-            
-            <!-- Firebase接続テスト（フェーズ3で追加） -->
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px dashed #ddd;">
-                <p style="text-align: center; color: #666; font-size: 13px; margin-bottom: 10px;">
-                    🔥 Firebase接続テスト
-                </p>
+            <!-- セクション3: Firebase接続テスト -->
+            <div style="padding-top: 20px; border-top: 2px dashed #ddd;">
+                <p style="text-align: center; color: #999; font-size: 12px; margin-bottom: 10px;">━━━ Firebase接続テスト ━━━</p>
                 <button onclick="testFirebaseConnection()" style="background: #FF6B35;">
                     🔌 Firebase接続確認
                 </button>
@@ -398,7 +399,7 @@
         <!-- ランキング入力画面 -->
         <div id="rankingScreen" class="screen">
             <div class="theme-box">
-                <h2>📌 今回のお題</h2>
+                <h2>📌 今回のテーマ</h2>
                 <p class="theme-text" id="currentTheme">---</p>
             </div>
             
@@ -534,7 +535,7 @@
             <h2 style="color: #FF6B9D; margin-bottom: 20px;">🎮 ランキング入力</h2>
             
             <div class="theme-box">
-                <h2>📌 今回のお題</h2>
+                <h2>📌 今回のテーマ</h2>
                 <p class="theme-text" id="gameTheme">---</p>
             </div>
             
@@ -586,7 +587,7 @@
             </div>
             
             <div class="theme-box" style="margin-bottom: 20px;">
-                <h2>📌 お題</h2>
+                <h2>📌 テーマ</h2>
                 <p class="theme-text" id="guessTheme">---</p>
             </div>
             
@@ -648,7 +649,7 @@
             <h2 style="color: #9B59B6; margin-bottom: 20px;">🔄 並び替えてみよう</h2>
             
             <div class="theme-box" style="margin-bottom: 20px;">
-                <h2>📌 お題</h2>
+                <h2>📌 テーマ</h2>
                 <p class="theme-text" id="reviewTheme">---</p>
             </div>
             
@@ -690,7 +691,7 @@
 
     <script>
         // ========================================
-        // お題データ（28個）
+        // テーマデータ（28個）
         // ========================================
         const THEMES = [
             // エモーション系（8個）
@@ -902,6 +903,7 @@
         // ペア状態の表示更新
         function updatePairStatus() {
             const statusContent = document.getElementById('pairStatusContent');
+            const realtimeGameButton = document.getElementById('realtimeGameButton');
             
             if (!currentUser) {
                 statusContent.innerHTML = '<p style="color: #999; font-size: 14px;">ユーザー情報を読み込み中...</p>';
@@ -918,19 +920,48 @@
                             statusContent.innerHTML = 
                                 '<p style="color: #50C878; font-size: 15px; font-weight: bold;">✅ ペア成立</p>' +
                                 '<p style="color: #666; font-size: 14px; margin-top: 5px;">パートナー: ' + partner.displayName + '</p>';
+                            
+                            // ボタンを有効化
+                            if (realtimeGameButton) {
+                                realtimeGameButton.disabled = false;
+                                realtimeGameButton.style.opacity = '1';
+                                realtimeGameButton.style.cursor = 'pointer';
+                            }
                         } else {
                             statusContent.innerHTML = '<p style="color: #ff6b6b; font-size: 14px;">⚠️ パートナー情報が見つかりません</p>';
+                            
+                            // ボタンを無効化
+                            if (realtimeGameButton) {
+                                realtimeGameButton.disabled = true;
+                                realtimeGameButton.style.opacity = '0.5';
+                                realtimeGameButton.style.cursor = 'not-allowed';
+                            }
                         }
                     })
                     .catch((error) => {
                         console.error('❌ パートナー情報取得エラー:', error);
                         statusContent.innerHTML = '<p style="color: #ff6b6b; font-size: 14px;">❌ 情報取得エラー</p>';
+                        
+                        // ボタンを無効化
+                        if (realtimeGameButton) {
+                            realtimeGameButton.disabled = true;
+                            realtimeGameButton.style.opacity = '0.5';
+                            realtimeGameButton.style.cursor = 'not-allowed';
+                        }
                     });
             } else {
                 // パートナーがいない場合
                 statusContent.innerHTML = 
                     '<p style="color: #999; font-size: 14px;">まだペアが設定されていません</p>' +
-                    '<p style="color: #9B59B6; font-size: 13px; margin-top: 5px;">「ペア設定」からコードを共有しましょう</p>';
+                    '<p style="color: #9B59B6; font-size: 13px; margin-top: 5px;">「ペアを設定する」からコードを共有しましょう</p>';
+                
+                // ボタンを無効化（グレーアウト）
+                if (realtimeGameButton) {
+                    realtimeGameButton.disabled = true;
+                    realtimeGameButton.style.opacity = '0.5';
+                    realtimeGameButton.style.cursor = 'not-allowed';
+                    realtimeGameButton.style.background = '#CCC';
+                }
             }
         }
         
@@ -1175,7 +1206,7 @@
         
         // ゲームセッション作成
         function createGameSession() {
-            // ランダムにお題を選ぶ
+            // ランダムにテーマを選ぶ
             const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
             
             // セッションデータ作成
@@ -1354,7 +1385,7 @@
         
         // ゲーム入力画面を表示
         function showGameInputScreen(sessionData) {
-            // お題を表示
+            // テーマを表示
             document.getElementById('gameTheme').textContent = sessionData.theme;
             
             // 進行状況を更新
@@ -1488,7 +1519,7 @@
         
         // 予想画面を表示
         function showGuessScreen(sessionData) {
-            // お題を表示
+            // テーマを表示
             document.getElementById('guessTheme').textContent = sessionData.theme;
             
             // パートナー名を取得
@@ -1983,11 +2014,12 @@
                         const isCorrect = correct === guess;
                         const icon = isCorrect ? '✅' : '❌';
                         const color = isCorrect ? '#50C878' : '#ff6b6b';
+                        const bgColor = isCorrect ? '#F0FFF4' : 'transparent';
                         
-                        html += '<div style="display: flex; align-items: center; margin: 10px 0;">';
+                        html += '<div style="display: flex; align-items: center; margin: 8px 0; padding: 10px; border-radius: 8px; background: ' + bgColor + ';">';
                         html += '<span style="color: #666; font-size: 14px; min-width: 40px;">' + i + '位:</span>';
                         html += '<span style="color: #333; font-size: 15px; flex: 1;">' + correct + '</span>';
-                        html += '<span style="color: ' + color + '; font-size: 14px;">' + icon + ' ' + (isCorrect ? '正解' : guess) + '</span>';
+                        html += '<span style="color: ' + color + '; font-size: 14px; font-weight: bold;">' + icon + ' ' + (isCorrect ? '正解' : guess) + '</span>';
                         html += '</div>';
                     }
                     html += '</div>';
@@ -2004,11 +2036,12 @@
                         const isCorrect = correct === guess;
                         const icon = isCorrect ? '✅' : '❌';
                         const color = isCorrect ? '#50C878' : '#ff6b6b';
+                        const bgColor = isCorrect ? '#F0FFF4' : 'transparent';
                         
-                        html += '<div style="display: flex; align-items: center; margin: 10px 0;">';
+                        html += '<div style="display: flex; align-items: center; margin: 8px 0; padding: 10px; border-radius: 8px; background: ' + bgColor + ';">';
                         html += '<span style="color: #666; font-size: 14px; min-width: 40px;">' + i + '位:</span>';
                         html += '<span style="color: #333; font-size: 15px; flex: 1;">' + correct + '</span>';
-                        html += '<span style="color: ' + color + '; font-size: 14px;">' + icon + ' ' + (isCorrect ? '正解' : guess) + '</span>';
+                        html += '<span style="color: ' + color + '; font-size: 14px; font-weight: bold;">' + icon + ' ' + (isCorrect ? '正解' : guess) + '</span>';
                         html += '</div>';
                     }
                     html += '</div>';
@@ -2136,7 +2169,7 @@
                     // 正解を保存
                     reviewCorrectAnswer = rankingData.ranking;
                     
-                    // お題を表示
+                    // テーマを表示
                     document.getElementById('reviewTheme').textContent = rankingData.theme;
                     
                     // 項目を取得してシャッフル
@@ -2507,11 +2540,12 @@
                 const icon = isCorrect ? '✅' : '❌';
                 const color = isCorrect ? '#50C878' : '#ff6b6b';
                 const pointText = isCorrect ? '+' + detail.rankPoint + '点' : '0点';
+                const bgColor = isCorrect ? '#F0FFF4' : 'transparent';
                 
-                html += '<div style="display: flex; align-items: center; margin: 10px 0;">';
+                html += '<div style="display: flex; align-items: center; margin: 8px 0; padding: 10px; border-radius: 8px; background: ' + bgColor + ';">';
                 html += '<span style="color: #666; font-size: 14px; min-width: 40px;">' + detail.rank + '位:</span>';
                 html += '<span style="color: #333; font-size: 15px; flex: 1;">' + detail.correct + '</span>';
-                html += '<span style="color: ' + color + '; font-size: 14px;">' + icon + ' ' + (isCorrect ? pointText : detail.guess) + '</span>';
+                html += '<span style="color: ' + color + '; font-size: 14px; font-weight: bold;">' + icon + ' ' + (isCorrect ? pointText : detail.guess) + '</span>';
                 html += '</div>';
             }
             
@@ -2594,7 +2628,7 @@
         // ランキング作成機能
         // ========================================
         function startRanking() {
-            // ランダムにお題を選ぶ
+            // ランダムにテーマを選ぶ
             currentTheme = THEMES[Math.floor(Math.random() * THEMES.length)];
             document.getElementById('currentTheme').textContent = currentTheme;
             
@@ -2712,7 +2746,7 @@
                     
                     // 表示
                     if (rankings.length === 0) {
-                        historyList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px 20px;">まだランキングがありません<br>新しいお題でランキングを作ってみましょう！</p>';
+                        historyList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px 20px;">まだランキングがありません<br>新しいテーマでランキングを作ってみましょう！</p>';
                     } else {
                         let html = '';
                         rankings.forEach((item) => {
