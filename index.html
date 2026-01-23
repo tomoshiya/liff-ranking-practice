@@ -304,6 +304,11 @@
                 </div>
             </div>
             
+            <!-- リアルタイムゲームボタン（フェーズ5-Aで追加） -->
+            <button onclick="startRealtimeGame()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); font-size: 17px; padding: 18px 20px;">
+                🎮 ふたりであそぶ
+            </button>
+            
             <button onclick="startRanking()">
                 🎯 新しいお題でランキングを作る
             </button>
@@ -423,6 +428,143 @@
                 ← メイン画面に戻る
             </button>
         </div>
+        
+        <!-- 待機ルーム画面（フェーズ5-Aで追加） -->
+        <div id="waitingRoomScreen" class="screen">
+            <h2 style="color: #FF6B9D; margin-bottom: 20px;">🎮 ふたりであそぶ</h2>
+            
+            <!-- 待機中の表示 -->
+            <div id="waitingArea" style="text-align: center; padding: 40px 20px;">
+                <div style="background: linear-gradient(135deg, #FFF0F5, #F0F8FF); border: 3px solid #FF6B9D; border-radius: 15px; padding: 30px 20px; margin-bottom: 20px;">
+                    <p style="font-size: 48px; margin-bottom: 15px;">⏳</p>
+                    <p id="waitingMessage" style="color: #666; font-size: 16px; line-height: 1.8; font-weight: bold;">パートナーを待っています...</p>
+                    <p style="color: #999; font-size: 13px; margin-top: 15px;">パートナーがアプリを開くと<br>自動的にゲームが開始されます</p>
+                </div>
+                
+                <div id="themePreview" style="background: #F8F9FA; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                    <p style="color: #666; font-size: 13px; margin-bottom: 10px;">📌 今回のお題</p>
+                    <p id="waitingTheme" style="color: #333; font-size: 15px; font-weight: bold;">---</p>
+                </div>
+            </div>
+            
+            <!-- 参加確認の表示 -->
+            <div id="joinArea" style="text-align: center; padding: 40px 20px; display: none;">
+                <div style="background: linear-gradient(135deg, #FFF0F5, #F0F8FF); border: 3px solid #4A90E2; border-radius: 15px; padding: 30px 20px; margin-bottom: 20px;">
+                    <p style="font-size: 48px; margin-bottom: 15px;">🎉</p>
+                    <p id="joinMessage" style="color: #666; font-size: 16px; line-height: 1.8; font-weight: bold;">---さんが待っています！</p>
+                    <p style="color: #999; font-size: 13px; margin-top: 15px;">一緒にゲームをしますか？</p>
+                </div>
+                
+                <div style="background: #F8F9FA; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                    <p style="color: #666; font-size: 13px; margin-bottom: 10px;">📌 お題</p>
+                    <p id="joinTheme" style="color: #333; font-size: 15px; font-weight: bold;">---</p>
+                </div>
+                
+                <button onclick="joinGame()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); font-size: 17px; padding: 18px 20px;">
+                    ✨ 参加する
+                </button>
+            </div>
+            
+            <button onclick="cancelWaitingRoom()" class="secondary-button">
+                ← キャンセル
+            </button>
+        </div>
+        
+        <!-- ゲーム入力画面（フェーズ5-Aで追加） -->
+        <div id="gameInputScreen" class="screen">
+            <h2 style="color: #FF6B9D; margin-bottom: 20px;">🎮 ランキング入力</h2>
+            
+            <div class="theme-box">
+                <h2>📌 今回のお題</h2>
+                <p class="theme-text" id="gameTheme">---</p>
+            </div>
+            
+            <!-- 進行状況表示 -->
+            <div id="gameProgress" style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                <p style="color: #666; font-size: 13px; margin-bottom: 8px;">📊 進行状況</p>
+                <div id="gameProgressContent">
+                    <p style="color: #999; font-size: 14px;">---</p>
+                </div>
+            </div>
+            
+            <div class="ranking-form">
+                <div class="rank-item">
+                    <div class="rank-label">1位</div>
+                    <input type="text" class="rank-input" id="gameRank1" placeholder="1位を入力">
+                </div>
+                <div class="rank-item">
+                    <div class="rank-label">2位</div>
+                    <input type="text" class="rank-input" id="gameRank2" placeholder="2位を入力">
+                </div>
+                <div class="rank-item">
+                    <div class="rank-label">3位</div>
+                    <input type="text" class="rank-input" id="gameRank3" placeholder="3位を入力">
+                </div>
+                <div class="rank-item">
+                    <div class="rank-label">4位</div>
+                    <input type="text" class="rank-input" id="gameRank4" placeholder="4位を入力">
+                </div>
+                <div class="rank-item">
+                    <div class="rank-label">5位</div>
+                    <input type="text" class="rank-input" id="gameRank5" placeholder="5位を入力">
+                </div>
+            </div>
+            
+            <button onclick="submitGameRanking()">
+                💾 ランキングを送信
+            </button>
+        </div>
+        
+        <!-- 予想画面（フェーズ5-Aで追加） -->
+        <div id="guessScreen" class="screen">
+            <h2 style="color: #FF6B9D; margin-bottom: 20px;">🤔 パートナーのランキングを予想</h2>
+            
+            <div style="background: #FFF0F5; border: 2px solid #FF6B9D; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                <p style="color: #666; font-size: 14px; line-height: 1.8; text-align: center;">
+                    <span id="guessPartnerName" style="font-weight: bold; color: #FF6B9D;">---</span>さんの<br>
+                    ランキングを正しい順番に並べてください
+                </p>
+            </div>
+            
+            <div class="theme-box" style="margin-bottom: 20px;">
+                <h2>📌 お題</h2>
+                <p class="theme-text" id="guessTheme">---</p>
+            </div>
+            
+            <!-- 進行状況表示 -->
+            <div id="guessProgress" style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                <p style="color: #666; font-size: 13px; margin-bottom: 8px;">📊 進行状況</p>
+                <div id="guessProgressContent">
+                    <p style="color: #999; font-size: 14px;">---</p>
+                </div>
+            </div>
+            
+            <!-- 並び替えエリア -->
+            <div id="guessRankingArea" style="margin: 20px 0;">
+                <!-- JavaScriptで動的に生成 -->
+            </div>
+            
+            <button onclick="submitGuess()">
+                ✅ 予想を送信
+            </button>
+        </div>
+        
+        <!-- 結果画面（フェーズ5-Aで追加） -->
+        <div id="resultScreen" class="screen">
+            <h2 style="color: #FF6B9D; margin-bottom: 20px;">🎉 結果発表</h2>
+            
+            <div id="resultContent" style="margin: 20px 0;">
+                <!-- JavaScriptで動的に生成 -->
+            </div>
+            
+            <button onclick="playAgain()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2);">
+                🎮 もう一度遊ぶ
+            </button>
+            
+            <button onclick="backToMain()" class="secondary-button">
+                ← メイン画面に戻る
+            </button>
+        </div>
     </div>
 
     <script>
@@ -474,6 +616,10 @@
         let currentTheme = '';
         let userProfile = null;
         let currentUser = null; // Firebase上のユーザー情報（フェーズ4で追加）
+        
+        // リアルタイムゲーム用変数（フェーズ5-Aで追加）
+        let currentGameSession = null;  // 現在のゲームセッション情報
+        let sessionListener = null;     // Firebase監視リスナー
         
         // ========================================
         // Firebase 設定（フェーズ3で追加）
@@ -844,9 +990,749 @@
         }
         
         // ========================================
+        // リアルタイムゲーム機能（フェーズ5-Aで追加）
+        // ========================================
+        
+        // リアルタイムゲーム開始
+        function startRealtimeGame() {
+            // ペアチェック
+            if (!currentUser || !currentUser.partnerId) {
+                alert('❌ パートナーが設定されていません。\n\n先に「ペア設定」からパートナーとペアになってください。');
+                return;
+            }
+            
+            // 既存の待機中セッションをチェック
+            checkExistingSession();
+        }
+        
+        // 既存のセッションをチェック
+        function checkExistingSession() {
+            const sessionsRef = database.ref('gameSessions');
+            
+            // 自分またはパートナーが関わっている待機中のセッションを検索
+            sessionsRef.orderByChild('gameStatus').equalTo('waiting').once('value')
+                .then((snapshot) => {
+                    let existingSession = null;
+                    
+                    snapshot.forEach((childSnapshot) => {
+                        const session = childSnapshot.val();
+                        const sessionId = childSnapshot.key;
+                        
+                        // このセッションに自分またはパートナーが参加しているか確認
+                        if (session.players && 
+                            (session.players[userProfile.userId] || session.players[currentUser.partnerId])) {
+                            existingSession = {
+                                id: sessionId,
+                                data: session
+                            };
+                        }
+                    });
+                    
+                    if (existingSession) {
+                        // 既存のセッションがある
+                        if (existingSession.data.players[userProfile.userId]) {
+                            // 自分が作成したセッション
+                            showWaitingRoom(existingSession.id, existingSession.data, 'host');
+                        } else {
+                            // パートナーが作成したセッション
+                            showWaitingRoom(existingSession.id, existingSession.data, 'guest');
+                        }
+                    } else {
+                        // 新しくセッションを作成
+                        createGameSession();
+                    }
+                })
+                .catch((error) => {
+                    console.error('❌ セッション検索エラー:', error);
+                    alert('❌ セッション確認エラー:\n' + error.message);
+                });
+        }
+        
+        // ゲームセッション作成
+        function createGameSession() {
+            // ランダムにお題を選ぶ
+            const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+            
+            // セッションデータ作成
+            const sessionData = {
+                mode: 'realtime',
+                theme: theme,
+                gameStatus: 'waiting',  // waiting → inputting → guessing → finished
+                createdAt: new Date().toISOString(),
+                players: {}
+            };
+            
+            // 自分を追加
+            sessionData.players[userProfile.userId] = {
+                displayName: userProfile.displayName,
+                status: 'waiting'  // waiting → inputting → completed
+            };
+            
+            // パートナーを追加
+            sessionData.players[currentUser.partnerId] = {
+                displayName: '',  // 後で取得
+                status: 'waiting'
+            };
+            
+            // Firebaseに保存
+            const sessionsRef = database.ref('gameSessions');
+            const newSessionRef = sessionsRef.push();
+            
+            newSessionRef.set(sessionData)
+                .then(() => {
+                    console.log('✅ ゲームセッション作成成功:', newSessionRef.key);
+                    showWaitingRoom(newSessionRef.key, sessionData, 'host');
+                })
+                .catch((error) => {
+                    console.error('❌ セッション作成エラー:', error);
+                    alert('❌ ゲーム作成エラー:\n' + error.message);
+                });
+        }
+        
+        // 待機ルーム表示
+        function showWaitingRoom(sessionId, sessionData, role) {
+            currentGameSession = {
+                id: sessionId,
+                data: sessionData,
+                role: role  // 'host' または 'guest'
+            };
+            
+            if (role === 'host') {
+                // ホスト：待機画面
+                document.getElementById('waitingArea').style.display = 'block';
+                document.getElementById('joinArea').style.display = 'none';
+                document.getElementById('waitingTheme').textContent = sessionData.theme;
+                
+                // パートナー名を取得
+                database.ref('users/' + currentUser.partnerId).once('value')
+                    .then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const partner = snapshot.val();
+                            document.getElementById('waitingMessage').textContent = 
+                                partner.displayName + 'さんを待っています...';
+                        }
+                    });
+            } else {
+                // ゲスト：参加確認画面
+                document.getElementById('waitingArea').style.display = 'none';
+                document.getElementById('joinArea').style.display = 'block';
+                document.getElementById('joinTheme').textContent = sessionData.theme;
+                
+                // ホスト名を取得
+                const hostId = Object.keys(sessionData.players).find(id => id !== userProfile.userId);
+                database.ref('users/' + hostId).once('value')
+                    .then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const host = snapshot.val();
+                            document.getElementById('joinMessage').textContent = 
+                                host.displayName + 'さんが待っています！';
+                        }
+                    });
+            }
+            
+            // 画面切り替え
+            showScreen('waitingRoomScreen');
+            
+            // セッション監視開始
+            startSessionListener(sessionId);
+        }
+        
+        // ゲームに参加
+        function joinGame() {
+            if (!currentGameSession) {
+                alert('❌ ゲームセッション情報がありません。');
+                return;
+            }
+            
+            // ゲームステータスを更新
+            const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
+            sessionRef.update({
+                gameStatus: 'inputting'
+            })
+                .then(() => {
+                    console.log('✅ ゲーム参加成功');
+                    // 入力画面へ（リスナーが自動的に反応）
+                })
+                .catch((error) => {
+                    console.error('❌ ゲーム参加エラー:', error);
+                    alert('❌ 参加エラー:\n' + error.message);
+                });
+        }
+        
+        // セッション監視開始
+        function startSessionListener(sessionId) {
+            // 既存のリスナーがあれば解除
+            if (sessionListener) {
+                sessionListener.off();
+            }
+            
+            const sessionRef = database.ref('gameSessions/' + sessionId);
+            
+            sessionListener = sessionRef.on('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    console.log('⚠️ セッションが削除されました');
+                    return;
+                }
+                
+                const sessionData = snapshot.val();
+                currentGameSession.data = sessionData;
+                
+                console.log('📡 セッション更新:', sessionData.gameStatus);
+                
+                // ステータスに応じて画面を切り替え
+                switch (sessionData.gameStatus) {
+                    case 'waiting':
+                        // 待機中（何もしない）
+                        break;
+                        
+                    case 'inputting':
+                        // 入力フェーズ
+                        showGameInputScreen(sessionData);
+                        break;
+                        
+                    case 'guessing':
+                        // 予想フェーズ
+                        showGuessScreen(sessionData);
+                        break;
+                        
+                    case 'finished':
+                        // 結果表示
+                        showResultScreen(sessionData);
+                        break;
+                }
+            });
+        }
+        
+        // 待機ルームをキャンセル
+        function cancelWaitingRoom() {
+            // リスナー解除
+            if (sessionListener) {
+                sessionListener.off();
+                sessionListener = null;
+            }
+            
+            // ホストの場合はセッション削除
+            if (currentGameSession && currentGameSession.role === 'host') {
+                const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
+                sessionRef.remove()
+                    .then(() => {
+                        console.log('✅ セッション削除成功');
+                    })
+                    .catch((error) => {
+                        console.error('❌ セッション削除エラー:', error);
+                    });
+            }
+            
+            currentGameSession = null;
+            backToMain();
+        }
+        
+        // ゲーム入力画面を表示
+        function showGameInputScreen(sessionData) {
+            // お題を表示
+            document.getElementById('gameTheme').textContent = sessionData.theme;
+            
+            // 進行状況を更新
+            updateGameProgress(sessionData);
+            
+            // 入力欄をクリア
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById('gameRank' + i).value = '';
+            }
+            
+            // 自分が既に入力済みかチェック
+            if (sessionData.rankings && sessionData.rankings[userProfile.userId]) {
+                // 入力済みの場合は、入力内容を表示
+                const myRanking = sessionData.rankings[userProfile.userId];
+                for (let i = 1; i <= 5; i++) {
+                    document.getElementById('gameRank' + i).value = myRanking[i.toString()] || '';
+                }
+            }
+            
+            // 画面切り替え
+            showScreen('gameInputScreen');
+            
+            // 1位の入力欄にフォーカス
+            setTimeout(() => {
+                document.getElementById('gameRank1').focus();
+            }, 100);
+        }
+        
+        // 進行状況を更新
+        function updateGameProgress(sessionData) {
+            const players = sessionData.players || {};
+            const playerIds = Object.keys(players);
+            
+            let progressHtml = '';
+            
+            playerIds.forEach((playerId) => {
+                const player = players[playerId];
+                const isMe = playerId === userProfile.userId;
+                const displayName = isMe ? 'あなた' : player.displayName;
+                
+                let statusIcon = '';
+                let statusText = '';
+                let statusColor = '#999';
+                
+                if (sessionData.gameStatus === 'inputting') {
+                    if (sessionData.rankings && sessionData.rankings[playerId]) {
+                        statusIcon = '✅';
+                        statusText = '入力完了';
+                        statusColor = '#50C878';
+                    } else {
+                        statusIcon = '⏳';
+                        statusText = '入力中...';
+                        statusColor = '#FF9800';
+                    }
+                } else if (sessionData.gameStatus === 'guessing') {
+                    if (sessionData.guesses && sessionData.guesses[playerId]) {
+                        statusIcon = '✅';
+                        statusText = '予想完了';
+                        statusColor = '#50C878';
+                    } else {
+                        statusIcon = '🤔';
+                        statusText = '予想中...';
+                        statusColor = '#FF9800';
+                    }
+                }
+                
+                progressHtml += '<div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">';
+                progressHtml += '<span style="color: #666; font-size: 14px;">' + statusIcon + ' ' + displayName + '</span>';
+                progressHtml += '<span style="color: ' + statusColor + '; font-size: 13px; font-weight: bold;">' + statusText + '</span>';
+                progressHtml += '</div>';
+            });
+            
+            const contentId = sessionData.gameStatus === 'inputting' ? 'gameProgressContent' : 'guessProgressContent';
+            document.getElementById(contentId).innerHTML = progressHtml;
+        }
+        
+        // ランキング送信
+        function submitGameRanking() {
+            // 入力値を取得
+            const rankings = [];
+            for (let i = 1; i <= 5; i++) {
+                const value = document.getElementById('gameRank' + i).value.trim();
+                if (value === '') {
+                    alert((i) + '位を入力してください！');
+                    document.getElementById('gameRank' + i).focus();
+                    return;
+                }
+                rankings.push(value);
+            }
+            
+            // ランキングデータを作成
+            const rankingData = {
+                "1": rankings[0],
+                "2": rankings[1],
+                "3": rankings[2],
+                "4": rankings[3],
+                "5": rankings[4]
+            };
+            
+            // Firebaseに保存
+            const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
+            const updateData = {};
+            updateData['rankings/' + userProfile.userId] = rankingData;
+            updateData['players/' + userProfile.userId + '/status'] = 'completed';
+            
+            sessionRef.update(updateData)
+                .then(() => {
+                    console.log('✅ ランキング送信成功');
+                    
+                    // 両者が入力完了したかチェック
+                    return sessionRef.once('value');
+                })
+                .then((snapshot) => {
+                    const sessionData = snapshot.val();
+                    const rankings = sessionData.rankings || {};
+                    const players = Object.keys(sessionData.players);
+                    
+                    // 全員が入力完了したか
+                    if (players.every(playerId => rankings[playerId])) {
+                        // 予想フェーズへ移行
+                        return sessionRef.update({
+                            gameStatus: 'guessing'
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error('❌ ランキング送信エラー:', error);
+                    alert('❌ 送信エラー:\n' + error.message);
+                });
+        }
+        
+        // 予想画面を表示
+        function showGuessScreen(sessionData) {
+            // お題を表示
+            document.getElementById('guessTheme').textContent = sessionData.theme;
+            
+            // パートナー名を取得
+            const partnerId = currentUser.partnerId;
+            database.ref('users/' + partnerId).once('value')
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const partner = snapshot.val();
+                        document.getElementById('guessPartnerName').textContent = partner.displayName;
+                    }
+                });
+            
+            // 進行状況を更新
+            updateGameProgress(sessionData);
+            
+            // パートナーのランキング項目を取得
+            const partnerRanking = sessionData.rankings[partnerId];
+            if (!partnerRanking) {
+                alert('❌ パートナーのランキングが見つかりません。');
+                return;
+            }
+            
+            // 項目をシャッフル
+            const items = [];
+            for (let i = 1; i <= 5; i++) {
+                items.push(partnerRanking[i.toString()]);
+            }
+            
+            // シャッフル（Fisher-Yates アルゴリズム）
+            for (let i = items.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [items[i], items[j]] = [items[j], items[i]];
+            }
+            
+            // 並び替えエリアを生成
+            createGuessRankingUI(items);
+            
+            // 画面切り替え
+            showScreen('guessScreen');
+        }
+        
+        // 予想ランキングUIを生成
+        function createGuessRankingUI(items) {
+            const container = document.getElementById('guessRankingArea');
+            container.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'guess-item';
+                itemDiv.setAttribute('data-index', index);
+                itemDiv.style.cssText = 'background: #f8f9fa; border: 2px solid #B8D9F0; border-radius: 10px; padding: 15px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center;';
+                
+                const textSpan = document.createElement('span');
+                textSpan.textContent = item;
+                textSpan.style.cssText = 'color: #333; font-size: 15px; flex: 1;';
+                
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.style.cssText = 'display: flex; gap: 5px;';
+                
+                // 上へボタン
+                if (index > 0) {
+                    const upBtn = document.createElement('button');
+                    upBtn.textContent = '↑';
+                    upBtn.style.cssText = 'background: #4A90E2; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer;';
+                    upBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        moveItem(index, -1);
+                    };
+                    buttonsDiv.appendChild(upBtn);
+                }
+                
+                // 下へボタン
+                if (index < items.length - 1) {
+                    const downBtn = document.createElement('button');
+                    downBtn.textContent = '↓';
+                    downBtn.style.cssText = 'background: #4A90E2; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer;';
+                    downBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        moveItem(index, 1);
+                    };
+                    buttonsDiv.appendChild(downBtn);
+                }
+                
+                itemDiv.appendChild(textSpan);
+                itemDiv.appendChild(buttonsDiv);
+                container.appendChild(itemDiv);
+            });
+            
+            // 現在の項目リストを保存
+            container.setAttribute('data-items', JSON.stringify(items));
+        }
+        
+        // 項目を移動
+        function moveItem(index, direction) {
+            const container = document.getElementById('guessRankingArea');
+            const items = JSON.parse(container.getAttribute('data-items'));
+            
+            const newIndex = index + direction;
+            
+            // 範囲チェック
+            if (newIndex < 0 || newIndex >= items.length) {
+                return;
+            }
+            
+            // 入れ替え
+            [items[index], items[newIndex]] = [items[newIndex], items[index]];
+            
+            // UIを再生成
+            createGuessRankingUI(items);
+        }
+        
+        // 予想を送信
+        function submitGuess() {
+            const container = document.getElementById('guessRankingArea');
+            const items = JSON.parse(container.getAttribute('data-items'));
+            
+            if (!items || items.length !== 5) {
+                alert('❌ 予想データが正しくありません。');
+                return;
+            }
+            
+            if (!confirm('この順番で送信しますか？\n\n' + 
+                         '1位: ' + items[0] + '\n' +
+                         '2位: ' + items[1] + '\n' +
+                         '3位: ' + items[2] + '\n' +
+                         '4位: ' + items[3] + '\n' +
+                         '5位: ' + items[4])) {
+                return;
+            }
+            
+            // 予想データを作成
+            const guessData = {
+                "1": items[0],
+                "2": items[1],
+                "3": items[2],
+                "4": items[3],
+                "5": items[4]
+            };
+            
+            // Firebaseに保存
+            const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
+            const updateData = {};
+            updateData['guesses/' + userProfile.userId] = guessData;
+            updateData['players/' + userProfile.userId + '/status'] = 'completed';
+            
+            sessionRef.update(updateData)
+                .then(() => {
+                    console.log('✅ 予想送信成功');
+                    
+                    // 両者が予想完了したかチェック
+                    return sessionRef.once('value');
+                })
+                .then((snapshot) => {
+                    const sessionData = snapshot.val();
+                    const guesses = sessionData.guesses || {};
+                    const players = Object.keys(sessionData.players);
+                    
+                    // 全員が予想完了したか
+                    if (players.every(playerId => guesses[playerId])) {
+                        // スコアを計算
+                        const results = calculateScores(sessionData);
+                        
+                        // 結果を保存して完了状態へ
+                        return sessionRef.update({
+                            gameStatus: 'finished',
+                            results: results,
+                            finishedAt: new Date().toISOString()
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error('❌ 予想送信エラー:', error);
+                    alert('❌ 送信エラー:\n' + error.message);
+                });
+        }
+        
+        // スコアを計算
+        function calculateScores(sessionData) {
+            const rankings = sessionData.rankings;
+            const guesses = sessionData.guesses;
+            const players = Object.keys(sessionData.players);
+            const results = {};
+            
+            players.forEach((playerId) => {
+                // このプレイヤーの予想スコアを計算
+                const partnerId = players.find(id => id !== playerId);
+                const partnerRanking = rankings[partnerId];  // 正解
+                const myGuess = guesses[playerId];            // 予想
+                
+                let perfectMatch = 0;  // 完全一致（順位も項目も正解）
+                let partialMatch = 0;  // 部分一致（項目は正解、順位は不一致）
+                
+                for (let rank = 1; rank <= 5; rank++) {
+                    const rankStr = rank.toString();
+                    const correctItem = partnerRanking[rankStr];
+                    const guessedItem = myGuess[rankStr];
+                    
+                    if (correctItem === guessedItem) {
+                        // 完全一致
+                        perfectMatch++;
+                    } else {
+                        // 項目は含まれているか確認
+                        for (let r = 1; r <= 5; r++) {
+                            if (partnerRanking[r.toString()] === guessedItem) {
+                                // 項目は正解だが順位が違う
+                                partialMatch++;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                const totalScore = perfectMatch * 2 + partialMatch;  // 完全一致は2点、部分一致は1点
+                
+                results[playerId] = {
+                    score: totalScore,
+                    perfectMatch: perfectMatch,
+                    partialMatch: partialMatch
+                };
+            });
+            
+            return results;
+        }
+        
+        // 結果画面を表示
+        function showResultScreen(sessionData) {
+            const rankings = sessionData.rankings;
+            const guesses = sessionData.guesses;
+            const results = sessionData.results;
+            const players = Object.keys(sessionData.players);
+            
+            const myId = userProfile.userId;
+            const partnerId = players.find(id => id !== myId);
+            
+            const myScore = results[myId];
+            const partnerScore = results[partnerId];
+            
+            // 勝敗判定
+            let resultTitle = '';
+            let resultEmoji = '';
+            if (myScore.score > partnerScore.score) {
+                resultTitle = 'あなたの勝ち！';
+                resultEmoji = '🎉';
+            } else if (myScore.score < partnerScore.score) {
+                resultTitle = 'パートナーの勝ち！';
+                resultEmoji = '😄';
+            } else {
+                resultTitle = '引き分け！';
+                resultEmoji = '🤝';
+            }
+            
+            // パートナー名を取得
+            database.ref('users/' + partnerId).once('value')
+                .then((snapshot) => {
+                    const partnerName = snapshot.exists() ? snapshot.val().displayName : 'パートナー';
+                    
+                    // 結果HTMLを生成
+                    let html = '';
+                    
+                    // 勝敗表示
+                    html += '<div style="text-align: center; margin-bottom: 30px;">';
+                    html += '<p style="font-size: 64px; margin-bottom: 10px;">' + resultEmoji + '</p>';
+                    html += '<h3 style="color: #FF6B9D; font-size: 24px; margin-bottom: 10px;">' + resultTitle + '</h3>';
+                    html += '</div>';
+                    
+                    // スコア表示
+                    html += '<div style="background: #F0F8FF; border-radius: 10px; padding: 20px; margin-bottom: 20px;">';
+                    html += '<h3 style="color: #4A90E2; font-size: 16px; margin-bottom: 15px;">📊 スコア</h3>';
+                    html += '<div style="display: flex; justify-content: space-around; text-align: center;">';
+                    
+                    // 自分のスコア
+                    html += '<div>';
+                    html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">あなた</p>';
+                    html += '<p style="color: #FF6B9D; font-size: 32px; font-weight: bold;">' + myScore.score + '</p>';
+                    html += '<p style="color: #999; font-size: 12px;">完全一致: ' + myScore.perfectMatch + '個</p>';
+                    html += '<p style="color: #999; font-size: 12px;">部分一致: ' + myScore.partialMatch + '個</p>';
+                    html += '</div>';
+                    
+                    // パートナーのスコア
+                    html += '<div>';
+                    html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">' + partnerName + '</p>';
+                    html += '<p style="color: #4A90E2; font-size: 32px; font-weight: bold;">' + partnerScore.score + '</p>';
+                    html += '<p style="color: #999; font-size: 12px;">完全一致: ' + partnerScore.perfectMatch + '個</p>';
+                    html += '<p style="color: #999; font-size: 12px;">部分一致: ' + partnerScore.partialMatch + '個</p>';
+                    html += '</div>';
+                    
+                    html += '</div>';
+                    html += '</div>';
+                    
+                    // 正解ランキング表示
+                    html += '<div style="background: #FFF8F0; border-radius: 10px; padding: 20px; margin-bottom: 20px;">';
+                    html += '<h3 style="color: #FF9800; font-size: 16px; margin-bottom: 15px;">✨ ' + partnerName + 'さんの正解ランキング</h3>';
+                    const partnerRanking = rankings[partnerId];
+                    const myGuess = guesses[myId];
+                    for (let i = 1; i <= 5; i++) {
+                        const rankStr = i.toString();
+                        const correct = partnerRanking[rankStr];
+                        const guess = myGuess[rankStr];
+                        const isCorrect = correct === guess;
+                        const icon = isCorrect ? '✅' : '❌';
+                        const color = isCorrect ? '#50C878' : '#ff6b6b';
+                        
+                        html += '<div style="display: flex; align-items: center; margin: 10px 0;">';
+                        html += '<span style="color: #666; font-size: 14px; min-width: 40px;">' + i + '位:</span>';
+                        html += '<span style="color: #333; font-size: 15px; flex: 1;">' + correct + '</span>';
+                        html += '<span style="color: ' + color + '; font-size: 14px;">' + icon + ' ' + (isCorrect ? '正解' : guess) + '</span>';
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                    
+                    // 自分のランキング表示
+                    html += '<div style="background: #F0FFF4; border-radius: 10px; padding: 20px; margin-bottom: 20px;">';
+                    html += '<h3 style="color: #50C878; font-size: 16px; margin-bottom: 15px;">✨ あなたの正解ランキング</h3>';
+                    const myRanking = rankings[myId];
+                    const partnerGuess = guesses[partnerId];
+                    for (let i = 1; i <= 5; i++) {
+                        const rankStr = i.toString();
+                        const correct = myRanking[rankStr];
+                        const guess = partnerGuess[rankStr];
+                        const isCorrect = correct === guess;
+                        const icon = isCorrect ? '✅' : '❌';
+                        const color = isCorrect ? '#50C878' : '#ff6b6b';
+                        
+                        html += '<div style="display: flex; align-items: center; margin: 10px 0;">';
+                        html += '<span style="color: #666; font-size: 14px; min-width: 40px;">' + i + '位:</span>';
+                        html += '<span style="color: #333; font-size: 15px; flex: 1;">' + correct + '</span>';
+                        html += '<span style="color: ' + color + '; font-size: 14px;">' + icon + ' ' + (isCorrect ? '正解' : guess) + '</span>';
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                    
+                    document.getElementById('resultContent').innerHTML = html;
+                });
+            
+            // 画面切り替え
+            showScreen('resultScreen');
+        }
+        
+        // もう一度遊ぶ
+        function playAgain() {
+            // リスナー解除
+            if (sessionListener) {
+                sessionListener.off();
+                sessionListener = null;
+            }
+            
+            // セッションを削除（オプション）
+            if (currentGameSession) {
+                const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
+                sessionRef.remove()
+                    .then(() => {
+                        console.log('✅ セッション削除成功');
+                    })
+                    .catch((error) => {
+                        console.error('❌ セッション削除エラー:', error);
+                    });
+            }
+            
+            currentGameSession = null;
+            
+            // 新しいゲームを開始
+            startRealtimeGame();
+        }
+        
+        // ========================================
         // Enterキーで次の入力欄に移動
         // ========================================
         function setupEnterKeyNavigation() {
+            // 通常のランキング入力
             for (let i = 1; i <= 5; i++) {
                 const input = document.getElementById('rank' + i);
                 input.addEventListener('keydown', function(event) {
@@ -857,6 +1743,21 @@
                             document.getElementById('rank' + (i + 1)).focus();
                         } else {
                             // 5位の場合は保存ボタンにフォーカス
+                            this.blur();
+                        }
+                    }
+                });
+            }
+            
+            // ゲーム入力（フェーズ5-Aで追加）
+            for (let i = 1; i <= 5; i++) {
+                const input = document.getElementById('gameRank' + i);
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        if (i < 5) {
+                            document.getElementById('gameRank' + (i + 1)).focus();
+                        } else {
                             this.blur();
                         }
                     }
@@ -877,6 +1778,13 @@
         }
         
         function backToMain() {
+            // セッションリスナーをクリーンアップ（フェーズ5-Aで追加）
+            if (sessionListener) {
+                sessionListener.off();
+                sessionListener = null;
+            }
+            currentGameSession = null;
+            
             showScreen('mainScreen');
         }
         
