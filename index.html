@@ -296,12 +296,25 @@
         
         <!-- メイン画面 -->
         <div id="mainScreen" class="screen">
+            <!-- ペア状態表示エリア（フェーズ4で追加） -->
+            <div id="pairStatus" style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                <p style="color: #666; font-size: 13px; margin-bottom: 8px;">👥 ペア状態</p>
+                <div id="pairStatusContent">
+                    <p style="color: #999; font-size: 14px;">読み込み中...</p>
+                </div>
+            </div>
+            
             <button onclick="startRanking()">
                 🎯 新しいお題でランキングを作る
             </button>
             
             <button onclick="showHistory()" class="secondary-button">
                 📋 過去のランキングを見る
+            </button>
+            
+            <!-- ペア機能ボタン（フェーズ4で追加） -->
+            <button onclick="showPairScreen()" style="background: #9B59B6; margin-top: 10px;">
+                💑 ペア設定
             </button>
             
             <!-- Firebase接続テスト（フェーズ3で追加） -->
@@ -369,6 +382,47 @@
                 ← メイン画面に戻る
             </button>
         </div>
+        
+        <!-- ペア設定画面（フェーズ4で追加） -->
+        <div id="pairScreen" class="screen">
+            <h2 style="color: #9B59B6; margin-bottom: 20px;">💑 ペア設定</h2>
+            
+            <!-- 自分のペアコード表示 -->
+            <div style="background: #F8F4FF; border: 2px solid #9B59B6; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                <h3 style="color: #9B59B6; font-size: 16px; margin-bottom: 10px;">📌 あなたのペアコード</h3>
+                <p style="color: #666; font-size: 13px; margin-bottom: 12px;">このコードをパートナーに教えてください</p>
+                <div style="background: white; border: 2px dashed #9B59B6; border-radius: 8px; padding: 15px; text-align: center;">
+                    <p id="myPairCode" style="font-size: 32px; font-weight: bold; color: #9B59B6; letter-spacing: 4px; font-family: 'Courier New', monospace;">------</p>
+                </div>
+                <button onclick="copyPairCode()" style="background: #9B59B6; margin-top: 10px; font-size: 14px; padding: 10px;">
+                    📋 コードをコピー
+                </button>
+            </div>
+            
+            <!-- パートナーのペアコード入力 -->
+            <div style="background: #FFF8F0; border: 2px solid #FF9800; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                <h3 style="color: #FF9800; font-size: 16px; margin-bottom: 10px;">🔗 パートナーとペアになる</h3>
+                <p style="color: #666; font-size: 13px; margin-bottom: 12px;">パートナーのペアコードを入力してください</p>
+                <input type="text" id="partnerCodeInput" placeholder="ABC123" maxlength="6" 
+                    style="width: 100%; padding: 15px; border: 2px solid #FF9800; border-radius: 8px; font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 4px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-bottom: 10px;">
+                <button onclick="connectWithPartner()" style="background: #FF9800;">
+                    ✨ ペアになる
+                </button>
+            </div>
+            
+            <!-- 現在のペア情報 -->
+            <div id="currentPairInfo" style="background: #F0FFF4; border: 2px solid #50C878; border-radius: 10px; padding: 20px; margin-bottom: 20px; display: none;">
+                <h3 style="color: #50C878; font-size: 16px; margin-bottom: 10px;">✅ ペア成立中</h3>
+                <p style="color: #666; font-size: 14px; margin-bottom: 8px;">パートナー: <span id="partnerName" style="font-weight: bold; color: #333;">---</span></p>
+                <button onclick="disconnectPair()" style="background: #ff6b6b; font-size: 14px; padding: 10px;">
+                    ❌ ペアを解除
+                </button>
+            </div>
+            
+            <button onclick="backToMain()" class="secondary-button">
+                ← メイン画面に戻る
+            </button>
+        </div>
     </div>
 
     <script>
@@ -419,6 +473,7 @@
         const LIFF_ID = '2008911809-CBLKsbT1';
         let currentTheme = '';
         let userProfile = null;
+        let currentUser = null; // Firebase上のユーザー情報（フェーズ4で追加）
         
         // ========================================
         // Firebase 設定（フェーズ3で追加）
@@ -487,6 +542,9 @@
                     // Firebaseを初期化（フェーズ3で追加）
                     initializeFirebase();
                     
+                    // ユーザー情報をFirebaseに保存・取得（フェーズ4で追加）
+                    initializeUser();
+                    
                     document.getElementById('loading').style.display = 'none';
                     showScreen('mainScreen');
                 })
@@ -494,6 +552,294 @@
                     console.error('プロフィール取得に失敗しました:', err);
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('error').style.display = 'block';
+                });
+        }
+        
+        // ========================================
+        // ペア機能（フェーズ4で追加）
+        // ========================================
+        
+        // ペアコード生成（6桁のランダム英数字）
+        function generatePairCode() {
+            const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 紛らわしい文字を除外（I,O,0,1など）
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return code;
+        }
+        
+        // ユーザー情報の初期化（Firebaseに保存）
+        function initializeUser() {
+            if (!database || !userProfile) {
+                console.error('❌ データベースまたはユーザー情報が未初期化');
+                return;
+            }
+            
+            const userId = userProfile.userId;
+            const userRef = database.ref('users/' + userId);
+            
+            // ユーザー情報を取得
+            userRef.once('value')
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        // 既存ユーザー：情報を更新
+                        currentUser = snapshot.val();
+                        
+                        // 最終ログイン日時を更新
+                        userRef.update({
+                            displayName: userProfile.displayName,
+                            pictureUrl: userProfile.pictureUrl || '',
+                            lastLoginAt: new Date().toISOString()
+                        });
+                        
+                        console.log('✅ 既存ユーザー情報取得:', currentUser);
+                    } else {
+                        // 新規ユーザー：ペアコードを生成して保存
+                        const newPairCode = generatePairCode();
+                        const newUser = {
+                            userId: userId,
+                            displayName: userProfile.displayName,
+                            pictureUrl: userProfile.pictureUrl || '',
+                            pairCode: newPairCode,
+                            partnerId: null,
+                            createdAt: new Date().toISOString(),
+                            lastLoginAt: new Date().toISOString()
+                        };
+                        
+                        userRef.set(newUser)
+                            .then(() => {
+                                currentUser = newUser;
+                                console.log('✅ 新規ユーザー作成:', currentUser);
+                                updatePairStatus();
+                            })
+                            .catch((error) => {
+                                console.error('❌ ユーザー作成エラー:', error);
+                            });
+                        
+                        return; // 新規作成の場合はここで終了
+                    }
+                    
+                    // ペア状態を更新
+                    updatePairStatus();
+                })
+                .catch((error) => {
+                    console.error('❌ ユーザー情報取得エラー:', error);
+                });
+        }
+        
+        // ペア状態の表示更新
+        function updatePairStatus() {
+            const statusContent = document.getElementById('pairStatusContent');
+            
+            if (!currentUser) {
+                statusContent.innerHTML = '<p style="color: #999; font-size: 14px;">ユーザー情報を読み込み中...</p>';
+                return;
+            }
+            
+            if (currentUser.partnerId) {
+                // パートナーがいる場合：パートナーの名前を取得して表示
+                const partnerRef = database.ref('users/' + currentUser.partnerId);
+                partnerRef.once('value')
+                    .then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const partner = snapshot.val();
+                            statusContent.innerHTML = 
+                                '<p style="color: #50C878; font-size: 15px; font-weight: bold;">✅ ペア成立</p>' +
+                                '<p style="color: #666; font-size: 14px; margin-top: 5px;">パートナー: ' + partner.displayName + '</p>';
+                        } else {
+                            statusContent.innerHTML = '<p style="color: #ff6b6b; font-size: 14px;">⚠️ パートナー情報が見つかりません</p>';
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('❌ パートナー情報取得エラー:', error);
+                        statusContent.innerHTML = '<p style="color: #ff6b6b; font-size: 14px;">❌ 情報取得エラー</p>';
+                    });
+            } else {
+                // パートナーがいない場合
+                statusContent.innerHTML = 
+                    '<p style="color: #999; font-size: 14px;">まだペアが設定されていません</p>' +
+                    '<p style="color: #9B59B6; font-size: 13px; margin-top: 5px;">「ペア設定」からコードを共有しましょう</p>';
+            }
+        }
+        
+        // ペア設定画面を表示
+        function showPairScreen() {
+            if (!currentUser) {
+                alert('❌ ユーザー情報が読み込まれていません。\nしばらくしてからもう一度お試しください。');
+                return;
+            }
+            
+            // 自分のペアコードを表示
+            document.getElementById('myPairCode').textContent = currentUser.pairCode;
+            
+            // パートナー情報を表示
+            if (currentUser.partnerId) {
+                // パートナーがいる場合
+                const partnerRef = database.ref('users/' + currentUser.partnerId);
+                partnerRef.once('value')
+                    .then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const partner = snapshot.val();
+                            document.getElementById('partnerName').textContent = partner.displayName;
+                            document.getElementById('currentPairInfo').style.display = 'block';
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('❌ パートナー情報取得エラー:', error);
+                    });
+            } else {
+                // パートナーがいない場合
+                document.getElementById('currentPairInfo').style.display = 'none';
+            }
+            
+            // 入力欄をクリア
+            document.getElementById('partnerCodeInput').value = '';
+            
+            // 画面切り替え
+            showScreen('pairScreen');
+        }
+        
+        // ペアコードをコピー
+        function copyPairCode() {
+            const code = currentUser.pairCode;
+            
+            // クリップボードにコピー
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code)
+                    .then(() => {
+                        alert('✅ ペアコードをコピーしました！\n\nコード: ' + code + '\n\nパートナーにこのコードを送ってください。');
+                    })
+                    .catch(() => {
+                        // コピー失敗時
+                        alert('ペアコード: ' + code + '\n\nこのコードをパートナーに送ってください。');
+                    });
+            } else {
+                // クリップボードAPIが使えない場合
+                alert('ペアコード: ' + code + '\n\nこのコードをパートナーに送ってください。');
+            }
+        }
+        
+        // パートナーとペアになる
+        function connectWithPartner() {
+            const partnerCode = document.getElementById('partnerCodeInput').value.trim().toUpperCase();
+            
+            // 入力チェック
+            if (partnerCode === '') {
+                alert('❌ ペアコードを入力してください。');
+                return;
+            }
+            
+            if (partnerCode.length !== 6) {
+                alert('❌ ペアコードは6文字です。');
+                return;
+            }
+            
+            // 自分のコードと同じでないかチェック
+            if (partnerCode === currentUser.pairCode) {
+                alert('❌ 自分のペアコードは入力できません。\nパートナーのコードを入力してください。');
+                return;
+            }
+            
+            // Firebaseでペアコードを検索
+            const usersRef = database.ref('users');
+            usersRef.orderByChild('pairCode').equalTo(partnerCode).once('value')
+                .then((snapshot) => {
+                    if (!snapshot.exists()) {
+                        alert('❌ このペアコードは見つかりませんでした。\n\nコードが正しいか確認してください。');
+                        return;
+                    }
+                    
+                    // パートナーを見つけた
+                    let partnerId = null;
+                    let partnerData = null;
+                    
+                    snapshot.forEach((childSnapshot) => {
+                        partnerId = childSnapshot.key;
+                        partnerData = childSnapshot.val();
+                    });
+                    
+                    if (!partnerId || !partnerData) {
+                        alert('❌ パートナー情報の取得に失敗しました。');
+                        return;
+                    }
+                    
+                    // 既にペアがいる場合は確認
+                    if (currentUser.partnerId) {
+                        if (!confirm('既にペアが設定されています。\n新しいパートナーに変更しますか？')) {
+                            return;
+                        }
+                    }
+                    
+                    // 自分のパートナーIDを更新
+                    const myUserRef = database.ref('users/' + userProfile.userId);
+                    myUserRef.update({
+                        partnerId: partnerId
+                    })
+                        .then(() => {
+                            // 相手のパートナーIDも更新
+                            const partnerUserRef = database.ref('users/' + partnerId);
+                            return partnerUserRef.update({
+                                partnerId: userProfile.userId
+                            });
+                        })
+                        .then(() => {
+                            // 成功
+                            currentUser.partnerId = partnerId;
+                            alert('✅ ペア設定完了！\n\nパートナー: ' + partnerData.displayName + '\n\nこれでお互いのランキングを共有できます。');
+                            
+                            // 表示を更新
+                            updatePairStatus();
+                            showPairScreen();
+                        })
+                        .catch((error) => {
+                            alert('❌ ペア設定エラー:\n' + error.message);
+                            console.error('❌ ペア設定エラー:', error);
+                        });
+                })
+                .catch((error) => {
+                    alert('❌ コード検索エラー:\n' + error.message);
+                    console.error('❌ コード検索エラー:', error);
+                });
+        }
+        
+        // ペアを解除
+        function disconnectPair() {
+            if (!confirm('ペアを解除しますか？\n\nお互いのランキングが見えなくなります。')) {
+                return;
+            }
+            
+            if (!currentUser.partnerId) {
+                alert('❌ ペアが設定されていません。');
+                return;
+            }
+            
+            const partnerId = currentUser.partnerId;
+            
+            // 自分のパートナーIDをクリア
+            const myUserRef = database.ref('users/' + userProfile.userId);
+            myUserRef.update({
+                partnerId: null
+            })
+                .then(() => {
+                    // 相手のパートナーIDもクリア
+                    const partnerUserRef = database.ref('users/' + partnerId);
+                    return partnerUserRef.update({
+                        partnerId: null
+                    });
+                })
+                .then(() => {
+                    // 成功
+                    currentUser.partnerId = null;
+                    alert('✅ ペアを解除しました。');
+                    
+                    // 表示を更新
+                    updatePairStatus();
+                    showPairScreen();
+                })
+                .catch((error) => {
+                    alert('❌ ペア解除エラー:\n' + error.message);
+                    console.error('❌ ペア解除エラー:', error);
                 });
         }
         
