@@ -226,8 +226,20 @@
             cursor: grab;
             touch-action: none;
             transition: all 0.2s ease;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
             user-select: none;
+            -webkit-touch-callout: none;
             position: relative;
+        }
+        
+        .draggable-item * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
         
         .draggable-item.dragging {
@@ -271,11 +283,11 @@
         .fixed-round-button {
             position: fixed;
             bottom: 20px;
-            width: 60px;
-            height: 60px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
             border: none;
-            font-size: 14px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -284,6 +296,8 @@
             align-items: center;
             justify-content: center;
             transition: transform 0.2s, box-shadow 0.2s;
+            line-height: 1.2;
+            padding: 5px;
         }
         
         .fixed-round-button:active {
@@ -462,12 +476,13 @@
                 </div>
             </div>
             
-            <button onclick="saveRanking()">
+            <button onclick="saveRanking()" style="margin-bottom: 80px;">
                 💾 ランキングを保存する
             </button>
             
-            <button onclick="backToMain()" class="secondary-button">
-                ← メイン画面に戻る
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="backToMain()" class="fixed-round-button fixed-round-button-home">
+                HOME
             </button>
         </div>
         
@@ -475,12 +490,13 @@
         <div id="historyScreen" class="screen">
             <h2 style="color: #4A90E2; margin-bottom: 20px;">📋 過去のランキング</h2>
             
-            <div id="historyList" class="history-list">
+            <div id="historyList" class="history-list" style="padding-bottom: 80px;">
                 <!-- ここに履歴が表示されます -->
             </div>
             
-            <button onclick="backToMain()" class="secondary-button">
-                ← メイン画面に戻る
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="backToMain()" class="fixed-round-button fixed-round-button-home">
+                HOME
             </button>
         </div>
         
@@ -520,8 +536,9 @@
                 </button>
             </div>
             
-            <button onclick="backToMain()" class="secondary-button">
-                ← メイン画面に戻る
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="backToMain()" class="fixed-round-button fixed-round-button-home">
+                HOME
             </button>
         </div>
         
@@ -653,12 +670,13 @@
                 <!-- JavaScriptで動的に生成 -->
             </div>
             
-            <button onclick="playAgain()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2);">
+            <button onclick="playAgain()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); margin-bottom: 80px;">
                 🎮 もう一度遊ぶ
             </button>
             
-            <button onclick="backToMain()" class="secondary-button">
-                ← メイン画面に戻る
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="backToMain()" class="fixed-round-button fixed-round-button-home">
+                HOME
             </button>
         </div>
         
@@ -704,7 +722,7 @@
             </button>
             
             <button onclick="submitReviewGuess()" class="fixed-round-button fixed-round-button-submit">
-                答え合わせ
+                ANSWER
             </button>
         </div>
         
@@ -716,12 +734,13 @@
                 <!-- JavaScriptで動的に生成 -->
             </div>
             
-            <button onclick="showReviewList()" style="background: #9B59B6;">
+            <button onclick="showReviewList()" style="background: #9B59B6; margin-bottom: 80px;">
                 🔄 別のランキングで挑戦
             </button>
             
-            <button onclick="backToMain()" class="secondary-button">
-                ← メイン画面に戻る
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="backToMain()" class="fixed-round-button fixed-round-button-home">
+                HOME
             </button>
         </div>
     </div>
@@ -1608,54 +1627,28 @@
                 itemDiv.className = 'draggable-item';
                 itemDiv.setAttribute('data-index', index);
                 itemDiv.setAttribute('data-item', item);
+                itemDiv.style.cssText = '-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;';
                 
                 // 順位番号
                 const rankSpan = document.createElement('span');
                 rankSpan.className = 'rank-number';
                 rankSpan.textContent = (index + 1) + '位';
-                
-                // ドラッグハンドル（≡アイコン）
-                const handleSpan = document.createElement('span');
-                handleSpan.className = 'drag-handle';
-                handleSpan.textContent = '≡';
+                rankSpan.style.cssText = '-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;';
                 
                 // テキスト
                 const textSpan = document.createElement('span');
                 textSpan.textContent = item;
-                textSpan.style.cssText = 'color: #333; font-size: 15px; flex: 1; padding: 0 10px;';
+                textSpan.style.cssText = 'color: #333; font-size: 15px; flex: 1; padding: 0 10px; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;';
                 
-                // ボタンエリア
-                const buttonsDiv = document.createElement('div');
-                buttonsDiv.style.cssText = 'display: flex; gap: 5px;';
-                
-                // 上へボタン
-                if (index > 0) {
-                    const upBtn = document.createElement('button');
-                    upBtn.textContent = '↑';
-                    upBtn.style.cssText = 'background: #4A90E2; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer;';
-                    upBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        moveItem(index, -1);
-                    };
-                    buttonsDiv.appendChild(upBtn);
-                }
-                
-                // 下へボタン
-                if (index < items.length - 1) {
-                    const downBtn = document.createElement('button');
-                    downBtn.textContent = '↓';
-                    downBtn.style.cssText = 'background: #4A90E2; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer;';
-                    downBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        moveItem(index, 1);
-                    };
-                    buttonsDiv.appendChild(downBtn);
-                }
+                // ドラッグハンドル（≡アイコン）を右端に配置
+                const handleSpan = document.createElement('span');
+                handleSpan.className = 'drag-handle';
+                handleSpan.textContent = '≡';
+                handleSpan.style.cssText = 'margin-left: auto; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;';
                 
                 itemDiv.appendChild(rankSpan);
-                itemDiv.appendChild(handleSpan);
                 itemDiv.appendChild(textSpan);
-                itemDiv.appendChild(buttonsDiv);
+                itemDiv.appendChild(handleSpan);
                 
                 // ドラッグイベント設定（リアルタイムゲーム用）
                 setupGameDragEvents(itemDiv);
@@ -1753,11 +1746,13 @@
                         // 上に挿入
                         if (closestElement !== draggedElement.nextSibling) {
                             container.insertBefore(draggedElement, closestElement);
+                            updateRankNumbers(container);
                         }
                     } else {
                         // 下に挿入
                         if (closestElement.nextSibling !== draggedElement) {
                             container.insertBefore(draggedElement, closestElement.nextSibling);
+                            updateRankNumbers(container);
                         }
                     }
                 }
@@ -1811,6 +1806,7 @@
                     // 上半分：この要素の前に挿入
                     container.insertBefore(draggedElement, this);
                 }
+                updateRankNumbers(container);
             });
             
             element.addEventListener('dragend', function(e) {
@@ -2221,23 +2217,24 @@
                 itemDiv.className = 'draggable-item';
                 itemDiv.setAttribute('data-index', index);
                 itemDiv.setAttribute('data-item', item);
-                itemDiv.style.userSelect = 'none';  // テキスト選択を無効化
+                itemDiv.style.cssText = '-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;';
                 
                 // 順位番号
                 const rankSpan = document.createElement('span');
                 rankSpan.className = 'rank-number';
                 rankSpan.textContent = (index + 1) + '位';
+                rankSpan.style.cssText = '-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;';
                 
                 // テキスト
                 const textSpan = document.createElement('span');
                 textSpan.textContent = item;
-                textSpan.style.cssText = 'color: #333; font-size: 15px; flex: 1; padding: 0 10px; user-select: none;';
+                textSpan.style.cssText = 'color: #333; font-size: 15px; flex: 1; padding: 0 10px; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;';
                 
                 // ドラッグハンドル（≡アイコン）を右端に配置
                 const handleSpan = document.createElement('span');
                 handleSpan.className = 'drag-handle';
                 handleSpan.textContent = '≡';
-                handleSpan.style.cssText = 'margin-left: auto;';
+                handleSpan.style.cssText = 'margin-left: auto; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;';
                 
                 itemDiv.appendChild(rankSpan);
                 itemDiv.appendChild(textSpan);
@@ -2320,11 +2317,13 @@
                         // 上に挿入
                         if (closestElement !== draggedElement.nextSibling) {
                             container.insertBefore(draggedElement, closestElement);
+                            updateRankNumbers(container);
                         }
                     } else {
                         // 下に挿入
                         if (closestElement.nextSibling !== draggedElement) {
                             container.insertBefore(draggedElement, closestElement.nextSibling);
+                            updateRankNumbers(container);
                         }
                     }
                 }
@@ -2378,12 +2377,25 @@
                     // 上半分：この要素の前に挿入
                     container.insertBefore(draggedElement, this);
                 }
+                updateRankNumbers(container);
             });
             
             element.addEventListener('dragend', function(e) {
                 this.classList.remove('dragging');
                 updateReviewItemsOrder();
                 draggedElement = null;
+            });
+        }
+        
+        // 順位番号を更新（リアルタイム更新用）
+        function updateRankNumbers(container) {
+            const items = Array.from(container.children);
+            items.forEach((item, index) => {
+                const rankSpan = item.querySelector('.rank-number');
+                if (rankSpan) {
+                    rankSpan.textContent = (index + 1) + '位';
+                }
+                item.setAttribute('data-index', index);
             });
         }
         
