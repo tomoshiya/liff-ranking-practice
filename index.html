@@ -231,12 +231,12 @@
         }
         
         .draggable-item.dragging {
-            opacity: 0.5;
-            transform: scale(1.05);
-            background: #E8F4F8;
-            border-color: #4A90E2;
+            opacity: 0.95;
+            transform: scale(1.08);
+            background: linear-gradient(135deg, #E8F4F8 0%, #F0F8FF 100%);
+            border: 2px solid #4A90E2;
             cursor: grabbing;
-            box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+            box-shadow: 0 12px 30px rgba(74, 144, 226, 0.5);
             z-index: 1000;
         }
         
@@ -265,6 +265,42 @@
         
         .dragging .drag-handle {
             cursor: grabbing;
+        }
+        
+        /* 丸型固定ボタン */
+        .fixed-round-button {
+            position: fixed;
+            bottom: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .fixed-round-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .fixed-round-button-home {
+            left: 20px;
+            background: #95A5A6;
+            color: white;
+        }
+        
+        .fixed-round-button-submit {
+            right: 20px;
+            background: linear-gradient(135deg, #50C878, #3AA65D);
+            color: white;
         }
         
         /* スマホ最適化 */
@@ -658,16 +694,17 @@
             </p>
             
             <!-- 並び替えエリア -->
-            <div id="reviewGuessArea" style="margin: 20px 0;">
+            <div id="reviewGuessArea" style="margin: 20px 0; padding-bottom: 80px;">
                 <!-- JavaScriptで動的に生成 -->
             </div>
             
-            <button onclick="submitReviewGuess()">
-                ✅ 答え合わせ
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="cancelReview()" class="fixed-round-button fixed-round-button-home">
+                HOME
             </button>
             
-            <button onclick="cancelReview()" class="secondary-button">
-                ← キャンセル
+            <button onclick="submitReviewGuess()" class="fixed-round-button fixed-round-button-submit">
+                答え合わせ
             </button>
         </div>
         
@@ -2083,19 +2120,11 @@
         // 振り返り予想機能（テスト用・一人プレイ）
         // ========================================
         
-        // 振り返り予想：ランキング一覧を表示
+        // 振り返り予想：ランダムに選択して開始
         function showReviewList() {
-            const listContainer = document.getElementById('reviewRankingList');
-            
-            // ローディング表示
-            listContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 40px 20px;">読み込み中...</p>';
-            
-            // 画面切り替え
-            showScreen('reviewListScreen');
-            
             // Firebaseから自分のランキングデータを取得
             if (!database || !userProfile) {
-                listContainer.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 40px 20px;">❌ データ取得エラー</p>';
+                alert('❌ データ取得エラー');
                 return;
             }
             
@@ -2113,37 +2142,23 @@
                         rankings.push(data);
                     });
                     
-                    // 日付順にソート（新しい順）
-                    rankings.sort((a, b) => {
-                        return new Date(b.createdAt) - new Date(a.createdAt);
-                    });
-                    
-                    // 表示
+                    // ランキングがない場合
                     if (rankings.length === 0) {
-                        listContainer.innerHTML = '<p style="text-align: center; color: #999; padding: 40px 20px;">まだランキングがありません<br>先にランキングを作ってみましょう！</p>';
-                    } else {
-                        let html = '';
-                        rankings.forEach((item) => {
-                            const date = new Date(item.createdAt);
-                            const dateStr = date.getFullYear() + '年' + 
-                                          (date.getMonth() + 1) + '月' + 
-                                          date.getDate() + '日 ' + 
-                                          date.getHours() + ':' + 
-                                          String(date.getMinutes()).padStart(2, '0');
-                            
-                            html += '<div class="history-item" style="cursor: pointer;" onclick="startReviewGuess(\'' + item.id + '\')">';
-                            html += '<div class="history-theme">' + item.theme + '</div>';
-                            html += '<div class="history-date">' + dateStr + '</div>';
-                            html += '<p style="color: #9B59B6; font-size: 13px; margin-top: 10px; text-align: center;">👆 タップして挑戦</p>';
-                            html += '</div>';
-                        });
-                        listContainer.innerHTML = html;
+                        alert('❌ まだランキングがありません\n先に「新しいテーマでランキングを作る」で遊んでみましょう！');
+                        return;
                     }
                     
-                    console.log('✅ 振り返り用ランキング取得成功:', rankings.length + '件');
+                    // ランダムに1つ選ぶ
+                    const randomIndex = Math.floor(Math.random() * rankings.length);
+                    const selectedRanking = rankings[randomIndex];
+                    
+                    console.log('✅ ランダム選択:', selectedRanking.theme);
+                    
+                    // 選択したランキングで予想開始
+                    startReviewGuess(selectedRanking.id);
                 })
                 .catch((error) => {
-                    listContainer.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 40px 20px;">❌ データ取得エラー<br>' + error.message + '</p>';
+                    alert('❌ データ取得エラー:\n' + error.message);
                     console.error('❌ ランキング取得エラー:', error);
                 });
         }
@@ -2206,54 +2221,27 @@
                 itemDiv.className = 'draggable-item';
                 itemDiv.setAttribute('data-index', index);
                 itemDiv.setAttribute('data-item', item);
+                itemDiv.style.userSelect = 'none';  // テキスト選択を無効化
                 
                 // 順位番号
                 const rankSpan = document.createElement('span');
                 rankSpan.className = 'rank-number';
                 rankSpan.textContent = (index + 1) + '位';
                 
-                // ドラッグハンドル（≡アイコン）
-                const handleSpan = document.createElement('span');
-                handleSpan.className = 'drag-handle';
-                handleSpan.textContent = '≡';
-                
                 // テキスト
                 const textSpan = document.createElement('span');
                 textSpan.textContent = item;
-                textSpan.style.cssText = 'color: #333; font-size: 15px; flex: 1; padding: 0 10px;';
+                textSpan.style.cssText = 'color: #333; font-size: 15px; flex: 1; padding: 0 10px; user-select: none;';
                 
-                // ボタンエリア
-                const buttonsDiv = document.createElement('div');
-                buttonsDiv.style.cssText = 'display: flex; gap: 5px;';
-                
-                // 上へボタン
-                if (index > 0) {
-                    const upBtn = document.createElement('button');
-                    upBtn.textContent = '↑';
-                    upBtn.style.cssText = 'background: #9B59B6; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer;';
-                    upBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        moveReviewItem(index, -1);
-                    };
-                    buttonsDiv.appendChild(upBtn);
-                }
-                
-                // 下へボタン
-                if (index < items.length - 1) {
-                    const downBtn = document.createElement('button');
-                    downBtn.textContent = '↓';
-                    downBtn.style.cssText = 'background: #9B59B6; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer;';
-                    downBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        moveReviewItem(index, 1);
-                    };
-                    buttonsDiv.appendChild(downBtn);
-                }
+                // ドラッグハンドル（≡アイコン）を右端に配置
+                const handleSpan = document.createElement('span');
+                handleSpan.className = 'drag-handle';
+                handleSpan.textContent = '≡';
+                handleSpan.style.cssText = 'margin-left: auto;';
                 
                 itemDiv.appendChild(rankSpan);
-                itemDiv.appendChild(handleSpan);
                 itemDiv.appendChild(textSpan);
-                itemDiv.appendChild(buttonsDiv);
+                itemDiv.appendChild(handleSpan);
                 
                 // ドラッグイベント設定
                 setupDragEvents(itemDiv);
