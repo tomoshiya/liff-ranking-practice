@@ -1230,25 +1230,27 @@
                         const session = childSnapshot.val();
                         const sessionId = childSnapshot.key;
                         
-                        // このセッションに自分またはパートナーが参加しているか確認
-                        if (session.players && 
-                            (session.players[userProfile.userId] || session.players[currentUser.partnerId])) {
+                        // このセッションに自分が関わっているか確認
+                        if (session.players && session.players[userProfile.userId]) {
+                            // 自分が作成したセッション（ホスト）
                             existingSession = {
                                 id: sessionId,
-                                data: session
+                                data: session,
+                                role: 'host'
+                            };
+                        } else if (session.partnerId === userProfile.userId) {
+                            // パートナーが作成したセッション（ゲスト）
+                            existingSession = {
+                                id: sessionId,
+                                data: session,
+                                role: 'guest'
                             };
                         }
                     });
                     
                     if (existingSession) {
                         // 既存のセッションがある
-                        if (existingSession.data.players[userProfile.userId]) {
-                            // 自分が作成したセッション
-                            showWaitingRoom(existingSession.id, existingSession.data, 'host');
-                        } else {
-                            // パートナーが作成したセッション
-                            showWaitingRoom(existingSession.id, existingSession.data, 'guest');
-                        }
+                        showWaitingRoom(existingSession.id, existingSession.data, existingSession.role);
                     } else {
                         // 新しくセッションを作成
                         createGameSession();
@@ -1274,17 +1276,14 @@
                 players: {}
             };
             
-            // 自分を追加
+            // 自分（ホスト）を追加
             sessionData.players[userProfile.userId] = {
                 displayName: userProfile.displayName,
                 status: 'waiting'  // waiting → inputting → completed
             };
             
-            // パートナーを追加
-            sessionData.players[currentUser.partnerId] = {
-                displayName: '',  // 後で取得
-                status: 'waiting'
-            };
+            // パートナー情報を保存（参加時に追加される）
+            sessionData.partnerId = currentUser.partnerId;
             
             // Firebaseに保存
             const sessionsRef = database.ref('gameSessions');
@@ -1356,11 +1355,20 @@
                 return;
             }
             
-            // ゲームステータスを更新
+            // ゲストを players に追加 & ゲームステータスを更新
             const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
-            sessionRef.update({
+            
+            const updates = {
                 gameStatus: 'inputting'
-            })
+            };
+            
+            // 自分（ゲスト）をplayersに追加
+            updates['players/' + userProfile.userId] = {
+                displayName: userProfile.displayName,
+                status: 'inputting'
+            };
+            
+            sessionRef.update(updates)
                 .then(() => {
                     console.log('✅ ゲーム参加成功');
                     // 入力画面へ（リスナーが自動的に反応）
