@@ -663,19 +663,19 @@
         </div>
         
         <!-- 結果画面（フェーズ5-Aで追加） -->
-        <div id="resultScreen" class="screen">
+        <div id="resultScreen" class="screen" style="padding-bottom: 100px;">
             <h2 style="color: #FF6B9D; margin-bottom: 20px;">🎉 結果発表</h2>
             
             <div id="resultContent" style="margin: 20px 0;">
                 <!-- JavaScriptで動的に生成 -->
             </div>
             
-            <button onclick="playAgain()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); margin-bottom: 80px;">
+            <button id="playAgainButton" onclick="playAgain()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); margin-bottom: 20px; width: 100%;">
                 🎮 もう一度遊ぶ
             </button>
             
             <!-- 固定配置の丸型ボタン -->
-            <button onclick="backToMain()" class="fixed-round-button fixed-round-button-home">
+            <button id="resultHomeButton" onclick="backToMain()" class="fixed-round-button fixed-round-button-home">
                 HOME
             </button>
         </div>
@@ -1407,12 +1407,28 @@
                         
                     case 'inputting':
                         // 入力フェーズ
-                        showGameInputScreen(sessionData);
+                        // 既に入力画面が表示されている場合は、進行状況だけ更新
+                        const currentScreen = document.querySelector('.screen[style*="display: block"]');
+                        if (currentScreen && currentScreen.id === 'gameInputScreen') {
+                            // 進行状況のみ更新（入力欄はそのまま）
+                            updateGameProgress(sessionData);
+                        } else {
+                            // 初回表示時のみ画面全体を表示
+                            showGameInputScreen(sessionData);
+                        }
                         break;
                         
                     case 'guessing':
                         // 予想フェーズ
-                        showGuessScreen(sessionData);
+                        // 既に予想画面が表示されている場合は、進行状況だけ更新
+                        const currentGuessScreen = document.querySelector('.screen[style*="display: block"]');
+                        if (currentGuessScreen && currentGuessScreen.id === 'guessScreen') {
+                            // 進行状況のみ更新（予想内容はそのまま）
+                            updateGameProgress(sessionData);
+                        } else {
+                            // 初回表示時のみ画面全体を表示
+                            showGuessScreen(sessionData);
+                        }
                         break;
                         
                     case 'finished':
@@ -2043,9 +2059,20 @@
             html += '<p style="color: #666; font-size: 16px; font-weight: bold;">' + cooperativeMessage + '</p>';
             html += '</div>';
                     
-                    // 正解ランキング表示
-                    html += '<div style="background: #FFF8F0; border-radius: 10px; padding: 20px; margin-bottom: 20px;">';
+                    // 正解ランキング表示（表形式）
+                    html += '<div style="background: #FFF8F0; border-radius: 10px; padding: 20px; margin-bottom: 20px; overflow-x: auto;">';
                     html += '<h3 style="color: #FF9800; font-size: 16px; margin-bottom: 15px;">✨ ' + partnerName + 'さんの正解ランキング</h3>';
+                    
+                    // タイトル行
+                    html += '<div style="display: grid; grid-template-columns: 45px 1fr 1fr 45px 50px; gap: 8px; padding: 8px; background: #FFE4CC; border-radius: 6px; margin-bottom: 8px; font-weight: bold; font-size: 12px; color: #666;">';
+                    html += '<div style="text-align: center;">順位</div>';
+                    html += '<div>正解</div>';
+                    html += '<div>あなたの予想</div>';
+                    html += '<div style="text-align: center;">評価</div>';
+                    html += '<div style="text-align: center;">スコア</div>';
+                    html += '</div>';
+                    
+                    // データ行
                     const partnerRanking = rankings[partnerId];
                     const myGuess = guesses[myId];
                     for (let i = 1; i <= 5; i++) {
@@ -2053,21 +2080,34 @@
                         const correct = partnerRanking[rankStr];
                         const guess = myGuess[rankStr];
                         const isCorrect = correct === guess;
-                        const icon = isCorrect ? '✅' : '❌';
-                        const color = isCorrect ? '#50C878' : '#ff6b6b';
+                        const icon = isCorrect ? '✓' : '✕';
+                        const pointsEarned = isCorrect ? (6 - i) : 0; // 1位=5pt, 2位=4pt, ..., 5位=1pt
                         const bgColor = isCorrect ? '#F0FFF4' : 'transparent';
                         
-                        html += '<div style="display: flex; align-items: center; margin: 8px 0; padding: 10px; border-radius: 8px; background: ' + bgColor + ';">';
-                        html += '<span style="color: #666; font-size: 14px; min-width: 40px;">' + i + '位:</span>';
-                        html += '<span style="color: #333; font-size: 15px; flex: 1;">' + correct + '</span>';
-                        html += '<span style="color: ' + color + '; font-size: 14px; font-weight: bold;">' + icon + ' ' + (isCorrect ? '正解' : guess) + '</span>';
+                        html += '<div style="display: grid; grid-template-columns: 45px 1fr 1fr 45px 50px; gap: 8px; padding: 10px; border-radius: 6px; background: ' + bgColor + '; align-items: center; font-size: 13px;">';
+                        html += '<div style="text-align: center; font-weight: bold; color: #666;">' + i + '位</div>';
+                        html += '<div style="color: #333;">' + correct + '</div>';
+                        html += '<div style="color: #666;">' + guess + '</div>';
+                        html += '<div style="text-align: center; font-size: 18px;">' + icon + '</div>';
+                        html += '<div style="text-align: center; font-weight: bold; color: ' + (isCorrect ? '#50C878' : '#999') + ';">' + pointsEarned + 'pt</div>';
                         html += '</div>';
                     }
                     html += '</div>';
                     
-                    // 自分のランキング表示
-                    html += '<div style="background: #F0FFF4; border-radius: 10px; padding: 20px; margin-bottom: 20px;">';
-                    html += '<h3 style="color: #50C878; font-size: 16px; margin-bottom: 15px;">✨ あなたの正解ランキング</h3>';
+                    // 自分のランキング表示（表形式）
+                    html += '<div style="background: #F8F9FA; border-radius: 10px; padding: 20px; margin-bottom: 20px; overflow-x: auto;">';
+                    html += '<h3 style="color: #4A90E2; font-size: 16px; margin-bottom: 15px;">✨ あなたの正解ランキング</h3>';
+                    
+                    // タイトル行
+                    html += '<div style="display: grid; grid-template-columns: 45px 1fr 1fr 45px 50px; gap: 8px; padding: 8px; background: #E3F2FD; border-radius: 6px; margin-bottom: 8px; font-weight: bold; font-size: 12px; color: #666;">';
+                    html += '<div style="text-align: center;">順位</div>';
+                    html += '<div>正解</div>';
+                    html += '<div>' + partnerName + 'さんの予想</div>';
+                    html += '<div style="text-align: center;">評価</div>';
+                    html += '<div style="text-align: center;">スコア</div>';
+                    html += '</div>';
+                    
+                    // データ行
                     const myRanking = rankings[myId];
                     const partnerGuess = guesses[partnerId];
                     for (let i = 1; i <= 5; i++) {
@@ -2075,14 +2115,16 @@
                         const correct = myRanking[rankStr];
                         const guess = partnerGuess[rankStr];
                         const isCorrect = correct === guess;
-                        const icon = isCorrect ? '✅' : '❌';
-                        const color = isCorrect ? '#50C878' : '#ff6b6b';
+                        const icon = isCorrect ? '✓' : '✕';
+                        const pointsEarned = isCorrect ? (6 - i) : 0; // 1位=5pt, 2位=4pt, ..., 5位=1pt
                         const bgColor = isCorrect ? '#F0FFF4' : 'transparent';
                         
-                        html += '<div style="display: flex; align-items: center; margin: 8px 0; padding: 10px; border-radius: 8px; background: ' + bgColor + ';">';
-                        html += '<span style="color: #666; font-size: 14px; min-width: 40px;">' + i + '位:</span>';
-                        html += '<span style="color: #333; font-size: 15px; flex: 1;">' + correct + '</span>';
-                        html += '<span style="color: ' + color + '; font-size: 14px; font-weight: bold;">' + icon + ' ' + (isCorrect ? '正解' : guess) + '</span>';
+                        html += '<div style="display: grid; grid-template-columns: 45px 1fr 1fr 45px 50px; gap: 8px; padding: 10px; border-radius: 6px; background: ' + bgColor + '; align-items: center; font-size: 13px;">';
+                        html += '<div style="text-align: center; font-weight: bold; color: #666;">' + i + '位</div>';
+                        html += '<div style="color: #333;">' + correct + '</div>';
+                        html += '<div style="color: #666;">' + guess + '</div>';
+                        html += '<div style="text-align: center; font-size: 18px;">' + icon + '</div>';
+                        html += '<div style="text-align: center; font-weight: bold; color: ' + (isCorrect ? '#50C878' : '#999') + ';">' + pointsEarned + 'pt</div>';
                         html += '</div>';
                     }
                     html += '</div>';
@@ -2096,28 +2138,36 @@
         
         // もう一度遊ぶ
         function playAgain() {
-            // リスナー解除
-            if (sessionListener) {
-                sessionListener.off();
-                sessionListener = null;
+            try {
+                console.log('🎮 もう一度遊ぶボタンが押されました');
+                
+                // リスナー解除
+                if (sessionListener) {
+                    sessionListener.off();
+                    sessionListener = null;
+                }
+                
+                // セッションを削除（オプション）
+                if (currentGameSession) {
+                    const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
+                    sessionRef.remove()
+                        .then(() => {
+                            console.log('✅ セッション削除成功');
+                        })
+                        .catch((error) => {
+                            console.error('❌ セッション削除エラー:', error);
+                        });
+                }
+                
+                currentGameSession = null;
+                
+                // 新しいゲームを開始
+                startRealtimeGame();
+            } catch (error) {
+                console.error('❌ playAgain エラー:', error);
+                alert('エラーが発生しました。ホーム画面に戻ります。');
+                backToMain();
             }
-            
-            // セッションを削除（オプション）
-            if (currentGameSession) {
-                const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
-                sessionRef.remove()
-                    .then(() => {
-                        console.log('✅ セッション削除成功');
-                    })
-                    .catch((error) => {
-                        console.error('❌ セッション削除エラー:', error);
-                    });
-            }
-            
-            currentGameSession = null;
-            
-            // 新しいゲームを開始
-            startRealtimeGame();
         }
         
         // ========================================
@@ -2615,21 +2665,35 @@
         function showScreen(screenId) {
             // すべての画面を非表示
             const screens = document.querySelectorAll('.screen');
-            screens.forEach(screen => screen.classList.remove('active'));
+            screens.forEach(screen => {
+                screen.classList.remove('active');
+                screen.style.display = 'none';
+            });
             
             // 指定された画面を表示
-            document.getElementById(screenId).classList.add('active');
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+                targetScreen.style.display = 'block';
+            }
         }
         
         function backToMain() {
-            // セッションリスナーをクリーンアップ（フェーズ5-Aで追加）
-            if (sessionListener) {
-                sessionListener.off();
-                sessionListener = null;
+            try {
+                console.log('🏠 HOMEボタンが押されました');
+                
+                // セッションリスナーをクリーンアップ（フェーズ5-Aで追加）
+                if (sessionListener) {
+                    sessionListener.off();
+                    sessionListener = null;
+                }
+                currentGameSession = null;
+                
+                showScreen('mainScreen');
+            } catch (error) {
+                console.error('❌ backToMain エラー:', error);
+                alert('エラーが発生しました。ページを再読み込みしてください。');
             }
-            currentGameSession = null;
-            
-            showScreen('mainScreen');
         }
         
         // ========================================
