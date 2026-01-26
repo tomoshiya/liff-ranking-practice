@@ -1174,7 +1174,8 @@
                     
                 default:
                     console.warn('⚠️ 不明なゲームステータス:', sessionData.gameStatus);
-                    backToMain();
+                    currentGameSession = null;
+                    showScreen('mainScreen');
             }
         }
         
@@ -1560,7 +1561,7 @@
                     // セッションが削除された場合、ホーム画面に戻る
                     currentGameSession = null;
                     alert('ゲームがキャンセルされました。ホーム画面に戻ります。');
-                    backToMain();
+                    showScreen('mainScreen');
                     return;
                 }
                 
@@ -2929,7 +2930,7 @@
         function cancelReview() {
             currentReviewRanking = null;
             reviewCorrectAnswer = null;
-            backToMain();
+            showScreen('mainScreen');
         }
         
         // ========================================
