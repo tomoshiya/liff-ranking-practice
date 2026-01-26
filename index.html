@@ -2756,7 +2756,10 @@
         
         // 順位番号を更新（リアルタイム更新用）
         function updateRankNumbers(container) {
-            const items = Array.from(container.children);
+            // プレースホルダー（opacity: 0）を除外してカウント
+            const items = Array.from(container.children).filter(item => {
+                return item.style.opacity !== '0';
+            });
             items.forEach((item, index) => {
                 const rankSpan = item.querySelector('.rank-number');
                 if (rankSpan) {
