@@ -840,6 +840,7 @@
         window.onload = function() {
             initializeLiff();
             setupEnterKeyNavigation();
+            setupVisibilityChangeHandler();
         };
         
         function initializeLiff() {
@@ -881,6 +882,19 @@
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('error').style.display = 'block';
                 });
+        }
+        
+        // LIFFが閉じられた時の処理（現在は何もしない）
+        // ユーザーが他のアプリを見ることを許可するため、自動削除はしない
+        // 古いセッションは起動時に自動クリーンアップされる
+        function setupVisibilityChangeHandler() {
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    console.log('📱 LIFFがバックグラウンドに移行しました（セッションは保持）');
+                } else {
+                    console.log('📱 LIFFがフォアグラウンドに復帰しました');
+                }
+            });
         }
         
         // ========================================
@@ -950,6 +964,9 @@
                     
                     // ペア状態を更新
                     updatePairStatus();
+                    
+                    // 古いセッションのクリーンアップと状態復元
+                    cleanupAndRestoreSessions();
                 })
                 .catch((error) => {
                     console.error('❌ ユーザー情報取得エラー:', error);
@@ -1018,6 +1035,146 @@
                     realtimeGameButton.style.cursor = 'not-allowed';
                     realtimeGameButton.style.background = '#CCC';
                 }
+            }
+        }
+        
+        // 古いセッションのクリーンアップと状態復元
+        async function cleanupAndRestoreSessions() {
+            try {
+                console.log('🧹 古いセッションのクリーンアップを開始...');
+                
+                const sessionsRef = database.ref('gameSessions');
+                const snapshot = await sessionsRef.once('value');
+                
+                if (!snapshot.exists()) {
+                    console.log('📭 セッションが存在しません');
+                    return;
+                }
+                
+                const now = Date.now();
+                const WAITING_TIMEOUT = 10 * 60 * 1000;  // 10分
+                const GAMING_TIMEOUT = 30 * 60 * 1000;   // 30分
+                
+                let myActiveSession = null;  // 自分の進行中セッション
+                let isTimeout = false;       // タイムアウトフラグ
+                let timeoutMessage = '';     // タイムアウトメッセージ
+                
+                const deletePromises = [];
+                
+                snapshot.forEach((childSnapshot) => {
+                    const sessionId = childSnapshot.key;
+                    const session = childSnapshot.val();
+                    
+                    // 自分が参加しているセッションか確認
+                    const isMySession = session.players && session.players[userProfile.userId];
+                    
+                    if (!isMySession) {
+                        // 自分のセッションではない → スキップ
+                        return;
+                    }
+                    
+                    // タイムアウトチェック
+                    const lastActivity = session.lastActivityAt || new Date(session.createdAt).getTime();
+                    const elapsed = now - lastActivity;
+                    const elapsedMinutes = Math.floor(elapsed / 60000);
+                    
+                    let timeoutLimit;
+                    let timeoutType;
+                    
+                    if (session.gameStatus === 'waiting') {
+                        timeoutLimit = WAITING_TIMEOUT;
+                        timeoutType = '待機室';
+                    } else if (['inputting', 'guessing'].includes(session.gameStatus)) {
+                        timeoutLimit = GAMING_TIMEOUT;
+                        timeoutType = 'ゲーム';
+                    } else if (session.gameStatus === 'finished') {
+                        // 結果画面は1時間で削除
+                        timeoutLimit = 60 * 60 * 1000;
+                        timeoutType = '結果';
+                    }
+                    
+                    if (elapsed > timeoutLimit) {
+                        // タイムアウト → 削除
+                        console.log(`⏰ タイムアウト: ${timeoutType}（${elapsedMinutes}分経過）`);
+                        deletePromises.push(childSnapshot.ref.remove());
+                        
+                        // タイムアウトメッセージを設定
+                        isTimeout = true;
+                        timeoutMessage = `${elapsedMinutes}分間操作がなかったため、${timeoutType}は無効となりました。`;
+                    } else {
+                        // タイムアウトしていない → 復元対象
+                        myActiveSession = {
+                            id: sessionId,
+                            data: session
+                        };
+                    }
+                });
+                
+                // 古いセッションを削除
+                if (deletePromises.length > 0) {
+                    await Promise.all(deletePromises);
+                    console.log(`✅ ${deletePromises.length}件の古いセッションを削除しました`);
+                }
+                
+                // タイムアウトメッセージを表示
+                if (isTimeout) {
+                    alert('⏰ ' + timeoutMessage);
+                }
+                
+                // 進行中のセッションがあれば復元
+                if (myActiveSession) {
+                    console.log('🔄 進行中のセッションを復元:', myActiveSession.id);
+                    resumeSession(myActiveSession);
+                } else {
+                    console.log('✅ 進行中のセッションはありません（ホーム画面を表示）');
+                }
+                
+            } catch (error) {
+                console.error('❌ クリーンアップエラー:', error);
+            }
+        }
+        
+        // セッションを復元
+        function resumeSession(session) {
+            const sessionId = session.id;
+            const sessionData = session.data;
+            
+            // ホスト or ゲスト判定
+            const hostId = Object.keys(sessionData.players)[0];  // 最初のプレイヤーがホスト
+            const role = (hostId === userProfile.userId) ? 'host' : 'guest';
+            
+            currentGameSession = {
+                id: sessionId,
+                data: sessionData,
+                role: role
+            };
+            
+            console.log('🔄 セッション復元:', sessionData.gameStatus, 'role:', role);
+            
+            // ステータスに応じて画面を表示
+            switch (sessionData.gameStatus) {
+                case 'waiting':
+                    showWaitingRoom(sessionId, sessionData, role);
+                    break;
+                    
+                case 'inputting':
+                    showGameInputScreen(sessionData);
+                    startSessionListener(sessionId);
+                    break;
+                    
+                case 'guessing':
+                    showGuessScreen(sessionData);
+                    startSessionListener(sessionId);
+                    break;
+                    
+                case 'finished':
+                    showResultScreen(sessionData);
+                    startSessionListener(sessionId);
+                    break;
+                    
+                default:
+                    console.warn('⚠️ 不明なゲームステータス:', sessionData.gameStatus);
+                    backToMain();
             }
         }
         
@@ -1273,6 +1430,7 @@
                 theme: theme,
                 gameStatus: 'waiting',  // waiting → inputting → guessing → finished
                 createdAt: new Date().toISOString(),
+                lastActivityAt: Date.now(),  // 最後の操作時刻（タイムアウト判定用）
                 players: {}
             };
             
@@ -1359,7 +1517,8 @@
             const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
             
             const updates = {
-                gameStatus: 'inputting'
+                gameStatus: 'inputting',
+                lastActivityAt: Date.now()  // 活動時刻を更新
             };
             
             // 自分（ゲスト）をplayersに追加
@@ -1391,6 +1550,17 @@
             sessionListener = sessionRef.on('value', (snapshot) => {
                 if (!snapshot.exists()) {
                     console.log('⚠️ セッションが削除されました');
+                    
+                    // リスナー解除
+                    if (sessionListener) {
+                        sessionListener.off();
+                        sessionListener = null;
+                    }
+                    
+                    // セッションが削除された場合、ホーム画面に戻る
+                    currentGameSession = null;
+                    alert('ゲームがキャンセルされました。ホーム画面に戻ります。');
+                    backToMain();
                     return;
                 }
                 
@@ -1440,27 +1610,30 @@
         }
         
         // 待機ルームをキャンセル
-        function cancelWaitingRoom() {
-            // リスナー解除
-            if (sessionListener) {
-                sessionListener.off();
-                sessionListener = null;
+        async function cancelWaitingRoom() {
+            try {
+                console.log('⏹️ キャンセルボタンが押されました');
+                
+                // リスナー解除
+                if (sessionListener) {
+                    sessionListener.off();
+                    sessionListener = null;
+                }
+                
+                // ホストの場合はセッション削除（非同期処理を待つ）
+                if (currentGameSession && currentGameSession.role === 'host') {
+                    const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
+                    await sessionRef.remove();
+                    console.log('✅ セッション削除成功');
+                }
+                
+                currentGameSession = null;
+                backToMain();
+            } catch (error) {
+                console.error('❌ cancelWaitingRoom エラー:', error);
+                alert('キャンセル中にエラーが発生しました。');
+                backToMain();
             }
-            
-            // ホストの場合はセッション削除
-            if (currentGameSession && currentGameSession.role === 'host') {
-                const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
-                sessionRef.remove()
-                    .then(() => {
-                        console.log('✅ セッション削除成功');
-                    })
-                    .catch((error) => {
-                        console.error('❌ セッション削除エラー:', error);
-                    });
-            }
-            
-            currentGameSession = null;
-            backToMain();
         }
         
         // ゲーム入力画面を表示
@@ -1570,6 +1743,7 @@
             const updateData = {};
             updateData['rankings/' + userProfile.userId] = rankingData;
             updateData['players/' + userProfile.userId + '/status'] = 'completed';
+            updateData['lastActivityAt'] = Date.now();  // 活動時刻を更新
             
             sessionRef.update(updateData)
                 .then(() => {
@@ -1587,7 +1761,8 @@
                     if (players.every(playerId => rankings[playerId])) {
                         // 予想フェーズへ移行
                         return sessionRef.update({
-                            gameStatus: 'guessing'
+                            gameStatus: 'guessing',
+                            lastActivityAt: Date.now()  // 活動時刻を更新
                         });
                     }
                 })
@@ -1703,46 +1878,70 @@
             createGuessRankingUI(items);
         }
         
-        // リアルタイムゲーム用ドラッグイベント（改善版：シームレス移動）
+        // リアルタイムゲーム用ドラッグイベント（Apple Music風：指に追従）
         function setupGameDragEvents(element) {
             let draggedElement = null;
             let placeholder = null;
             let isDragging = false;
+            let startY = 0;
+            let currentY = 0;
+            let offsetY = 0;
+            let originalRect = null;
             
             // タッチスタート（スマホ）
             element.addEventListener('touchstart', function(e) {
                 isDragging = false;
                 draggedElement = this;
+                startY = e.touches[0].clientY;
+                originalRect = this.getBoundingClientRect();
                 
-                // 200ms後にドラッグ開始
+                // 100ms後にドラッグ開始（短縮！）
                 setTimeout(() => {
                     if (draggedElement === this && !isDragging) {
                         isDragging = true;
-                        this.classList.add('dragging');
                         
                         // 振動フィードバック
                         if (navigator.vibrate) {
                             navigator.vibrate(50);
                         }
                         
-                        // プレースホルダー作成
-                        placeholder = this.cloneNode(true);
-                        placeholder.style.opacity = '0.3';
+                        // ドラッグ中のスタイル
+                        this.style.position = 'fixed';
+                        this.style.left = originalRect.left + 'px';
+                        this.style.top = originalRect.top + 'px';
+                        this.style.width = originalRect.width + 'px';
+                        this.style.zIndex = '1000';
+                        this.style.transform = 'scale(1.05)';
+                        this.style.boxShadow = '0 8px 16px rgba(0,0,0,0.2)';
+                        this.style.transition = 'transform 0.1s, box-shadow 0.1s';
+                        
+                        // プレースホルダー作成（空のスペース）
+                        placeholder = document.createElement('div');
+                        placeholder.className = 'draggable-item';
+                        placeholder.style.height = originalRect.height + 'px';
+                        placeholder.style.opacity = '0';
                         placeholder.style.pointerEvents = 'none';
+                        this.parentNode.insertBefore(placeholder, this.nextSibling);
                     }
-                }, 200);
+                }, 100);  // 200ms → 100ms に短縮
             }, { passive: true });
             
             // タッチムーブ（スマホ）
             element.addEventListener('touchmove', function(e) {
                 if (!isDragging || !draggedElement) return;
                 
+                e.preventDefault();  // スクロール防止
+                
                 const touch = e.touches[0];
                 const touchY = touch.clientY;
                 
+                // 指に追従して要素を移動
+                currentY = touchY - startY;
+                draggedElement.style.top = (originalRect.top + currentY) + 'px';
+                
                 // コンテナを取得
                 const container = document.getElementById('guessRankingArea');
-                const items = Array.from(container.children);
+                const items = Array.from(container.children).filter(item => item !== placeholder);
                 
                 // タッチ位置に最も近い要素を見つける
                 let closestElement = null;
@@ -1761,32 +1960,47 @@
                     }
                 });
                 
-                // 最も近い要素の前または後に挿入
-                if (closestElement) {
+                // プレースホルダーを移動（視覚的フィードバック）
+                if (closestElement && placeholder) {
                     const rect = closestElement.getBoundingClientRect();
                     const closestCenterY = rect.top + rect.height / 2;
                     
                     if (touchY < closestCenterY) {
                         // 上に挿入
-                        if (closestElement !== draggedElement.nextSibling) {
-                            container.insertBefore(draggedElement, closestElement);
-                            updateRankNumbers(container);
+                        if (closestElement !== placeholder.nextSibling) {
+                            container.insertBefore(placeholder, closestElement);
                         }
                     } else {
                         // 下に挿入
-                        if (closestElement.nextSibling !== draggedElement) {
-                            container.insertBefore(draggedElement, closestElement.nextSibling);
-                            updateRankNumbers(container);
+                        if (closestElement.nextSibling !== placeholder) {
+                            container.insertBefore(placeholder, closestElement.nextSibling);
                         }
                     }
                 }
-            }, { passive: true });
+            }, { passive: false });  // preventDefault使用のためfalse
             
             // タッチエンド（スマホ）
             element.addEventListener('touchend', function(e) {
-                isDragging = false;
-                if (draggedElement) {
-                    draggedElement.classList.remove('dragging');
+                if (isDragging && draggedElement) {
+                    // スタイルをリセット
+                    draggedElement.style.position = '';
+                    draggedElement.style.left = '';
+                    draggedElement.style.top = '';
+                    draggedElement.style.width = '';
+                    draggedElement.style.zIndex = '';
+                    draggedElement.style.transform = '';
+                    draggedElement.style.boxShadow = '';
+                    draggedElement.style.transition = '';
+                    
+                    // プレースホルダーの位置に要素を挿入
+                    if (placeholder && placeholder.parentNode) {
+                        placeholder.parentNode.insertBefore(draggedElement, placeholder);
+                        placeholder.parentNode.removeChild(placeholder);
+                    }
+                    
+                    // 順位番号を更新
+                    const container = document.getElementById('guessRankingArea');
+                    updateRankNumbers(container);
                     
                     // 順序を更新
                     updateGameItemsOrder();
@@ -1794,16 +2008,31 @@
                     draggedElement = null;
                     placeholder = null;
                 }
+                isDragging = false;
             });
             
             // タッチキャンセル
             element.addEventListener('touchcancel', function(e) {
-                isDragging = false;
-                if (draggedElement) {
-                    draggedElement.classList.remove('dragging');
+                if (isDragging && draggedElement) {
+                    // スタイルをリセット
+                    draggedElement.style.position = '';
+                    draggedElement.style.left = '';
+                    draggedElement.style.top = '';
+                    draggedElement.style.width = '';
+                    draggedElement.style.zIndex = '';
+                    draggedElement.style.transform = '';
+                    draggedElement.style.boxShadow = '';
+                    draggedElement.style.transition = '';
+                    
+                    // プレースホルダー削除
+                    if (placeholder && placeholder.parentNode) {
+                        placeholder.parentNode.removeChild(placeholder);
+                    }
+                    
                     draggedElement = null;
                     placeholder = null;
                 }
+                isDragging = false;
             });
             
             // デスクトップ用ドラッグイベント
@@ -1889,6 +2118,7 @@
             const updateData = {};
             updateData['guesses/' + userProfile.userId] = guessData;
             updateData['players/' + userProfile.userId + '/status'] = 'completed';
+            updateData['lastActivityAt'] = Date.now();  // 活動時刻を更新
             
             sessionRef.update(updateData)
                 .then(() => {
@@ -1911,7 +2141,8 @@
                         return sessionRef.update({
                             gameStatus: 'finished',
                             results: results,
-                            finishedAt: new Date().toISOString()
+                            finishedAt: new Date().toISOString(),
+                            lastActivityAt: Date.now()  // 活動時刻を更新
                         });
                     }
                 })
@@ -2137,32 +2368,43 @@
         }
         
         // もう一度遊ぶ
-        function playAgain() {
+        async function playAgain() {
             try {
                 console.log('🎮 もう一度遊ぶボタンが押されました');
                 
-                // リスナー解除
-                if (sessionListener) {
-                    sessionListener.off();
-                    sessionListener = null;
+                if (!currentGameSession) {
+                    alert('❌ セッション情報がありません。');
+                    backToMain();
+                    return;
                 }
                 
-                // セッションを削除（オプション）
-                if (currentGameSession) {
-                    const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
-                    sessionRef.remove()
-                        .then(() => {
-                            console.log('✅ セッション削除成功');
-                        })
-                        .catch((error) => {
-                            console.error('❌ セッション削除エラー:', error);
-                        });
-                }
+                // セッションは削除せず、データだけリセット
+                const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
                 
-                currentGameSession = null;
+                // 新しいお題を選ぶ
+                const newTheme = THEMES[Math.floor(Math.random() * THEMES.length)];
                 
-                // 新しいゲームを開始
-                startRealtimeGame();
+                const updates = {
+                    theme: newTheme,              // 新しいお題
+                    gameStatus: 'inputting',      // 入力フェーズに戻る
+                    rankings: null,               // ランキングをクリア
+                    guesses: null,                // 予想をクリア
+                    results: null,                // 結果をクリア
+                    finishedAt: null,             // 終了時刻をクリア
+                    lastActivityAt: Date.now(),   // 活動時刻を更新
+                    updatedAt: new Date().toISOString()
+                };
+                
+                // 全プレイヤーの状態をリセット
+                const players = Object.keys(currentGameSession.data.players);
+                players.forEach(playerId => {
+                    updates['players/' + playerId + '/status'] = 'inputting';
+                });
+                
+                await sessionRef.update(updates);
+                console.log('✅ セッションをリセットしました（部屋は維持）');
+                
+                // リスナーが自動的に入力画面を表示してくれる
             } catch (error) {
                 console.error('❌ playAgain エラー:', error);
                 alert('エラーが発生しました。ホーム画面に戻ります。');
@@ -2308,46 +2550,70 @@
             container.setAttribute('data-items', JSON.stringify(items));
         }
         
-        // ドラッグ&ドロップイベントを設定（改善版：シームレス移動）
+        // ドラッグ&ドロップイベントを設定（Apple Music風：指に追従）
         function setupDragEvents(element) {
             let draggedElement = null;
             let placeholder = null;
             let isDragging = false;
+            let startY = 0;
+            let currentY = 0;
+            let offsetY = 0;
+            let originalRect = null;
             
             // タッチスタート（スマホ）
             element.addEventListener('touchstart', function(e) {
                 isDragging = false;
                 draggedElement = this;
+                startY = e.touches[0].clientY;
+                originalRect = this.getBoundingClientRect();
                 
-                // 200ms後にドラッグ開始
+                // 100ms後にドラッグ開始（短縮！）
                 setTimeout(() => {
                     if (draggedElement === this && !isDragging) {
                         isDragging = true;
-                        this.classList.add('dragging');
                         
                         // 振動フィードバック
                         if (navigator.vibrate) {
                             navigator.vibrate(50);
                         }
                         
-                        // プレースホルダー作成
-                        placeholder = this.cloneNode(true);
-                        placeholder.style.opacity = '0.3';
+                        // ドラッグ中のスタイル
+                        this.style.position = 'fixed';
+                        this.style.left = originalRect.left + 'px';
+                        this.style.top = originalRect.top + 'px';
+                        this.style.width = originalRect.width + 'px';
+                        this.style.zIndex = '1000';
+                        this.style.transform = 'scale(1.05)';
+                        this.style.boxShadow = '0 8px 16px rgba(0,0,0,0.2)';
+                        this.style.transition = 'transform 0.1s, box-shadow 0.1s';
+                        
+                        // プレースホルダー作成（空のスペース）
+                        placeholder = document.createElement('div');
+                        placeholder.className = 'draggable-item';
+                        placeholder.style.height = originalRect.height + 'px';
+                        placeholder.style.opacity = '0';
                         placeholder.style.pointerEvents = 'none';
+                        this.parentNode.insertBefore(placeholder, this.nextSibling);
                     }
-                }, 200);
+                }, 100);  // 200ms → 100ms に短縮
             }, { passive: true });
             
             // タッチムーブ（スマホ）
             element.addEventListener('touchmove', function(e) {
                 if (!isDragging || !draggedElement) return;
                 
+                e.preventDefault();  // スクロール防止
+                
                 const touch = e.touches[0];
                 const touchY = touch.clientY;
                 
+                // 指に追従して要素を移動
+                currentY = touchY - startY;
+                draggedElement.style.top = (originalRect.top + currentY) + 'px';
+                
                 // コンテナを取得
                 const container = document.getElementById('reviewGuessArea');
-                const items = Array.from(container.children);
+                const items = Array.from(container.children).filter(item => item !== placeholder);
                 
                 // タッチ位置に最も近い要素を見つける
                 let closestElement = null;
@@ -2366,32 +2632,47 @@
                     }
                 });
                 
-                // 最も近い要素の前または後に挿入
-                if (closestElement) {
+                // プレースホルダーを移動（視覚的フィードバック）
+                if (closestElement && placeholder) {
                     const rect = closestElement.getBoundingClientRect();
                     const closestCenterY = rect.top + rect.height / 2;
                     
                     if (touchY < closestCenterY) {
                         // 上に挿入
-                        if (closestElement !== draggedElement.nextSibling) {
-                            container.insertBefore(draggedElement, closestElement);
-                            updateRankNumbers(container);
+                        if (closestElement !== placeholder.nextSibling) {
+                            container.insertBefore(placeholder, closestElement);
                         }
                     } else {
                         // 下に挿入
-                        if (closestElement.nextSibling !== draggedElement) {
-                            container.insertBefore(draggedElement, closestElement.nextSibling);
-                            updateRankNumbers(container);
+                        if (closestElement.nextSibling !== placeholder) {
+                            container.insertBefore(placeholder, closestElement.nextSibling);
                         }
                     }
                 }
-            }, { passive: true });
+            }, { passive: false });  // preventDefault使用のためfalse
             
             // タッチエンド（スマホ）
             element.addEventListener('touchend', function(e) {
-                isDragging = false;
-                if (draggedElement) {
-                    draggedElement.classList.remove('dragging');
+                if (isDragging && draggedElement) {
+                    // スタイルをリセット
+                    draggedElement.style.position = '';
+                    draggedElement.style.left = '';
+                    draggedElement.style.top = '';
+                    draggedElement.style.width = '';
+                    draggedElement.style.zIndex = '';
+                    draggedElement.style.transform = '';
+                    draggedElement.style.boxShadow = '';
+                    draggedElement.style.transition = '';
+                    
+                    // プレースホルダーの位置に要素を挿入
+                    if (placeholder && placeholder.parentNode) {
+                        placeholder.parentNode.insertBefore(draggedElement, placeholder);
+                        placeholder.parentNode.removeChild(placeholder);
+                    }
+                    
+                    // 順位番号を更新
+                    const container = document.getElementById('reviewGuessArea');
+                    updateRankNumbers(container);
                     
                     // 順序を更新
                     updateReviewItemsOrder();
@@ -2399,16 +2680,31 @@
                     draggedElement = null;
                     placeholder = null;
                 }
+                isDragging = false;
             });
             
             // タッチキャンセル
             element.addEventListener('touchcancel', function(e) {
-                isDragging = false;
-                if (draggedElement) {
-                    draggedElement.classList.remove('dragging');
+                if (isDragging && draggedElement) {
+                    // スタイルをリセット
+                    draggedElement.style.position = '';
+                    draggedElement.style.left = '';
+                    draggedElement.style.top = '';
+                    draggedElement.style.width = '';
+                    draggedElement.style.zIndex = '';
+                    draggedElement.style.transform = '';
+                    draggedElement.style.boxShadow = '';
+                    draggedElement.style.transition = '';
+                    
+                    // プレースホルダー削除
+                    if (placeholder && placeholder.parentNode) {
+                        placeholder.parentNode.removeChild(placeholder);
+                    }
+                    
                     draggedElement = null;
                     placeholder = null;
                 }
+                isDragging = false;
             });
             
             // デスクトップ用ドラッグイベント
@@ -2541,7 +2837,7 @@
             showReviewResult(items, matchCount, rankScore, totalScore, details);
         }
         
-        // 振り返り予想：結果表示（方式B対応）
+        // 振り返り予想：結果表示（表形式に統一）
         function showReviewResult(guessedItems, matchCount, rankScore, totalScore, details) {
             let html = '';
             
@@ -2588,22 +2884,33 @@
             html += '</div>';
             html += '</div>';
             
-            // 答え合わせ詳細
-            html += '<div style="background: #F0F8FF; border-radius: 10px; padding: 20px; margin-bottom: 20px;">';
-            html += '<h3 style="color: #4A90E2; font-size: 16px; margin-bottom: 15px;">✨ 答え合わせ</h3>';
+            // 答え合わせ詳細（表形式に変更）
+            html += '<div style="background: #FFF8F0; border-radius: 10px; padding: 20px; margin-bottom: 20px; overflow-x: auto;">';
+            html += '<h3 style="color: #FF9800; font-size: 16px; margin-bottom: 15px;">✨ 答え合わせ</h3>';
             
+            // タイトル行
+            html += '<div style="display: grid; grid-template-columns: 45px 1fr 1fr 45px 50px; gap: 8px; padding: 8px; background: #FFE4CC; border-radius: 6px; margin-bottom: 8px; font-weight: bold; font-size: 12px; color: #666;">';
+            html += '<div style="text-align: center;">順位</div>';
+            html += '<div>正解</div>';
+            html += '<div>あなたの予想</div>';
+            html += '<div style="text-align: center;">評価</div>';
+            html += '<div style="text-align: center;">スコア</div>';
+            html += '</div>';
+            
+            // データ行
             for (let i = 0; i < details.length; i++) {
                 const detail = details[i];
                 const isCorrect = detail.isCorrect;
-                const icon = isCorrect ? '✅' : '❌';
-                const color = isCorrect ? '#50C878' : '#ff6b6b';
-                const pointText = isCorrect ? '+' + detail.rankPoint + '点' : '0点';
+                const icon = isCorrect ? '✓' : '✕';
+                const pointsEarned = detail.rankPoint;
                 const bgColor = isCorrect ? '#F0FFF4' : 'transparent';
                 
-                html += '<div style="display: flex; align-items: center; margin: 8px 0; padding: 10px; border-radius: 8px; background: ' + bgColor + ';">';
-                html += '<span style="color: #666; font-size: 14px; min-width: 40px;">' + detail.rank + '位:</span>';
-                html += '<span style="color: #333; font-size: 15px; flex: 1;">' + detail.correct + '</span>';
-                html += '<span style="color: ' + color + '; font-size: 14px; font-weight: bold;">' + icon + ' ' + (isCorrect ? pointText : detail.guess) + '</span>';
+                html += '<div style="display: grid; grid-template-columns: 45px 1fr 1fr 45px 50px; gap: 8px; padding: 10px; border-radius: 6px; background: ' + bgColor + '; align-items: center; font-size: 13px;">';
+                html += '<div style="text-align: center; font-weight: bold; color: #666;">' + detail.rank + '位</div>';
+                html += '<div style="color: #333;">' + detail.correct + '</div>';
+                html += '<div style="color: #666;">' + detail.guess + '</div>';
+                html += '<div style="text-align: center; font-size: 18px;">' + icon + '</div>';
+                html += '<div style="text-align: center; font-weight: bold; color: ' + (isCorrect ? '#50C878' : '#999') + ';">' + pointsEarned + 'pt</div>';
                 html += '</div>';
             }
             
@@ -2678,11 +2985,22 @@
             }
         }
         
-        function backToMain() {
+        async function backToMain() {
             try {
                 console.log('🏠 HOMEボタンが押されました');
                 
-                // セッションリスナーをクリーンアップ（フェーズ5-Aで追加）
+                // 現在の画面を確認
+                const currentScreen = document.querySelector('.screen.active');
+                const isResultScreen = currentScreen && currentScreen.id === 'resultScreen';
+                
+                // 結果画面から戻る場合は、セッションを削除
+                if (isResultScreen && currentGameSession) {
+                    const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
+                    await sessionRef.remove();
+                    console.log('✅ セッション削除成功（結果画面からHOME）');
+                }
+                
+                // セッションリスナーをクリーンアップ
                 if (sessionListener) {
                     sessionListener.off();
                     sessionListener = null;
