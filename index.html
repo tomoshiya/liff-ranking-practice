@@ -1974,11 +1974,15 @@
                         // 上に挿入
                         if (closestElement !== placeholder.nextSibling) {
                             container.insertBefore(placeholder, closestElement);
+                            // スワイプ中も順位番号をリアルタイム更新
+                            updateRankNumbers(container);
                         }
                     } else {
                         // 下に挿入
                         if (closestElement.nextSibling !== placeholder) {
                             container.insertBefore(placeholder, closestElement.nextSibling);
+                            // スワイプ中も順位番号をリアルタイム更新
+                            updateRankNumbers(container);
                         }
                     }
                 }
@@ -2003,7 +2007,7 @@
                         placeholder.parentNode.removeChild(placeholder);
                     }
                     
-                    // 順位番号を更新
+                    // 順位番号を更新（念のため）
                     const container = document.getElementById('guessRankingArea');
                     updateRankNumbers(container);
                     
@@ -2646,11 +2650,15 @@
                         // 上に挿入
                         if (closestElement !== placeholder.nextSibling) {
                             container.insertBefore(placeholder, closestElement);
+                            // スワイプ中も順位番号をリアルタイム更新
+                            updateRankNumbers(container);
                         }
                     } else {
                         // 下に挿入
                         if (closestElement.nextSibling !== placeholder) {
                             container.insertBefore(placeholder, closestElement.nextSibling);
+                            // スワイプ中も順位番号をリアルタイム更新
+                            updateRankNumbers(container);
                         }
                     }
                 }
@@ -2675,7 +2683,7 @@
                         placeholder.parentNode.removeChild(placeholder);
                     }
                     
-                    // 順位番号を更新
+                    // 順位番号を更新（念のため）
                     const container = document.getElementById('reviewGuessArea');
                     updateRankNumbers(container);
                     
