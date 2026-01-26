@@ -1628,11 +1628,14 @@
                 }
                 
                 currentGameSession = null;
-                backToMain();
+                
+                // ホーム画面に戻る
+                showScreen('mainScreen');
             } catch (error) {
                 console.error('❌ cancelWaitingRoom エラー:', error);
                 alert('キャンセル中にエラーが発生しました。');
-                backToMain();
+                // エラー時もホーム画面に戻る
+                showScreen('mainScreen');
             }
         }
         
