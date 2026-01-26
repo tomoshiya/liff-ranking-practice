@@ -1976,6 +1976,12 @@
                             container.insertBefore(placeholder, closestElement);
                             // スワイプ中も順位番号をリアルタイム更新
                             updateRankNumbers(container);
+                            // ドラッグ中の要素の順位を手動で更新（プレースホルダーの位置から計算）
+                            const allChildren = Array.from(container.children);
+                            const placeholderIndex = allChildren.indexOf(placeholder);
+                            const newRank = allChildren.slice(0, placeholderIndex).filter(c => c.style.opacity !== '0').length + 1;
+                            const draggedRankSpan = draggedElement.querySelector('.rank-number');
+                            if (draggedRankSpan) draggedRankSpan.textContent = newRank + '位';
                         }
                     } else {
                         // 下に挿入
@@ -1983,6 +1989,12 @@
                             container.insertBefore(placeholder, closestElement.nextSibling);
                             // スワイプ中も順位番号をリアルタイム更新
                             updateRankNumbers(container);
+                            // ドラッグ中の要素の順位を手動で更新（プレースホルダーの位置から計算）
+                            const allChildren = Array.from(container.children);
+                            const placeholderIndex = allChildren.indexOf(placeholder);
+                            const newRank = allChildren.slice(0, placeholderIndex).filter(c => c.style.opacity !== '0').length + 1;
+                            const draggedRankSpan = draggedElement.querySelector('.rank-number');
+                            if (draggedRankSpan) draggedRankSpan.textContent = newRank + '位';
                         }
                     }
                 }
@@ -2652,6 +2664,12 @@
                             container.insertBefore(placeholder, closestElement);
                             // スワイプ中も順位番号をリアルタイム更新
                             updateRankNumbers(container);
+                            // ドラッグ中の要素の順位を手動で更新（プレースホルダーの位置から計算）
+                            const allChildren = Array.from(container.children);
+                            const placeholderIndex = allChildren.indexOf(placeholder);
+                            const newRank = allChildren.slice(0, placeholderIndex).filter(c => c.style.opacity !== '0').length + 1;
+                            const draggedRankSpan = draggedElement.querySelector('.rank-number');
+                            if (draggedRankSpan) draggedRankSpan.textContent = newRank + '位';
                         }
                     } else {
                         // 下に挿入
@@ -2659,6 +2677,12 @@
                             container.insertBefore(placeholder, closestElement.nextSibling);
                             // スワイプ中も順位番号をリアルタイム更新
                             updateRankNumbers(container);
+                            // ドラッグ中の要素の順位を手動で更新（プレースホルダーの位置から計算）
+                            const allChildren = Array.from(container.children);
+                            const placeholderIndex = allChildren.indexOf(placeholder);
+                            const newRank = allChildren.slice(0, placeholderIndex).filter(c => c.style.opacity !== '0').length + 1;
+                            const draggedRankSpan = draggedElement.querySelector('.rank-number');
+                            if (draggedRankSpan) draggedRankSpan.textContent = newRank + '位';
                         }
                     }
                 }
