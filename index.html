@@ -2421,7 +2421,7 @@
                 });
         }
         
-        // スコアを計算（方式B：個数＋順位）
+        // スコアを計算（新方式：完全一致=2点、±1=1点）
         function calculateScores(sessionData) {
             const rankings = sessionData.rankings;
             const guesses = sessionData.guesses;
@@ -2434,27 +2434,42 @@
                 const partnerRanking = rankings[partnerId];  // 正解
                 const myGuess = guesses[playerId];            // 予想
                 
-                let matchCount = 0;    // 当てた個数
-                let rankScore = 0;     // 順位ボーナス
+                let score = 0;           // 合計スコア
+                let perfectCount = 0;    // 完全一致の数
+                let closeCount = 0;      // ±1の数
                 
-                for (let rank = 1; rank <= 5; rank++) {
-                    const rankStr = rank.toString();
-                    const correctItem = partnerRanking[rankStr];
-                    const guessedItem = myGuess[rankStr];
+                // 各予想位置について、正解での順位を探して比較
+                for (let guessRank = 1; guessRank <= 5; guessRank++) {
+                    const guessedItem = myGuess[guessRank.toString()];
                     
-                    if (correctItem === guessedItem) {
-                        // 完全一致
-                        matchCount++;
-                        rankScore += (6 - rank);  // 1位=5点、2位=4点、...、5位=1点
+                    // この項目が正解で何位なのか探す
+                    let correctRank = 0;
+                    for (let rank = 1; rank <= 5; rank++) {
+                        if (partnerRanking[rank.toString()] === guessedItem) {
+                            correctRank = rank;
+                            break;
+                        }
+                    }
+                    
+                    // 順位の差を計算
+                    if (correctRank > 0) {
+                        const diff = Math.abs(guessRank - correctRank);
+                        if (diff === 0) {
+                            // 完全一致
+                            score += 2;
+                            perfectCount++;
+                        } else if (diff === 1) {
+                            // ±1（おしい）
+                            score += 1;
+                            closeCount++;
+                        }
                     }
                 }
                 
-                const totalScore = matchCount + rankScore;
-                
                 results[playerId] = {
-                    score: totalScore,
-                    matchCount: matchCount,
-                    rankScore: rankScore
+                    score: score,               // 最大10点
+                    perfectCount: perfectCount, // 完全一致数
+                    closeCount: closeCount      // ±1の数
                 };
             });
             
@@ -2514,17 +2529,17 @@
             // 自分のスコア
             html += '<div>';
             html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">あなた' + (isHost ? '（ホスト）' : '（ゲスト）') + '</p>';
-            html += '<p style="color: #FF6B9D; font-size: 32px; font-weight: bold;">' + myScore.score + '<span style="font-size: 16px; color: #999;"> / 20</span></p>';
-            html += '<p style="color: #999; font-size: 12px;">当てた個数: ' + myScore.matchCount + '個</p>';
-            html += '<p style="color: #999; font-size: 12px;">順位ボーナス: ' + myScore.rankScore + '点</p>';
+            html += '<p style="color: #FF6B9D; font-size: 32px; font-weight: bold;">' + myScore.score + '<span style="font-size: 16px; color: #999;"> / 10</span></p>';
+            html += '<p style="color: #999; font-size: 12px;">完全一致: ' + myScore.perfectCount + '個（×2点）</p>';
+            html += '<p style="color: #999; font-size: 12px;">おしい（±1）: ' + myScore.closeCount + '個（×1点）</p>';
             html += '</div>';
             
             // パートナーのスコア
             html += '<div>';
             html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">' + partnerName + (isPartnerHost ? '（ホスト）' : '（ゲスト）') + '</p>';
-            html += '<p style="color: #4A90E2; font-size: 32px; font-weight: bold;">' + partnerScore.score + '<span style="font-size: 16px; color: #999;"> / 20</span></p>';
-            html += '<p style="color: #999; font-size: 12px;">当てた個数: ' + partnerScore.matchCount + '個</p>';
-            html += '<p style="color: #999; font-size: 12px;">順位ボーナス: ' + partnerScore.rankScore + '点</p>';
+            html += '<p style="color: #4A90E2; font-size: 32px; font-weight: bold;">' + partnerScore.score + '<span style="font-size: 16px; color: #999;"> / 10</span></p>';
+            html += '<p style="color: #999; font-size: 12px;">完全一致: ' + partnerScore.perfectCount + '個（×2点）</p>';
+            html += '<p style="color: #999; font-size: 12px;">おしい（±1）: ' + partnerScore.closeCount + '個（×1点）</p>';
             html += '</div>';
             
             html += '</div>';
@@ -2532,23 +2547,23 @@
             
             // 協力型：合計スコア表示
             const totalScore = myScore.score + partnerScore.score;
-            const maxScore = 40;
+            const maxScore = 20;
             let cooperativeEmoji = '';
             let cooperativeMessage = '';
             
-            if (totalScore >= 35) {
+            if (totalScore === 20) {
                 cooperativeEmoji = '🎉';
-                cooperativeMessage = '完璧なコンビネーション！';
-            } else if (totalScore >= 30) {
+                cooperativeMessage = 'パーフェクト！完璧なコンビネーション！';
+            } else if (totalScore >= 18) {
                 cooperativeEmoji = '😊';
-                cooperativeMessage = '素晴らしい！';
-            } else if (totalScore >= 25) {
+                cooperativeMessage = '素晴らしい！ほぼ完璧！';
+            } else if (totalScore >= 15) {
                 cooperativeEmoji = '👍';
-                cooperativeMessage = 'いい感じ！';
-            } else if (totalScore >= 20) {
+                cooperativeMessage = 'いい感じ！お互いをよく知ってる！';
+            } else if (totalScore >= 12) {
                 cooperativeEmoji = '🤔';
                 cooperativeMessage = 'まだまだ伸びしろあり！';
-            } else if (totalScore >= 15) {
+            } else if (totalScore >= 8) {
                 cooperativeEmoji = '💪';
                 cooperativeMessage = '次は頑張ろう！';
             } else {
@@ -2855,7 +2870,7 @@
             container.setAttribute('data-items', JSON.stringify(items));
         }
         
-        // 振り返り予想：答え合わせ（方式B：個数＋順位）
+        // 振り返り予想：答え合わせ（新方式：完全一致=2点、±1=1点）
         function submitReviewGuess() {
             const container = document.getElementById('reviewGuessArea');
             const items = JSON.parse(container.getAttribute('data-items'));
@@ -2865,62 +2880,74 @@
                 return;
             }
             
-            // スコアを計算（方式B）
-            let matchCount = 0;    // 当てた個数
-            let rankScore = 0;     // 順位ボーナス
-            const details = [];    // 詳細情報
+            // スコアを計算（新方式）
+            let score = 0;           // 合計スコア
+            let perfectCount = 0;    // 完全一致の数
+            let closeCount = 0;      // ±1の数
+            const details = [];      // 詳細情報
             
-            for (let rank = 1; rank <= 5; rank++) {
-                const rankStr = rank.toString();
-                const correctItem = reviewCorrectAnswer[rankStr];
-                const guessedItem = items[rank - 1];
+            // 各予想位置について、正解での順位を探して比較
+            for (let guessRank = 1; guessRank <= 5; guessRank++) {
+                const guessedItem = items[guessRank - 1];
                 
-                if (correctItem === guessedItem) {
-                    // 完全一致
-                    matchCount++;
-                    const rankPoint = 6 - rank;  // 1位=5点、2位=4点、...、5位=1点
-                    rankScore += rankPoint;
-                    details.push({
-                        rank: rank,
-                        correct: correctItem,
-                        guess: guessedItem,
-                        isCorrect: true,
-                        rankPoint: rankPoint
-                    });
-                } else {
-                    details.push({
-                        rank: rank,
-                        correct: correctItem,
-                        guess: guessedItem,
-                        isCorrect: false,
-                        rankPoint: 0
-                    });
+                // この項目が正解で何位なのか探す
+                let correctRank = 0;
+                for (let rank = 1; rank <= 5; rank++) {
+                    if (reviewCorrectAnswer[rank.toString()] === guessedItem) {
+                        correctRank = rank;
+                        break;
+                    }
                 }
+                
+                // 順位の差を計算
+                let pointEarned = 0;
+                let matchType = '';
+                if (correctRank > 0) {
+                    const diff = Math.abs(guessRank - correctRank);
+                    if (diff === 0) {
+                        // 完全一致
+                        pointEarned = 2;
+                        perfectCount++;
+                        matchType = 'perfect';
+                    } else if (diff === 1) {
+                        // ±1（おしい）
+                        pointEarned = 1;
+                        closeCount++;
+                        matchType = 'close';
+                    }
+                }
+                score += pointEarned;
+                
+                details.push({
+                    guessRank: guessRank,
+                    correctRank: correctRank,
+                    item: guessedItem,
+                    matchType: matchType,
+                    point: pointEarned
+                });
             }
             
-            const totalScore = matchCount + rankScore;
-            
             // 結果を表示
-            showReviewResult(items, matchCount, rankScore, totalScore, details);
+            showReviewResult(items, perfectCount, closeCount, score, details);
         }
         
         // 振り返り予想：結果表示（表形式に統一）
-        function showReviewResult(guessedItems, matchCount, rankScore, totalScore, details) {
+        function showReviewResult(guessedItems, perfectCount, closeCount, totalScore, details) {
             let html = '';
             
             // 評価メッセージ（5段階）
             let emoji = '';
             let message = '';
-            if (totalScore === 20) {
+            if (totalScore === 10) {
                 emoji = '🎉';
                 message = 'パーフェクト！';
-            } else if (totalScore >= 15) {
+            } else if (totalScore >= 8) {
                 emoji = '😊';
                 message = 'すごい！';
-            } else if (totalScore >= 10) {
+            } else if (totalScore >= 6) {
                 emoji = '👍';
                 message = 'いい感じ！';
-            } else if (totalScore >= 5) {
+            } else if (totalScore >= 4) {
                 emoji = '🤔';
                 message = 'おしい！';
             } else {
@@ -2936,17 +2963,17 @@
             
             // スコア詳細
             html += '<div style="background: #F8F4FF; border-radius: 10px; padding: 20px; margin-bottom: 20px; text-align: center;">';
-            html += '<p style="color: #9B59B6; font-size: 48px; font-weight: bold; margin-bottom: 10px;">' + totalScore + '点<span style="font-size: 24px; color: #999;"> / 20点</span></p>';
+            html += '<p style="color: #9B59B6; font-size: 48px; font-weight: bold; margin-bottom: 10px;">' + totalScore + '点<span style="font-size: 24px; color: #999;"> / 10点</span></p>';
             html += '<div style="display: flex; justify-content: center; gap: 20px; margin-top: 15px;">';
             html += '<div>';
-            html += '<p style="color: #666; font-size: 13px;">当てた個数</p>';
-            html += '<p style="color: #9B59B6; font-size: 24px; font-weight: bold;">' + matchCount + '個</p>';
-            html += '<p style="color: #999; font-size: 12px;">' + matchCount + '点</p>';
+            html += '<p style="color: #666; font-size: 13px;">完全一致</p>';
+            html += '<p style="color: #9B59B6; font-size: 24px; font-weight: bold;">' + perfectCount + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">×2点</p>';
             html += '</div>';
             html += '<div>';
-            html += '<p style="color: #666; font-size: 13px;">順位ボーナス</p>';
-            html += '<p style="color: #9B59B6; font-size: 24px; font-weight: bold;">' + rankScore + '点</p>';
-            html += '<p style="color: #999; font-size: 12px;">1位=5, 2位=4...</p>';
+            html += '<p style="color: #666; font-size: 13px;">おしい（±1）</p>';
+            html += '<p style="color: #9B59B6; font-size: 24px; font-weight: bold;">' + closeCount + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">×1点</p>';
             html += '</div>';
             html += '</div>';
             html += '</div>';
@@ -2956,28 +2983,43 @@
             html += '<h3 style="color: #FF9800; font-size: 16px; margin-bottom: 15px;">✨ 答え合わせ</h3>';
             
             // タイトル行
-            html += '<div style="display: grid; grid-template-columns: 45px 1fr 1fr 45px 50px; gap: 8px; padding: 8px; background: #FFE4CC; border-radius: 6px; margin-bottom: 8px; font-weight: bold; font-size: 12px; color: #666;">';
-            html += '<div style="text-align: center;">順位</div>';
-            html += '<div>正解</div>';
-            html += '<div>あなたの予想</div>';
+            html += '<div style="display: grid; grid-template-columns: 45px 1fr 60px 45px 50px; gap: 8px; padding: 8px; background: #FFE4CC; border-radius: 6px; margin-bottom: 8px; font-weight: bold; font-size: 12px; color: #666;">';
+            html += '<div style="text-align: center;">予想</div>';
+            html += '<div>項目</div>';
+            html += '<div style="text-align: center;">正解順位</div>';
             html += '<div style="text-align: center;">評価</div>';
-            html += '<div style="text-align: center;">スコア</div>';
+            html += '<div style="text-align: center;">得点</div>';
             html += '</div>';
             
             // データ行
             for (let i = 0; i < details.length; i++) {
                 const detail = details[i];
-                const isCorrect = detail.isCorrect;
-                const icon = isCorrect ? '✓' : '✕';
-                const pointsEarned = detail.rankPoint;
-                const bgColor = isCorrect ? '#F0FFF4' : 'transparent';
+                const matchType = detail.matchType;
+                let icon = '';
+                let bgColor = 'transparent';
+                let evalText = '';
                 
-                html += '<div style="display: grid; grid-template-columns: 45px 1fr 1fr 45px 50px; gap: 8px; padding: 10px; border-radius: 6px; background: ' + bgColor + '; align-items: center; font-size: 13px;">';
-                html += '<div style="text-align: center; font-weight: bold; color: #666;">' + detail.rank + '位</div>';
-                html += '<div style="color: #333;">' + detail.correct + '</div>';
-                html += '<div style="color: #666;">' + detail.guess + '</div>';
+                if (matchType === 'perfect') {
+                    icon = '⭕';
+                    bgColor = '#F0FFF4';
+                    evalText = '完全一致';
+                } else if (matchType === 'close') {
+                    icon = '△';
+                    bgColor = '#FFF8F0';
+                    evalText = 'おしい';
+                } else {
+                    icon = '✕';
+                    evalText = '';
+                }
+                
+                const correctRankText = detail.correctRank > 0 ? detail.correctRank + '位' : '-';
+                
+                html += '<div style="display: grid; grid-template-columns: 45px 1fr 60px 45px 50px; gap: 8px; padding: 10px; border-radius: 6px; background: ' + bgColor + '; align-items: center; font-size: 13px;">';
+                html += '<div style="text-align: center; font-weight: bold; color: #666;">' + detail.guessRank + '位</div>';
+                html += '<div style="color: #333;">' + detail.item + '</div>';
+                html += '<div style="text-align: center; font-weight: bold; color: #666;">' + correctRankText + '</div>';
                 html += '<div style="text-align: center; font-size: 18px;">' + icon + '</div>';
-                html += '<div style="text-align: center; font-weight: bold; color: ' + (isCorrect ? '#50C878' : '#999') + ';">' + pointsEarned + 'pt</div>';
+                html += '<div style="text-align: center; font-weight: bold; color: ' + (detail.point > 0 ? '#50C878' : '#999') + ';">' + detail.point + 'pt</div>';
                 html += '</div>';
             }
             
@@ -3522,64 +3564,76 @@
                 userGuessArray.push(items[i].getAttribute('data-item'));
             }
             
-            // スコアを計算（方式B：個数＋順位）
-            let matchCount = 0;    // 当てた個数
-            let rankScore = 0;     // 順位ボーナス
-            const details = [];    // 詳細情報
+            // スコアを計算（新方式：完全一致=2点、±1=1点）
+            let score = 0;           // 合計スコア
+            let perfectCount = 0;    // 完全一致の数
+            let closeCount = 0;      // ±1の数
+            const details = [];      // 詳細情報
             
-            for (let rank = 1; rank <= 5; rank++) {
-                const rankStr = rank.toString();
-                const correctItem = devReviewCorrectAnswer[rankStr];
-                const guessedItem = userGuessArray[rank - 1];
+            // 各予想位置について、正解での順位を探して比較
+            for (let guessRank = 1; guessRank <= 5; guessRank++) {
+                const guessedItem = userGuessArray[guessRank - 1];
                 
-                if (correctItem === guessedItem) {
-                    // 完全一致
-                    matchCount++;
-                    const rankPoint = 6 - rank;  // 1位=5点、2位=4点、...、5位=1点
-                    rankScore += rankPoint;
-                    details.push({
-                        rank: rank,
-                        correct: correctItem,
-                        guess: guessedItem,
-                        isCorrect: true,
-                        rankPoint: rankPoint
-                    });
-                } else {
-                    details.push({
-                        rank: rank,
-                        correct: correctItem,
-                        guess: guessedItem,
-                        isCorrect: false,
-                        rankPoint: 0
-                    });
+                // この項目が正解で何位なのか探す
+                let correctRank = 0;
+                for (let rank = 1; rank <= 5; rank++) {
+                    if (devReviewCorrectAnswer[rank.toString()] === guessedItem) {
+                        correctRank = rank;
+                        break;
+                    }
                 }
+                
+                // 順位の差を計算
+                let pointEarned = 0;
+                let matchType = '';
+                if (correctRank > 0) {
+                    const diff = Math.abs(guessRank - correctRank);
+                    if (diff === 0) {
+                        // 完全一致
+                        pointEarned = 2;
+                        perfectCount++;
+                        matchType = 'perfect';
+                    } else if (diff === 1) {
+                        // ±1（おしい）
+                        pointEarned = 1;
+                        closeCount++;
+                        matchType = 'close';
+                    }
+                }
+                score += pointEarned;
+                
+                details.push({
+                    guessRank: guessRank,
+                    correctRank: correctRank,
+                    item: guessedItem,
+                    matchType: matchType,
+                    point: pointEarned
+                });
             }
             
-            const totalScore = matchCount + rankScore;
-            
-            console.log('スコア計算完了:', { matchCount, rankScore, totalScore });
+            console.log('スコア計算完了:', { perfectCount, closeCount, score });
             
             // 結果を表示
-            showDevReviewResult(userGuessArray, matchCount, rankScore, totalScore, details);
+            showDevReviewResult(userGuessArray, perfectCount, closeCount, score, details);
         }
         
         // 開発用：結果を表示
-        function showDevReviewResult(guessedItems, matchCount, rankScore, totalScore, details) {
+        function showDevReviewResult(guessedItems, perfectCount, closeCount, totalScore, details) {
             let html = '';
             
             // 評価メッセージ（5段階）
             let emoji = '';
             let message = '';
-            if (totalScore === 20) {
+            if (totalScore === 10) {
                 emoji = '🎉';
                 message = 'パーフェクト！';
-            } else if (totalScore >= 15) {
+            } else if (totalScore >= 8) {
                 emoji = '😊';
                 message = 'すごい！';
-            } else if (totalScore >= 10) {
+            } else if (totalScore >= 6) {
                 emoji = '👍';
                 message = 'いい感じ！';
-            } else if (totalScore >= 5) {
+            } else if (totalScore >= 4) {
                 emoji = '🤔';
                 message = 'おしい！';
             } else {
@@ -3595,17 +3649,17 @@
             
             // スコア詳細
             html += '<div style="background: #FFF8F0; border-radius: 10px; padding: 20px; margin-bottom: 20px; text-align: center;">';
-            html += '<p style="color: #FF6B35; font-size: 48px; font-weight: bold; margin-bottom: 10px;">' + totalScore + '点<span style="font-size: 24px; color: #999;"> / 20点</span></p>';
+            html += '<p style="color: #FF6B35; font-size: 48px; font-weight: bold; margin-bottom: 10px;">' + totalScore + '点<span style="font-size: 24px; color: #999;"> / 10点</span></p>';
             html += '<div style="display: flex; justify-content: center; gap: 20px; margin-top: 15px;">';
             html += '<div>';
-            html += '<p style="color: #666; font-size: 13px;">当てた個数</p>';
-            html += '<p style="color: #FF6B35; font-size: 24px; font-weight: bold;">' + matchCount + '個</p>';
-            html += '<p style="color: #999; font-size: 12px;">' + matchCount + '点</p>';
+            html += '<p style="color: #666; font-size: 13px;">完全一致</p>';
+            html += '<p style="color: #FF6B35; font-size: 24px; font-weight: bold;">' + perfectCount + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">×2点</p>';
             html += '</div>';
             html += '<div>';
-            html += '<p style="color: #666; font-size: 13px;">順位ボーナス</p>';
-            html += '<p style="color: #FF6B35; font-size: 24px; font-weight: bold;">' + rankScore + '点</p>';
-            html += '<p style="color: #999; font-size: 12px;">1位=5, 2位=4...</p>';
+            html += '<p style="color: #666; font-size: 13px;">おしい（±1）</p>';
+            html += '<p style="color: #FF6B35; font-size: 24px; font-weight: bold;">' + closeCount + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">×1点</p>';
             html += '</div>';
             html += '</div>';
             html += '</div>';
@@ -3615,28 +3669,43 @@
             html += '<h3 style="color: #FF6B35; font-size: 16px; margin-bottom: 15px;">✨ 答え合わせ</h3>';
             
             // タイトル行
-            html += '<div style="display: grid; grid-template-columns: 45px 1fr 1fr 45px 50px; gap: 8px; padding: 8px; background: #FFE4CC; border-radius: 6px; margin-bottom: 8px; font-weight: bold; font-size: 12px; color: #666;">';
-            html += '<div style="text-align: center;">順位</div>';
-            html += '<div>正解</div>';
-            html += '<div>あなたの予想</div>';
+            html += '<div style="display: grid; grid-template-columns: 45px 1fr 60px 45px 50px; gap: 8px; padding: 8px; background: #FFE4CC; border-radius: 6px; margin-bottom: 8px; font-weight: bold; font-size: 12px; color: #666;">';
+            html += '<div style="text-align: center;">予想</div>';
+            html += '<div>項目</div>';
+            html += '<div style="text-align: center;">正解順位</div>';
             html += '<div style="text-align: center;">評価</div>';
-            html += '<div style="text-align: center;">スコア</div>';
+            html += '<div style="text-align: center;">得点</div>';
             html += '</div>';
             
             // データ行
             for (let i = 0; i < details.length; i++) {
                 const detail = details[i];
-                const isCorrect = detail.isCorrect;
-                const icon = isCorrect ? '✓' : '✕';
-                const pointsEarned = isCorrect ? (1 + detail.rankPoint) : 0;
-                const bgColor = isCorrect ? '#F0FFF4' : 'transparent';
+                const matchType = detail.matchType;
+                let icon = '';
+                let bgColor = 'transparent';
+                let evalText = '';
                 
-                html += '<div style="display: grid; grid-template-columns: 45px 1fr 1fr 45px 50px; gap: 8px; padding: 10px; border-radius: 6px; background: ' + bgColor + '; align-items: center; font-size: 13px;">';
-                html += '<div style="text-align: center; font-weight: bold; color: #666;">' + detail.rank + '位</div>';
-                html += '<div style="color: #333;">' + detail.correct + '</div>';
-                html += '<div style="color: #666;">' + detail.guess + '</div>';
+                if (matchType === 'perfect') {
+                    icon = '⭕';
+                    bgColor = '#F0FFF4';
+                    evalText = '完全一致';
+                } else if (matchType === 'close') {
+                    icon = '△';
+                    bgColor = '#FFF8F0';
+                    evalText = 'おしい';
+                } else {
+                    icon = '✕';
+                    evalText = '';
+                }
+                
+                const correctRankText = detail.correctRank > 0 ? detail.correctRank + '位' : '-';
+                
+                html += '<div style="display: grid; grid-template-columns: 45px 1fr 60px 45px 50px; gap: 8px; padding: 10px; border-radius: 6px; background: ' + bgColor + '; align-items: center; font-size: 13px;">';
+                html += '<div style="text-align: center; font-weight: bold; color: #666;">' + detail.guessRank + '位</div>';
+                html += '<div style="color: #333;">' + detail.item + '</div>';
+                html += '<div style="text-align: center; font-weight: bold; color: #666;">' + correctRankText + '</div>';
                 html += '<div style="text-align: center; font-size: 18px;">' + icon + '</div>';
-                html += '<div style="text-align: center; font-weight: bold; color: ' + (isCorrect ? '#50C878' : '#999') + ';">' + pointsEarned + 'pt</div>';
+                html += '<div style="text-align: center; font-weight: bold; color: ' + (detail.point > 0 ? '#50C878' : '#999') + ';">' + detail.point + 'pt</div>';
                 html += '</div>';
             }
             
