@@ -1673,8 +1673,7 @@
             
             // ホスト権限チェック（もう一度あそぶの場合）
             if (currentGameSession) {
-                const sessionPlayers = Object.keys(currentGameSession.data.players || {});
-                const isHost = sessionPlayers[0] === userProfile.userId;
+                const isHost = currentGameSession.data.hostId === userProfile.userId;
                 
                 if (!isHost) {
                     alert('❌ テーマの入力はホストのみ可能です。');
@@ -1851,6 +1850,7 @@
                 mode: 'realtime',
                 theme: theme,
                 themeMode: themeMode,  // ← 将来の分析・機能拡張のため
+                hostId: userProfile.userId,  // ホストIDを明示的に保存（重要）
                 gameStatus: 'waiting',  // waiting → inputting → guessing → finished
                 createdAt: new Date().toISOString(),
                 lastActivityAt: Date.now(),  // 最後の操作時刻（タイムアウト判定用）
@@ -1901,7 +1901,7 @@
                         if (snapshot.exists()) {
                             const partner = snapshot.val();
                             document.getElementById('waitingMessage').textContent = 
-                                partner.displayName + 'さんを待っています...';
+                                partner.displayName + 'さん（ゲスト）を待っています...\n\nあなた：' + userProfile.displayName + '（ホスト）';
                         }
                     });
             } else {
@@ -1911,13 +1911,13 @@
                 document.getElementById('joinTheme').textContent = sessionData.theme;
                 
                 // ホスト名を取得
-                const hostId = Object.keys(sessionData.players).find(id => id !== userProfile.userId);
+                const hostId = sessionData.hostId || Object.keys(sessionData.players)[0];
                 database.ref('users/' + hostId).once('value')
                     .then((snapshot) => {
                         if (snapshot.exists()) {
                             const host = snapshot.val();
                             document.getElementById('joinMessage').textContent = 
-                                host.displayName + 'さんが待っています！';
+                                host.displayName + 'さん（ホスト）が待っています！\n\nあなた：' + userProfile.displayName + '（ゲスト）';
                         }
                     });
             }
@@ -2507,9 +2507,13 @@
             html += '<h3 style="color: #4A90E2; font-size: 16px; margin-bottom: 15px;">🏆 対戦成績</h3>';
             html += '<div style="display: flex; justify-content: space-around; text-align: center;">';
             
+            // ホスト/ゲスト判定
+            const isHost = sessionData.hostId === myId;
+            const isPartnerHost = sessionData.hostId === partnerId;
+            
             // 自分のスコア
             html += '<div>';
-            html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">あなた</p>';
+            html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">あなた' + (isHost ? '（ホスト）' : '（ゲスト）') + '</p>';
             html += '<p style="color: #FF6B9D; font-size: 32px; font-weight: bold;">' + myScore.score + '<span style="font-size: 16px; color: #999;"> / 20</span></p>';
             html += '<p style="color: #999; font-size: 12px;">当てた個数: ' + myScore.matchCount + '個</p>';
             html += '<p style="color: #999; font-size: 12px;">順位ボーナス: ' + myScore.rankScore + '点</p>';
@@ -2517,7 +2521,7 @@
             
             // パートナーのスコア
             html += '<div>';
-            html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">' + partnerName + '</p>';
+            html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">' + partnerName + (isPartnerHost ? '（ホスト）' : '（ゲスト）') + '</p>';
             html += '<p style="color: #4A90E2; font-size: 32px; font-weight: bold;">' + partnerScore.score + '<span style="font-size: 16px; color: #999;"> / 20</span></p>';
             html += '<p style="color: #999; font-size: 12px;">当てた個数: ' + partnerScore.matchCount + '個</p>';
             html += '<p style="color: #999; font-size: 12px;">順位ボーナス: ' + partnerScore.rankScore + '点</p>';
@@ -2648,8 +2652,7 @@
                 }
                 
                 // ホストかゲストかを判定（全モード共通）
-                const sessionPlayers = Object.keys(currentGameSession.data.players || {});
-                const isHost = sessionPlayers[0] === userProfile.userId;  // 最初のプレイヤーがホスト
+                const isHost = currentGameSession.data.hostId === userProfile.userId;
                 
                 const currentThemeMode = currentGameSession.data.themeMode || 'random';
                 
