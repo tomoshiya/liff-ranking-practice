@@ -803,6 +803,9 @@
         let currentReviewRanking = null;  // 現在振り返り中のランキング
         let reviewCorrectAnswer = null;   // 正解データ
         
+        // ドラッグ＆ドロップの排他制御用フラグ
+        let isAnyElementDragging = false;  // 誰かがドラッグ中かどうか
+        
         // ========================================
         // Firebase 設定（フェーズ3で追加）
         // ========================================
@@ -1895,6 +1898,12 @@
             
             // タッチスタート（スマホ）
             element.addEventListener('touchstart', function(e) {
+                // 🔧 1本指のみ許可（2本指ブロック）
+                if (e.touches.length !== 1) return;
+                
+                // 🔧 他の要素がドラッグ中ならブロック
+                if (isAnyElementDragging) return;
+                
                 isDragging = false;
                 draggedElement = this;
                 startY = e.touches[0].clientY;
@@ -1904,6 +1913,7 @@
                 setTimeout(() => {
                     if (draggedElement === this && !isDragging) {
                         isDragging = true;
+                        isAnyElementDragging = true;  // 🔧 グローバルフラグを立てる
                         
                         // 振動フィードバック
                         if (navigator.vibrate) {
@@ -1923,6 +1933,7 @@
                         // プレースホルダー作成（空のスペース）
                         placeholder = document.createElement('div');
                         placeholder.className = 'draggable-item';
+                        placeholder.setAttribute('data-placeholder', 'true');  // 🔧 プレースホルダーマーカー
                         placeholder.style.height = originalRect.height + 'px';
                         placeholder.style.opacity = '0';
                         placeholder.style.pointerEvents = 'none';
@@ -2012,6 +2023,8 @@
                     
                     draggedElement = null;
                     placeholder = null;
+                    
+                    isAnyElementDragging = false;  // 🔧 グローバルフラグをリセット
                 }
                 isDragging = false;
             });
@@ -2036,6 +2049,8 @@
                     
                     draggedElement = null;
                     placeholder = null;
+                    
+                    isAnyElementDragging = false;  // 🔧 グローバルフラグをリセット
                 }
                 isDragging = false;
             });
@@ -2567,6 +2582,12 @@
             
             // タッチスタート（スマホ）
             element.addEventListener('touchstart', function(e) {
+                // 🔧 1本指のみ許可（2本指ブロック）
+                if (e.touches.length !== 1) return;
+                
+                // 🔧 他の要素がドラッグ中ならブロック
+                if (isAnyElementDragging) return;
+                
                 isDragging = false;
                 draggedElement = this;
                 startY = e.touches[0].clientY;
@@ -2576,6 +2597,7 @@
                 setTimeout(() => {
                     if (draggedElement === this && !isDragging) {
                         isDragging = true;
+                        isAnyElementDragging = true;  // 🔧 グローバルフラグを立てる
                         
                         // 振動フィードバック
                         if (navigator.vibrate) {
@@ -2595,6 +2617,7 @@
                         // プレースホルダー作成（空のスペース）
                         placeholder = document.createElement('div');
                         placeholder.className = 'draggable-item';
+                        placeholder.setAttribute('data-placeholder', 'true');  // 🔧 プレースホルダーマーカー
                         placeholder.style.height = originalRect.height + 'px';
                         placeholder.style.opacity = '0';
                         placeholder.style.pointerEvents = 'none';
@@ -2684,6 +2707,8 @@
                     
                     draggedElement = null;
                     placeholder = null;
+                    
+                    isAnyElementDragging = false;  // 🔧 グローバルフラグをリセット
                 }
                 isDragging = false;
             });
@@ -2708,6 +2733,8 @@
                     
                     draggedElement = null;
                     placeholder = null;
+                    
+                    isAnyElementDragging = false;  // 🔧 グローバルフラグをリセット
                 }
                 isDragging = false;
             });
@@ -2748,9 +2775,9 @@
         
         // 順位番号を更新（リアルタイム更新用）
         function updateRankNumbers(container) {
-            // プレースホルダー（opacity: 0）を除外してカウント
+            // 🔧 プレースホルダーを確実に除外（data-placeholder属性でチェック）
             const items = Array.from(container.children).filter(item => {
-                return item.style.opacity !== '0';
+                return !item.getAttribute('data-placeholder');
             });
             items.forEach((item, index) => {
                 const rankSpan = item.querySelector('.rank-number');
