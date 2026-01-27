@@ -499,6 +499,152 @@
             </div>
         </div>
         
+        <!-- ========================================
+             テーマモード選択画面（拡張ポイント）
+             将来の拡張：投票モード、時間制限モードなど
+             ======================================== -->
+        <div id="themeModeSelectScreen" class="screen">
+            <h2 style="color: #FF6B9D; margin-bottom: 20px;">🎮 ゲームモード選択</h2>
+            
+            <p style="color: #666; font-size: 14px; text-align: center; margin-bottom: 30px; line-height: 1.6;">
+                どのモードであそびますか？
+            </p>
+            
+            <!-- ランダムテーマモード -->
+            <button onclick="selectThemeMode('random')" style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 25px;
+                margin-bottom: 15px;
+                border: none;
+                border-radius: 15px;
+                font-size: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+                transition: transform 0.2s, box-shadow 0.2s;
+            " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <div style="text-align: left;">
+                    <div style="font-size: 20px; font-weight: bold; margin-bottom: 5px;">
+                        🎲 ランダムテーマ
+                    </div>
+                    <div style="font-size: 13px; opacity: 0.9;">
+                        おすすめテーマから自動選択
+                    </div>
+                </div>
+                <div style="font-size: 24px;">→</div>
+            </button>
+            
+            <!-- オリジナルテーマモード -->
+            <button onclick="selectThemeMode('custom')" style="
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                padding: 25px;
+                margin-bottom: 15px;
+                border: none;
+                border-radius: 15px;
+                font-size: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+                transition: transform 0.2s, box-shadow 0.2s;
+            " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <div style="text-align: left;">
+                    <div style="font-size: 20px; font-weight: bold; margin-bottom: 5px;">
+                        ✏️ オリジナルテーマ
+                    </div>
+                    <div style="font-size: 13px; opacity: 0.9;">
+                        自由にテーマを入力
+                    </div>
+                </div>
+                <div style="font-size: 24px;">→</div>
+            </button>
+            
+            <!-- 将来の拡張ポイント：投票モードなど
+            <button onclick="selectThemeMode('vote')" style="opacity: 0.5; pointer-events: none;">
+                <div>🗳️ 投票モード（準備中）</div>
+                <div style="font-size: 13px;">3つのテーマから選ぶ</div>
+            </button>
+            -->
+            
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="backToMain()" class="fixed-round-button fixed-round-button-home">
+                HOME
+            </button>
+        </div>
+        
+        <!-- ========================================
+             カスタムテーマ入力画面
+             将来の拡張：テーマテンプレート、履歴から選択など
+             ======================================== -->
+        <div id="customThemeInputScreen" class="screen">
+            <h2 style="color: #f5576c; margin-bottom: 20px;">✏️ テーマを入力</h2>
+            
+            <p style="color: #666; font-size: 14px; text-align: center; margin-bottom: 20px; line-height: 1.6;">
+                ランキングのテーマを自由に入力してください
+            </p>
+            
+            <!-- テーマ入力欄 -->
+            <div style="background: #FFF0F5; border: 2px solid #f5576c; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                <label for="customThemeInput" style="display: block; color: #f5576c; font-weight: bold; margin-bottom: 10px; font-size: 14px;">
+                    📌 テーマ
+                </label>
+                <input 
+                    type="text" 
+                    id="customThemeInput" 
+                    placeholder="例：わたしの好きな音楽TOP5"
+                    maxlength="50"
+                    style="
+                        width: 100%;
+                        padding: 15px;
+                        border: 2px solid #f5576c;
+                        border-radius: 8px;
+                        font-size: 16px;
+                        box-sizing: border-box;
+                        outline: none;
+                        transition: border-color 0.3s;
+                    "
+                    onfocus="this.style.borderColor='#ff1744'"
+                    onblur="this.style.borderColor='#f5576c'"
+                />
+                <p style="color: #999; font-size: 12px; margin-top: 8px; text-align: right;">
+                    <span id="customThemeCount">0</span> / 50文字
+                </p>
+            </div>
+            
+            <!-- 将来の拡張ポイント：テンプレート選択
+            <div style="margin-bottom: 20px;">
+                <p style="font-size: 13px; color: #666; margin-bottom: 10px;">💡 テンプレートから選ぶ</p>
+                <button onclick="useTemplate('わたしの好きな○○TOP5')">好きな○○</button>
+                <button onclick="useTemplate('わたしの行きたい○○TOP5')">行きたい○○</button>
+            </div>
+            -->
+            
+            <!-- 決定ボタン -->
+            <button onclick="confirmCustomTheme()" style="
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                padding: 18px;
+                width: 100%;
+                border: none;
+                border-radius: 12px;
+                font-size: 18px;
+                font-weight: bold;
+                box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+                cursor: pointer;
+                transition: transform 0.2s;
+            " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                ✅ このテーマで決定
+            </button>
+            
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="backToThemeModeSelect()" class="fixed-round-button fixed-round-button-home">
+                戻る
+            </button>
+        </div>
+        
         <!-- ランキング入力画面 -->
         <div id="rankingScreen" class="screen">
             <div class="theme-box">
@@ -1477,8 +1623,117 @@
                 return;
             }
             
-            // 既存の待機中セッションをチェック
-            checkExistingSession();
+            // モード選択画面へ遷移
+            showScreen('themeModeSelectScreen');
+        }
+        
+        // ========================================
+        // テーマモード選択機能（拡張性を考慮）
+        // 将来の拡張：投票モード、時間制限モードなど
+        // ========================================
+        
+        // グローバル変数：選択されたテーマモードを保持
+        let selectedThemeMode = null;  // 'random' | 'custom' | 将来的には 'vote' など
+        let customThemeText = null;    // カスタムテーマのテキスト
+        
+        // テーマモードを選択
+        function selectThemeMode(mode) {
+            selectedThemeMode = mode;
+            
+            if (mode === 'random') {
+                // ランダムモード：直接セッション作成へ
+                checkExistingSession();
+            } else if (mode === 'custom') {
+                // カスタムモード：テーマ入力画面へ
+                showScreen('customThemeInputScreen');
+                
+                // 入力欄をクリア
+                document.getElementById('customThemeInput').value = '';
+                document.getElementById('customThemeCount').textContent = '0';
+                
+                // 文字数カウンター設定
+                const input = document.getElementById('customThemeInput');
+                input.addEventListener('input', function() {
+                    document.getElementById('customThemeCount').textContent = this.value.length;
+                });
+            }
+            // 将来の拡張ポイント
+            // else if (mode === 'vote') {
+            //     showScreen('themeVoteScreen');
+            // }
+        }
+        
+        // カスタムテーマを確定
+        function confirmCustomTheme() {
+            const input = document.getElementById('customThemeInput');
+            const theme = input.value.trim();
+            
+            // バリデーション
+            if (!theme) {
+                alert('❌ テーマを入力してください。');
+                return;
+            }
+            
+            if (theme.length < 3) {
+                alert('❌ テーマは3文字以上で入力してください。');
+                return;
+            }
+            
+            if (theme.length > 50) {
+                alert('❌ テーマは50文字以内で入力してください。');
+                return;
+            }
+            
+            // カスタムテーマを保存
+            customThemeText = theme;
+            
+            // 既存セッションがある場合（もう一度あそぶ）と新規作成を判別
+            if (currentGameSession) {
+                // もう一度あそぶ：セッションデータを更新
+                playAgainWithCustomTheme();
+            } else {
+                // 新規作成：セッション作成へ
+                checkExistingSession();
+            }
+        }
+        
+        // カスタムテーマで「もう一度あそぶ」を続行
+        async function playAgainWithCustomTheme() {
+            try {
+                const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
+                
+                const updates = {
+                    theme: customThemeText,       // 新しいカスタムテーマ
+                    themeMode: 'custom',          // モードを保持
+                    gameStatus: 'inputting',      // 入力フェーズに戻る
+                    rankings: null,               // ランキングをクリア
+                    guesses: null,                // 予想をクリア
+                    results: null,                // 結果をクリア
+                    finishedAt: null,             // 終了時刻をクリア
+                    lastActivityAt: Date.now(),   // 活動時刻を更新
+                    updatedAt: new Date().toISOString()
+                };
+                
+                // 全プレイヤーの状態をリセット
+                const players = Object.keys(currentGameSession.data.players);
+                players.forEach(playerId => {
+                    updates['players/' + playerId + '/status'] = 'inputting';
+                });
+                
+                await sessionRef.update(updates);
+                console.log('✅ カスタムテーマでセッションをリセットしました');
+                
+                // リスナーが自動的に入力画面を表示してくれる
+            } catch (error) {
+                console.error('❌ playAgainWithCustomTheme エラー:', error);
+                alert('エラーが発生しました。ホーム画面に戻ります。');
+                backToMain();
+            }
+        }
+        
+        // モード選択画面に戻る
+        function backToThemeModeSelect() {
+            showScreen('themeModeSelectScreen');
         }
         
         // 既存のセッションをチェック
@@ -1528,13 +1783,27 @@
         
         // ゲームセッション作成
         function createGameSession() {
-            // ランダムにテーマを選ぶ
-            const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+            // テーマを決定（モードに応じて）
+            let theme;
+            let themeMode = selectedThemeMode || 'random';  // デフォルトはランダム
             
-            // セッションデータ作成
+            if (themeMode === 'random') {
+                // ランダムモード：プリセットテーマから選択
+                theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+            } else if (themeMode === 'custom') {
+                // カスタムモード：ユーザー入力テーマ
+                theme = customThemeText;
+            }
+            // 将来の拡張ポイント
+            // else if (themeMode === 'vote') {
+            //     theme = selectedVoteTheme;  // 投票で選ばれたテーマ
+            // }
+            
+            // セッションデータ作成（拡張性を考慮した構造）
             const sessionData = {
                 mode: 'realtime',
                 theme: theme,
+                themeMode: themeMode,  // ← 将来の分析・機能拡張のため
                 gameStatus: 'waiting',  // waiting → inputting → guessing → finished
                 createdAt: new Date().toISOString(),
                 lastActivityAt: Date.now(),  // 最後の操作時刻（タイムアウト判定用）
@@ -2331,10 +2600,31 @@
                     return;
                 }
                 
-                // セッションは削除せず、データだけリセット
-                const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
+                const currentThemeMode = currentGameSession.data.themeMode || 'random';
                 
-                // 新しいお題を選ぶ
+                // モード別の挙動（拡張性を考慮）
+                if (currentThemeMode === 'custom') {
+                    // カスタムモード：新しいテーマ入力が必要
+                    console.log('📝 カスタムモード：テーマ入力画面へ');
+                    
+                    // グローバル変数をリセット
+                    selectedThemeMode = 'custom';
+                    customThemeText = null;
+                    
+                    // テーマ入力画面へ（入力後に自動的にplayAgainFromCustomTheme()が呼ばれる）
+                    showScreen('customThemeInputScreen');
+                    
+                    // 入力欄をクリア
+                    document.getElementById('customThemeInput').value = '';
+                    document.getElementById('customThemeCount').textContent = '0';
+                    
+                    return;  // ここで一旦終了（テーマ入力後に再開）
+                }
+                
+                // ランダムモード：自動的に新しいテーマを選択
+                // 将来の拡張：投票モードなども同様に処理
+                console.log('🎲 ランダムモード：自動でテーマ選択');
+                const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
                 const newTheme = THEMES[Math.floor(Math.random() * THEMES.length)];
                 
                 const updates = {
