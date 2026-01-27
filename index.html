@@ -1623,8 +1623,9 @@
                 return;
             }
             
-            // モード選択画面へ遷移
-            showScreen('themeModeSelectScreen');
+            // 既存のセッションをチェック（ゲスト参加判定）
+            // 既存セッションがあれば自動参加、なければホストとしてモード選択へ
+            checkExistingSession();
         }
         
         // ========================================
@@ -1663,10 +1664,21 @@
             // }
         }
         
-        // カスタムテーマを確定
+        // カスタムテーマを確定（ホストのみ）
         function confirmCustomTheme() {
             const input = document.getElementById('customThemeInput');
             const theme = input.value.trim();
+            
+            // ホスト権限チェック（もう一度あそぶの場合）
+            if (currentGameSession) {
+                const sessionPlayers = Object.keys(currentGameSession.data.players || {});
+                const isHost = sessionPlayers[0] === userProfile.userId;
+                
+                if (!isHost) {
+                    alert('❌ テーマの入力はホストのみ可能です。');
+                    return;
+                }
+            }
             
             // バリデーション
             if (!theme) {
@@ -1736,6 +1748,28 @@
             showScreen('themeModeSelectScreen');
         }
         
+        // ゲストとして既存セッションに参加
+        function joinExistingSession(sessionId, sessionData) {
+            console.log('🎮 ゲストとして参加処理開始:', sessionId);
+            
+            const sessionRef = database.ref('gameSessions/' + sessionId);
+            
+            // ゲスト情報を追加
+            sessionRef.child('players/' + userProfile.userId).set({
+                displayName: userProfile.displayName,
+                status: 'waiting'
+            })
+            .then(() => {
+                console.log('✅ ゲスト参加成功');
+                // 待機室を表示
+                showWaitingRoom(sessionId, sessionData, 'guest');
+            })
+            .catch((error) => {
+                console.error('❌ ゲスト参加エラー:', error);
+                alert('❌ 参加エラー:\n' + error.message);
+            });
+        }
+        
         // 既存のセッションをチェック
         function checkExistingSession() {
             const sessionsRef = database.ref('gameSessions');
@@ -1769,10 +1803,19 @@
                     
                     if (existingSession) {
                         // 既存のセッションがある
-                        showWaitingRoom(existingSession.id, existingSession.data, existingSession.role);
+                        if (existingSession.role === 'host') {
+                            // ホスト：既存の待機室を表示
+                            showWaitingRoom(existingSession.id, existingSession.data, 'host');
+                        } else {
+                            // ゲスト：自動的に待機室に参加
+                            console.log('🎮 ゲストとして既存セッションに参加します');
+                            joinExistingSession(existingSession.id, existingSession.data);
+                        }
                     } else {
-                        // 新しくセッションを作成
-                        createGameSession();
+                        // 新しくセッションを作成（ホストのみ）
+                        // モード選択画面へ
+                        console.log('🎮 新規ホストとしてモード選択画面へ');
+                        showScreen('themeModeSelectScreen');
                     }
                 })
                 .catch((error) => {
@@ -2604,21 +2647,34 @@
                 
                 // モード別の挙動（拡張性を考慮）
                 if (currentThemeMode === 'custom') {
-                    // カスタムモード：新しいテーマ入力が必要
-                    console.log('📝 カスタムモード：テーマ入力画面へ');
+                    // カスタムモード：ホストのみが新しいテーマを入力
                     
-                    // グローバル変数をリセット
-                    selectedThemeMode = 'custom';
-                    customThemeText = null;
+                    // ホストかゲストかを判定
+                    const sessionPlayers = Object.keys(currentGameSession.data.players || {});
+                    const isHost = sessionPlayers[0] === userProfile.userId;  // 最初のプレイヤーがホスト
                     
-                    // テーマ入力画面へ（入力後に自動的にplayAgainFromCustomTheme()が呼ばれる）
-                    showScreen('customThemeInputScreen');
-                    
-                    // 入力欄をクリア
-                    document.getElementById('customThemeInput').value = '';
-                    document.getElementById('customThemeCount').textContent = '0';
-                    
-                    return;  // ここで一旦終了（テーマ入力後に再開）
+                    if (isHost) {
+                        // ホスト：テーマ入力画面へ
+                        console.log('📝 ホスト：カスタムテーマ入力画面へ');
+                        
+                        // グローバル変数をリセット
+                        selectedThemeMode = 'custom';
+                        customThemeText = null;
+                        
+                        // テーマ入力画面へ
+                        showScreen('customThemeInputScreen');
+                        
+                        // 入力欄をクリア
+                        document.getElementById('customThemeInput').value = '';
+                        document.getElementById('customThemeCount').textContent = '0';
+                        
+                        return;  // ここで一旦終了（テーマ入力後に再開）
+                    } else {
+                        // ゲスト：ホストがテーマ入力するのを待つ
+                        console.log('⏳ ゲスト：ホストのテーマ入力を待機中');
+                        alert('📝 ホストがテーマを入力中です。少々お待ちください...');
+                        return;  // ゲストは何もせず待機（リスナーが自動的に次の画面へ）
+                    }
                 }
                 
                 // ランダムモード：自動的に新しいテーマを選択
