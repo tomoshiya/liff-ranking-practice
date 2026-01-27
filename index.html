@@ -909,6 +909,9 @@
         // ドラッグ＆ドロップの排他制御用フラグ
         let isAnyElementDragging = false;  // 誰かがドラッグ中かどうか
         
+        // SortableJSインスタンス（ふたりであそぶ用）
+        let gameSortableInstance = null;
+        
         // ========================================
         // Firebase 設定（フェーズ3で追加）
         // ========================================
@@ -1927,15 +1930,20 @@
             showScreen('guessScreen');
         }
         
-        // 予想ランキングUIを生成（ドラッグ&ドロップ対応）
+        // 予想ランキングUIを生成（ドラッグ&ドロップ対応・SortableJS使用）
         function createGuessRankingUI(items) {
             const container = document.getElementById('guessRankingArea');
             container.innerHTML = '';
             
+            // 既存のSortableインスタンスを破棄
+            if (gameSortableInstance) {
+                gameSortableInstance.destroy();
+                gameSortableInstance = null;
+            }
+            
             items.forEach((item, index) => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'draggable-item';
-                itemDiv.setAttribute('data-index', index);
                 itemDiv.setAttribute('data-item', item);
                 itemDiv.style.cssText = '-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;';
                 
@@ -1960,14 +1968,52 @@
                 itemDiv.appendChild(textSpan);
                 itemDiv.appendChild(handleSpan);
                 
-                // ドラッグイベント設定（リアルタイムゲーム用）
-                setupGameDragEvents(itemDiv);
-                
                 container.appendChild(itemDiv);
             });
             
-            // 現在の項目リストを保存
+            // 🌟 SortableJS を初期化
+            gameSortableInstance = new Sortable(container, {
+                animation: 150,                    // アニメーション速度
+                delay: 50,                         // 50ms長押しでドラッグ開始
+                delayOnTouchOnly: true,            // スマホのみ長押し判定
+                forceFallback: true,               // カスタムドラッグ有効化
+                fallbackOnBody: true,              // body要素に追加（指に追従）
+                swapThreshold: 0.65,               // 入れ替え感度（0.65 = 65%）
+                handle: '.drag-handle',            // ≡アイコンだけでドラッグ可能
+                ghostClass: 'sortable-ghost',      // ドラッグ中のスタイル
+                chosenClass: 'sortable-chosen',    // 選択中のスタイル
+                dragClass: 'sortable-drag',        // ドラッグ中の要素スタイル
+                fallbackClass: 'sortable-fallback',// フォールバック時のスタイル
+                
+                // 要素移動中にリアルタイムで順位更新
+                onChange: function(evt) {
+                    updateGameRankNumbers();
+                },
+                
+                // ドラッグ終了時に順位番号を更新
+                onEnd: function() {
+                    updateGameRankNumbers();
+                }
+            });
+            
+            console.log('✅ SortableJS 初期化完了（ふたりであそぶ）');
+            
+            // 現在の項目リストを保存（後方互換性のため残す）
             container.setAttribute('data-items', JSON.stringify(items));
+        }
+        
+        // 順位番号を更新（ゲーム用・SortableJS対応）
+        function updateGameRankNumbers() {
+            const container = document.getElementById('guessRankingArea');
+            if (!container) return;
+            
+            const items = container.children;
+            for (let i = 0; i < items.length; i++) {
+                const rankSpan = items[i].querySelector('.rank-number');
+                if (rankSpan) {
+                    rankSpan.textContent = (i + 1) + '位';
+                }
+            }
         }
         
         // 項目を移動（ボタン用）
@@ -2231,7 +2277,13 @@
         // 予想を送信
         function submitGuess() {
             const container = document.getElementById('guessRankingArea');
-            const items = JSON.parse(container.getAttribute('data-items'));
+            
+            // SortableJS対応：container.childrenから直接取得
+            const itemElements = container.children;
+            const items = [];
+            for (let i = 0; i < itemElements.length; i++) {
+                items.push(itemElements[i].getAttribute('data-item'));
+            }
             
             if (!items || items.length !== 5) {
                 alert('❌ 予想データが正しくありません。');
