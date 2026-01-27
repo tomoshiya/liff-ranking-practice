@@ -3560,8 +3560,16 @@
                 fallbackClass: 'sortable-fallback',// ✨ フォールバック時のスタイル
                 
                 // ✨ 要素移動中にリアルタイムで順位更新
-                onChange: function() {
+                onChange: function(evt) {
                     updateDevRankNumbers();
+                    
+                    // ✨ ドラッグ中の要素の順位も直接更新（forceFallbackで body に移動しているため）
+                    if (evt.item && evt.newIndex !== undefined) {
+                        const rankSpan = evt.item.querySelector('.rank-number');
+                        if (rankSpan) {
+                            rankSpan.textContent = (evt.newIndex + 1) + '位';
+                        }
+                    }
                 },
                 
                 // ドラッグ終了時に順位番号を更新
