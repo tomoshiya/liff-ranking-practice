@@ -310,6 +310,18 @@
             cursor: grabbing;
         }
         
+        /* フォールバック時の要素（指に追従する要素） */
+        .sortable-fallback {
+            opacity: 1;
+            transform: scale(1.08) rotate(3deg);
+            background: linear-gradient(135deg, #E8F4F8 0%, #F0F8FF 100%);
+            border: 3px solid #4A90E2;
+            box-shadow: 0 15px 40px rgba(74, 144, 226, 0.6);
+            cursor: grabbing;
+            z-index: 9999;
+            transition: none;
+        }
+        
         /* 丸型固定ボタン */
         .fixed-round-button {
             position: fixed;
@@ -3526,10 +3538,16 @@
             // 🌟 SortableJS を初期化（ここがポイント！）
             devSortableInstance = new Sortable(container, {
                 animation: 150,                    // アニメーション速度
+                delay: 200,                        // ✨ 200ms長押しでドラッグ開始
+                delayOnTouchOnly: true,            // ✨ スマホのみ長押し判定
+                forceFallback: true,               // ✨ カスタムドラッグ有効化
+                fallbackOnBody: true,              // ✨ body要素に追加（指に追従）
+                swapThreshold: 0.65,               // ✨ 入れ替え感度（0.65 = 65%）
                 handle: '.drag-handle',            // ≡アイコンだけでドラッグ可能
                 ghostClass: 'sortable-ghost',      // ドラッグ中のスタイル
                 chosenClass: 'sortable-chosen',    // 選択中のスタイル
                 dragClass: 'sortable-drag',        // ドラッグ中の要素スタイル
+                fallbackClass: 'sortable-fallback',// ✨ フォールバック時のスタイル
                 
                 // ドラッグ終了時に順位番号を更新
                 onEnd: function() {
