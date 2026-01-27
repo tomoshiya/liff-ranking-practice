@@ -1637,15 +1637,17 @@
         let selectedThemeMode = null;  // 'random' | 'custom' | 将来的には 'vote' など
         let customThemeText = null;    // カスタムテーマのテキスト
         
-        // テーマモードを選択
+        // テーマモードを選択（ホストのみ）
         function selectThemeMode(mode) {
             selectedThemeMode = mode;
             
             if (mode === 'random') {
                 // ランダムモード：直接セッション作成へ
-                checkExistingSession();
+                console.log('🎲 ランダムモード選択：セッション作成');
+                createGameSession();
             } else if (mode === 'custom') {
                 // カスタムモード：テーマ入力画面へ
+                console.log('✏️ カスタムモード選択：テーマ入力画面へ');
                 showScreen('customThemeInputScreen');
                 
                 // 入力欄をクリア
@@ -1702,10 +1704,12 @@
             // 既存セッションがある場合（もう一度あそぶ）と新規作成を判別
             if (currentGameSession) {
                 // もう一度あそぶ：セッションデータを更新
+                console.log('🔄 カスタムテーマで再プレイ');
                 playAgainWithCustomTheme();
             } else {
-                // 新規作成：セッション作成へ
-                checkExistingSession();
+                // 新規作成：直接セッション作成
+                console.log('✨ カスタムテーマで新規セッション作成');
+                createGameSession();
             }
         }
         
