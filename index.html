@@ -300,9 +300,14 @@
             border: 2px dashed #4A90E2;
         }
         
-        /* 選択中の要素 */
+        /* 選択中の要素（長押し中の視覚的フィードバック） */
         .sortable-chosen {
             cursor: grabbing;
+            border: 3px solid #4A90E2 !important;  /* ✨ 輪郭を太く濃く */
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4) !important;  /* ✨ 影を追加 */
+            transform: scale(1.02);  /* ✨ 少し拡大 */
+            background: linear-gradient(135deg, #F0F8FF 0%, #E8F4F8 100%) !important;  /* ✨ 背景を明るく */
+            transition: all 0.1s ease;  /* ✨ スムーズな変化 */
         }
         
         /* ドラッグ中の要素 */
@@ -3543,7 +3548,7 @@
             // 🌟 SortableJS を初期化（ここがポイント！）
             devSortableInstance = new Sortable(container, {
                 animation: 150,                    // アニメーション速度
-                delay: 100,                        // ✨ 100ms長押しでドラッグ開始（短縮）
+                delay: 50,                         // ✨ 50ms長押しでドラッグ開始（Apple Music並み）
                 delayOnTouchOnly: true,            // ✨ スマホのみ長押し判定
                 forceFallback: true,               // ✨ カスタムドラッグ有効化
                 fallbackOnBody: true,              // ✨ body要素に追加（指に追従）
