@@ -2647,43 +2647,45 @@
                     return;
                 }
                 
+                // ホストかゲストかを判定（全モード共通）
+                const sessionPlayers = Object.keys(currentGameSession.data.players || {});
+                const isHost = sessionPlayers[0] === userProfile.userId;  // 最初のプレイヤーがホスト
+                
                 const currentThemeMode = currentGameSession.data.themeMode || 'random';
+                
+                // ゲストの場合：ホストの操作を待つ（全モード共通）
+                if (!isHost) {
+                    console.log('⏳ ゲスト：ホストの操作を待機中');
+                    alert('⏳ ホストが新しいゲームを開始するまでお待ちください。');
+                    return;  // ゲストは何もせず待機（リスナーが自動的に次の画面へ）
+                }
+                
+                // ========================================
+                // ここから先はホストのみ実行
+                // ========================================
                 
                 // モード別の挙動（拡張性を考慮）
                 if (currentThemeMode === 'custom') {
-                    // カスタムモード：ホストのみが新しいテーマを入力
+                    // カスタムモード：ホストが新しいテーマを入力
+                    console.log('📝 ホスト：カスタムテーマ入力画面へ');
                     
-                    // ホストかゲストかを判定
-                    const sessionPlayers = Object.keys(currentGameSession.data.players || {});
-                    const isHost = sessionPlayers[0] === userProfile.userId;  // 最初のプレイヤーがホスト
+                    // グローバル変数をリセット
+                    selectedThemeMode = 'custom';
+                    customThemeText = null;
                     
-                    if (isHost) {
-                        // ホスト：テーマ入力画面へ
-                        console.log('📝 ホスト：カスタムテーマ入力画面へ');
-                        
-                        // グローバル変数をリセット
-                        selectedThemeMode = 'custom';
-                        customThemeText = null;
-                        
-                        // テーマ入力画面へ
-                        showScreen('customThemeInputScreen');
-                        
-                        // 入力欄をクリア
-                        document.getElementById('customThemeInput').value = '';
-                        document.getElementById('customThemeCount').textContent = '0';
-                        
-                        return;  // ここで一旦終了（テーマ入力後に再開）
-                    } else {
-                        // ゲスト：ホストがテーマ入力するのを待つ
-                        console.log('⏳ ゲスト：ホストのテーマ入力を待機中');
-                        alert('📝 ホストがテーマを入力中です。少々お待ちください...');
-                        return;  // ゲストは何もせず待機（リスナーが自動的に次の画面へ）
-                    }
+                    // テーマ入力画面へ
+                    showScreen('customThemeInputScreen');
+                    
+                    // 入力欄をクリア
+                    document.getElementById('customThemeInput').value = '';
+                    document.getElementById('customThemeCount').textContent = '0';
+                    
+                    return;  // ここで一旦終了（テーマ入力後に再開）
                 }
                 
-                // ランダムモード：自動的に新しいテーマを選択
+                // ランダムモード：ホストが自動的に新しいテーマを選択
                 // 将来の拡張：投票モードなども同様に処理
-                console.log('🎲 ランダムモード：自動でテーマ選択');
+                console.log('🎲 ホスト：ランダムモードで自動テーマ選択');
                 const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
                 const newTheme = THEMES[Math.floor(Math.random() * THEMES.length)];
                 
@@ -2705,7 +2707,7 @@
                 });
                 
                 await sessionRef.update(updates);
-                console.log('✅ セッションをリセットしました（部屋は維持）');
+                console.log('✅ ホストがセッションをリセットしました（部屋は維持）');
                 
                 // リスナーが自動的に入力画面を表示してくれる
             } catch (error) {
