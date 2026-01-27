@@ -1886,6 +1886,23 @@
             createGuessRankingUI(items);
         }
         
+        // 🧹 クリーンアップ関数：残っているプレースホルダーを全削除
+        function cleanupAllPlaceholders(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            // data-placeholder 属性を持つ要素を全て削除
+            const placeholders = container.querySelectorAll('[data-placeholder="true"]');
+            placeholders.forEach(ph => {
+                if (ph.parentNode) {
+                    ph.parentNode.removeChild(ph);
+                }
+            });
+            
+            // グローバルフラグもリセット
+            isAnyElementDragging = false;
+        }
+        
         // リアルタイムゲーム用ドラッグイベント（Apple Music風：指に追従）
         function setupGameDragEvents(element) {
             let draggedElement = null;
@@ -1903,6 +1920,9 @@
                 
                 // 🔧 他の要素がドラッグ中ならブロック
                 if (isAnyElementDragging) return;
+                
+                // 🧹 残っているプレースホルダーを掃除
+                cleanupAllPlaceholders('guessRankingArea');
                 
                 isDragging = false;
                 draggedElement = this;
@@ -2588,6 +2608,9 @@
                 // 🔧 他の要素がドラッグ中ならブロック
                 if (isAnyElementDragging) return;
                 
+                // 🧹 残っているプレースホルダーを掃除
+                cleanupAllPlaceholders('reviewGuessArea');
+                
                 isDragging = false;
                 draggedElement = this;
                 startY = e.touches[0].clientY;
@@ -3011,6 +3034,10 @@
                 screen.classList.remove('active');
                 screen.style.display = 'none';
             });
+            
+            // 🧹 画面切り替え時にプレースホルダーを掃除
+            cleanupAllPlaceholders('guessRankingArea');
+            cleanupAllPlaceholders('reviewGuessArea');
             
             // 指定された画面を表示
             const targetScreen = document.getElementById(screenId);
