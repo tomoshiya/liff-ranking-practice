@@ -17,6 +17,11 @@
     <!-- Firebase Realtime Database -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     
+    <!-- ========================================
+         SortableJS の読み込み（ドラッグ&ドロップライブラリ）
+         ======================================== -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
     <style>
         /* ========================================
            デザイン設定
@@ -279,6 +284,32 @@
             cursor: grabbing;
         }
         
+        /* ========================================
+           SortableJS 用スタイル
+           ======================================== */
+        
+        /* ドラッグ中のゴースト（プレースホルダー） */
+        .sortable-ghost {
+            opacity: 0.4;
+            background: #E8F4F8;
+            border: 2px dashed #4A90E2;
+        }
+        
+        /* 選択中の要素 */
+        .sortable-chosen {
+            cursor: grabbing;
+        }
+        
+        /* ドラッグ中の要素 */
+        .sortable-drag {
+            opacity: 1;
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #E8F4F8 0%, #F0F8FF 100%);
+            border: 2px solid #4A90E2;
+            box-shadow: 0 12px 30px rgba(74, 144, 226, 0.5);
+            cursor: grabbing;
+        }
+        
         /* 丸型固定ボタン */
         .fixed-round-button {
             position: fixed;
@@ -428,6 +459,9 @@
                 </button>
                 <button onclick="showReviewList()" style="background: #9B59B6;">
                     🔄 自分のランキングであそぶ
+                </button>
+                <button onclick="showDevReviewList()" style="background: #FF6B35; border: 3px dashed #FF0000;">
+                    🧪 ひとりであそぶ（開発用）
                 </button>
                 <button onclick="showHistory()" class="secondary-button">
                     📋 過去の回答履歴を見る
@@ -735,6 +769,56 @@
             </div>
             
             <button onclick="showReviewList()" style="background: #9B59B6; margin-bottom: 80px;">
+                🔄 別のランキングで挑戦
+            </button>
+            
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="backToMain()" class="fixed-round-button fixed-round-button-home">
+                HOME
+            </button>
+        </div>
+        
+        <!-- ========================================
+             開発用：SortableJS テスト画面
+             ======================================== -->
+        
+        <!-- 開発用：並び替え画面 -->
+        <div id="devReviewGuessScreen" class="screen">
+            <h2 style="color: #FF6B35; margin-bottom: 20px;">🧪 並び替えてみよう（開発用）</h2>
+            
+            <div class="theme-box" style="margin-bottom: 20px; border-color: #FF6B35;">
+                <h2 style="color: #FF6B35;">📌 テーマ</h2>
+                <p class="theme-text" id="devReviewTheme">---</p>
+            </div>
+            
+            <p style="color: #666; font-size: 14px; text-align: center; margin-bottom: 20px;">
+                正しい順番に並べてください
+            </p>
+            
+            <!-- 並び替えエリア（SortableJS使用） -->
+            <div id="devReviewGuessArea" style="margin: 20px 0; padding-bottom: 80px;">
+                <!-- JavaScriptで動的に生成 -->
+            </div>
+            
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="cancelDevReview()" class="fixed-round-button fixed-round-button-home">
+                HOME
+            </button>
+            
+            <button onclick="submitDevReviewGuess()" class="fixed-round-button fixed-round-button-submit">
+                ANSWER
+            </button>
+        </div>
+        
+        <!-- 開発用：結果画面 -->
+        <div id="devReviewResultScreen" class="screen">
+            <h2 style="color: #FF6B35; margin-bottom: 20px;">🎉 結果（開発用）</h2>
+            
+            <div id="devReviewResultContent" style="margin: 20px 0;">
+                <!-- JavaScriptで動的に生成 -->
+            </div>
+            
+            <button onclick="showDevReviewList()" style="background: #FF6B35; margin-bottom: 80px;">
                 🔄 別のランキングで挑戦
             </button>
             
@@ -3296,6 +3380,278 @@
                     alert('❌ データ保存エラー:\n' + error.message);
                     console.error('❌ データ保存エラー:', error);
                 });
+        }
+        
+        // ========================================
+        // 開発用：SortableJS を使った実装
+        // ========================================
+        
+        // グローバル変数（開発用）
+        let devCurrentReviewRanking = null;
+        let devReviewCorrectAnswer = null;
+        let devSortableInstance = null;
+        
+        // 開発用：ランキング一覧表示
+        function showDevReviewList() {
+            // Firebaseから自分のランキングデータを取得
+            if (!database || !userProfile) {
+                alert('❌ データ取得エラー');
+                return;
+            }
+            
+            const rankingsRef = database.ref('rankings');
+            const userRankingsQuery = rankingsRef.orderByChild('userId').equalTo(userProfile.userId);
+            
+            userRankingsQuery.once('value')
+                .then((snapshot) => {
+                    const rankings = [];
+                    
+                    // データを配列に変換
+                    snapshot.forEach((childSnapshot) => {
+                        const data = childSnapshot.val();
+                        data.id = childSnapshot.key; // IDを追加
+                        rankings.push(data);
+                    });
+                    
+                    // ランキングがない場合
+                    if (rankings.length === 0) {
+                        alert('❌ まだランキングがありません\n先に「新しいテーマでランキングを作る」で遊んでみましょう！');
+                        return;
+                    }
+                    
+                    // ランダムに1つ選ぶ
+                    const randomIndex = Math.floor(Math.random() * rankings.length);
+                    const selectedRanking = rankings[randomIndex];
+                    
+                    console.log('✅ 開発用：ランダム選択:', selectedRanking.theme);
+                    
+                    // 選択したランキングで予想開始
+                    startDevReviewGuess(selectedRanking.id);
+                })
+                .catch((error) => {
+                    alert('❌ データ取得エラー:\n' + error.message);
+                    console.error('❌ ランキング取得エラー:', error);
+                });
+        }
+        
+        // 開発用：並び替え開始
+        function startDevReviewGuess(rankingId) {
+            // ランキングデータを取得
+            const rankingRef = database.ref('rankings/' + rankingId);
+            
+            rankingRef.once('value')
+                .then((snapshot) => {
+                    if (!snapshot.exists()) {
+                        alert('❌ ランキングが見つかりません。');
+                        return;
+                    }
+                    
+                    const rankingData = snapshot.val();
+                    devCurrentReviewRanking = {
+                        id: rankingId,
+                        data: rankingData
+                    };
+                    
+                    // 正解を保存
+                    devReviewCorrectAnswer = rankingData.ranking;
+                    
+                    // テーマを表示
+                    document.getElementById('devReviewTheme').textContent = rankingData.theme;
+                    
+                    // 項目を取得してシャッフル
+                    const items = [];
+                    for (let i = 1; i <= 5; i++) {
+                        items.push(rankingData.ranking[i.toString()]);
+                    }
+                    
+                    // シャッフル（Fisher-Yates アルゴリズム）
+                    for (let i = items.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [items[i], items[j]] = [items[j], items[i]];
+                    }
+                    
+                    // UIを生成（SortableJS使用）
+                    createDevReviewGuessUI(items);
+                    
+                    // 画面切り替え
+                    showScreen('devReviewGuessScreen');
+                })
+                .catch((error) => {
+                    console.error('❌ ランキング取得エラー:', error);
+                    alert('❌ データ取得エラー:\n' + error.message);
+                });
+        }
+        
+        // 開発用：UIを生成（SortableJS使用）
+        function createDevReviewGuessUI(items) {
+            const container = document.getElementById('devReviewGuessArea');
+            container.innerHTML = '';
+            
+            // 既存のSortableインスタンスを破棄
+            if (devSortableInstance) {
+                devSortableInstance.destroy();
+                devSortableInstance = null;
+            }
+            
+            items.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'draggable-item';
+                itemDiv.setAttribute('data-item', item);
+                itemDiv.style.cssText = '-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;';
+                
+                // 順位番号
+                const rankSpan = document.createElement('span');
+                rankSpan.className = 'rank-number';
+                rankSpan.textContent = (index + 1) + '位';
+                rankSpan.style.cssText = '-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;';
+                
+                // テキスト
+                const textSpan = document.createElement('span');
+                textSpan.textContent = item;
+                textSpan.style.cssText = 'color: #333; font-size: 15px; flex: 1; padding: 0 10px; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;';
+                
+                // ドラッグハンドル（≡アイコン）を右端に配置
+                const handleSpan = document.createElement('span');
+                handleSpan.className = 'drag-handle';
+                handleSpan.textContent = '≡';
+                handleSpan.style.cssText = 'margin-left: auto; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;';
+                
+                itemDiv.appendChild(rankSpan);
+                itemDiv.appendChild(textSpan);
+                itemDiv.appendChild(handleSpan);
+                
+                container.appendChild(itemDiv);
+            });
+            
+            // 🌟 SortableJS を初期化（ここがポイント！）
+            devSortableInstance = new Sortable(container, {
+                animation: 150,                    // アニメーション速度
+                handle: '.drag-handle',            // ≡アイコンだけでドラッグ可能
+                ghostClass: 'sortable-ghost',      // ドラッグ中のスタイル
+                chosenClass: 'sortable-chosen',    // 選択中のスタイル
+                dragClass: 'sortable-drag',        // ドラッグ中の要素スタイル
+                
+                // ドラッグ終了時に順位番号を更新
+                onEnd: function() {
+                    updateDevRankNumbers();
+                }
+            });
+            
+            console.log('✅ SortableJS 初期化完了');
+        }
+        
+        // 開発用：順位番号を更新
+        function updateDevRankNumbers() {
+            const container = document.getElementById('devReviewGuessArea');
+            const items = container.children;
+            
+            for (let i = 0; i < items.length; i++) {
+                const rankSpan = items[i].querySelector('.rank-number');
+                if (rankSpan) {
+                    rankSpan.textContent = (i + 1) + '位';
+                }
+            }
+        }
+        
+        // 開発用：予想を送信
+        function submitDevReviewGuess() {
+            if (!devCurrentReviewRanking) {
+                alert('❌ エラー：ランキングデータがありません');
+                return;
+            }
+            
+            // 現在の並び順を取得
+            const container = document.getElementById('devReviewGuessArea');
+            const items = container.children;
+            
+            // 全ての項目が正しく入っているか確認
+            if (items.length !== 5) {
+                alert('❌ データが正しくありません');
+                return;
+            }
+            
+            // ユーザーの予想を取得
+            const userGuess = {};
+            for (let i = 0; i < items.length; i++) {
+                userGuess[(i + 1).toString()] = items[i].getAttribute('data-item');
+            }
+            
+            // スコア計算
+            const result = calculateReviewScore(userGuess, devReviewCorrectAnswer);
+            
+            // 結果を表示
+            showDevReviewResult(result, userGuess, devReviewCorrectAnswer);
+        }
+        
+        // 開発用：結果を表示
+        function showDevReviewResult(result, userGuess, correctAnswer) {
+            const container = document.getElementById('devReviewResultContent');
+            container.innerHTML = '';
+            
+            // スコア表示
+            const scoreDiv = document.createElement('div');
+            scoreDiv.style.cssText = 'background: #FF6B35; color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px;';
+            scoreDiv.innerHTML = `
+                <p style="font-size: 16px; margin-bottom: 10px;">あなたのスコア</p>
+                <p style="font-size: 40px; font-weight: bold; margin: 0;">${result.score} / 20点</p>
+                <p style="font-size: 14px; margin-top: 10px;">${result.message}</p>
+            `;
+            container.appendChild(scoreDiv);
+            
+            // 詳細表示
+            const detailDiv = document.createElement('div');
+            detailDiv.style.cssText = 'background: white; border: 2px solid #ddd; border-radius: 10px; padding: 15px;';
+            
+            let detailHTML = '<h3 style="color: #FF6B35; margin-bottom: 15px; text-align: center;">結果詳細</h3>';
+            detailHTML += '<div style="display: grid; grid-template-columns: 50px 1fr 1fr 80px 60px; gap: 10px; font-size: 13px; padding: 10px; background: #f5f5f5; border-radius: 5px; margin-bottom: 10px;">';
+            detailHTML += '<div style="font-weight: bold; text-align: center;">順位</div>';
+            detailHTML += '<div style="font-weight: bold;">正解</div>';
+            detailHTML += '<div style="font-weight: bold;">あなたの予想</div>';
+            detailHTML += '<div style="font-weight: bold; text-align: center;">評価</div>';
+            detailHTML += '<div style="font-weight: bold; text-align: center;">スコア</div>';
+            detailHTML += '</div>';
+            
+            for (let i = 1; i <= 5; i++) {
+                const correct = correctAnswer[i.toString()];
+                const guess = userGuess[i.toString()];
+                const isCorrect = correct === guess;
+                const bgColor = isCorrect ? '#E8F5E9' : 'white';
+                
+                // スコア計算
+                let itemScore = 0;
+                if (isCorrect) {
+                    itemScore = 1 + (6 - i); // 当てた個数(1点) + 順位ボーナス
+                }
+                
+                detailHTML += `<div style="display: grid; grid-template-columns: 50px 1fr 1fr 80px 60px; gap: 10px; padding: 10px; background: ${bgColor}; border-radius: 5px; margin-bottom: 5px;">`;
+                detailHTML += `<div style="text-align: center; font-weight: bold;">${i}位</div>`;
+                detailHTML += `<div>${correct}</div>`;
+                detailHTML += `<div>${guess}</div>`;
+                detailHTML += `<div style="text-align: center; font-size: 20px;">${isCorrect ? '✓' : '✕'}</div>`;
+                detailHTML += `<div style="text-align: center; font-weight: bold;">${itemScore}pt</div>`;
+                detailHTML += '</div>';
+            }
+            
+            detailDiv.innerHTML = detailHTML;
+            container.appendChild(detailDiv);
+            
+            // 画面切り替え
+            showScreen('devReviewResultScreen');
+        }
+        
+        // 開発用：キャンセル
+        function cancelDevReview() {
+            if (confirm('ゲームを中止してメイン画面に戻りますか？')) {
+                // Sortableインスタンスを破棄
+                if (devSortableInstance) {
+                    devSortableInstance.destroy();
+                    devSortableInstance = null;
+                }
+                
+                devCurrentReviewRanking = null;
+                devReviewCorrectAnswer = null;
+                showScreen('mainScreen');
+            }
         }
     </script>
 </body>
