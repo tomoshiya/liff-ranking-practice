@@ -229,7 +229,7 @@
             justify-content: space-between;
             align-items: center;
             cursor: grab;
-            touch-action: none;
+            touch-action: pan-y;  /* ✨ 縦スクロールを許可 */
             transition: all 0.2s ease;
             -webkit-user-select: none;
             -moz-user-select: none;
@@ -276,8 +276,13 @@
         .drag-handle {
             color: #999;
             font-size: 20px;
-            padding: 0 10px;
+            padding: 10px 20px;  /* ✨ タッチ範囲を拡大（上下左右） */
             cursor: grab;
+            touch-action: none;  /* ✨ ドラッグ優先（スクロール無効） */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         
         .dragging .drag-handle {
@@ -3538,7 +3543,7 @@
             // 🌟 SortableJS を初期化（ここがポイント！）
             devSortableInstance = new Sortable(container, {
                 animation: 150,                    // アニメーション速度
-                delay: 200,                        // ✨ 200ms長押しでドラッグ開始
+                delay: 100,                        // ✨ 100ms長押しでドラッグ開始（短縮）
                 delayOnTouchOnly: true,            // ✨ スマホのみ長押し判定
                 forceFallback: true,               // ✨ カスタムドラッグ有効化
                 fallbackOnBody: true,              // ✨ body要素に追加（指に追従）
@@ -3548,6 +3553,11 @@
                 chosenClass: 'sortable-chosen',    // 選択中のスタイル
                 dragClass: 'sortable-drag',        // ドラッグ中の要素スタイル
                 fallbackClass: 'sortable-fallback',// ✨ フォールバック時のスタイル
+                
+                // ✨ 要素移動中にリアルタイムで順位更新
+                onChange: function() {
+                    updateDevRankNumbers();
+                },
                 
                 // ドラッグ終了時に順位番号を更新
                 onEnd: function() {
