@@ -496,18 +496,24 @@
                 </button>
             </div>
             
-            <!-- セクション2: 開発メニュー -->
+            <!-- セクション2: 開発メニュー（折りたたみ式） -->
             <div style="padding-top: 20px; border-top: 2px dashed #ddd;">
-                <p style="text-align: center; color: #999; font-size: 12px; margin-bottom: 10px;">━━━ 🔧 開発メニュー ━━━</p>
-                <button onclick="startRanking()" style="background: #666;">
-                    📝 ひとりであそぶ
+                <button id="devMenuToggleButton" onclick="toggleDevMenu()" style="background: #666; font-size: 13px; padding: 10px;">
+                    🔧 開発メニュー
                 </button>
-                <button onclick="showDevReviewList()" style="background: #FF6B35;">
-                    🧪 ひとりであそぶ（開発用）
-                </button>
-                <button onclick="showHistory()" style="background: #666;">
-                    📋 過去の回答履歴を見る
-                </button>
+                
+                <!-- 開発メニューの中身（初期状態は非表示） -->
+                <div id="devMenuContent" style="display: none; margin-top: 10px;">
+                    <button onclick="startRanking()" style="background: #666;">
+                        📝 ひとりであそぶ
+                    </button>
+                    <button onclick="showDevReviewList()" style="background: #FF6B35;">
+                        🧪 ひとりであそぶ（開発用）
+                    </button>
+                    <button onclick="showHistory()" style="background: #666;">
+                        📋 過去の回答履歴を見る
+                    </button>
+                </div>
             </div>
         </div>
         
@@ -3315,6 +3321,24 @@
             } catch (error) {
                 console.error('❌ backToMain エラー:', error);
                 alert('エラーが発生しました。ページを再読み込みしてください。');
+            }
+        }
+        
+        // ========================================
+        // 開発メニューの表示切り替え
+        // ========================================
+        function toggleDevMenu() {
+            const devMenuContent = document.getElementById('devMenuContent');
+            const toggleButton = document.getElementById('devMenuToggleButton');
+            
+            if (devMenuContent.style.display === 'none') {
+                // 開く
+                devMenuContent.style.display = 'block';
+                toggleButton.textContent = '🔧 開発メニュー（閉じる）';
+            } else {
+                // 閉じる
+                devMenuContent.style.display = 'none';
+                toggleButton.textContent = '🔧 開発メニュー';
             }
         }
         

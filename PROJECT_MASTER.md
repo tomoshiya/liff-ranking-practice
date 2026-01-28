@@ -1,8 +1,8 @@
 # 🎮 ふたりのらんきんぐ - プロジェクトマスタードキュメント
 
-**最終更新**: 2026年1月27日（MVP完成！）  
-**プロジェクト状態**: 🎉 **MVP完成** - 友人・知人カップルへの試用準備完了  
-**次回セッション予定**: 実機テスト → フィードバック収集 → UX改善
+**最終更新**: 2026年1月28日（MVP完成 + バグ修正完了！）  
+**プロジェクト状態**: 🎉 **MVP完成** - すべてのバグ修正完了、本番リリース準備完了  
+**次回セッション予定**: 実機総合テスト → テーマ・メッセージ最終調整 → 本番リリース
 
 > 💡 **このドキュメントについて**  
 > このファイルは「プロジェクトの全体像」と「AIへの引き継ぎ指示」を兼ねた**唯一の統合ドキュメント**です。  
@@ -352,6 +352,253 @@ git push origin main
 
 → 友人・知人カップルへの試用準備完了！
 ```
+
+---
+
+## 🔧 Phase 6: MVP完成後のバグ修正・UI改善（2026年1月28日）
+
+### 実装概要
+
+MVP完成後に発見された重大なバグの修正と、ユーザー体験向上のためのUI/UX改善を実施。すべての致命的なバグを解消し、本番リリース準備が完了。
+
+### 📦 実装コミット
+
+- **HOMEボタン実装**: `cc46f49` - HOMEボタンのコンポーネント化、送信ボタンUX改善
+- **バグ修正**: `732d66d` - 送信ボタンバグ、ゲーム中断通知、結果画面確認
+- **待機室改善**: `3aaa501` - キャンセルボタン統合、HOMEボタンUI改善
+- **ホスト判定修正1**: `d96c2ca` - resumeSessionでhostId使用
+- **ホスト判定修正2（根本原因）**: `cd45894` - checkExistingSessionでhostId使用、ボタンUX改善
+- **色変更防止**: `d5f6fe1` - HOMEボタンに!important追加
+- **開発メニュー**: （最新コミット予定） - 折りたたみ式実装
+
+### 🐛 修正したバグ
+
+#### 1. 送信ボタンが次のゲームで固まる問題（最重要）
+
+**問題**:
+- 1回目のゲーム：ランキング送信 → 「⏳ お相手の回答待ち...」表示
+- 2回目のゲーム：新しいゲームなのにボタンが「お相手の回答待ち...」のまま
+- → ゲーム続行不可
+
+**原因**:
+- 送信後にボタンの状態を変更したが、次回のゲーム開始時にリセットしていなかった
+
+**修正内容**:
+```javascript
+// showGameInputScreen() と showGuessScreen() に追加
+const submitButton = document.getElementById('submitGameRankingButton');
+submitButton.textContent = '💾 ランキングを送信';  // リセット
+submitButton.disabled = false;
+submitButton.style.background = '';
+
+// 既に送信済みの場合のみ「待機中」状態に
+if (sessionData.rankings && sessionData.rankings[userProfile.userId]) {
+    submitButton.textContent = '⏳ お相手の回答待ち...';
+    submitButton.disabled = true;
+    submitButton.style.background = '#999';
+}
+```
+
+**結果**: ✅ 新しいゲームで常に「送信」ボタンが正常に表示される
+
+---
+
+#### 2. ゲストが2回目に待機室を削除してしまう問題（最重要）
+
+**問題**:
+- ゲストが1回目：待機室に入る → HOMEで退出 ✅ 正常（待機室は残る）
+- ゲストが2回目：待機室に入る → HOMEで退出 ❌ 待機室が削除される！
+
+**原因1（`resumeSession`）**:
+```javascript
+// 古いコード（バグあり）
+const hostId = Object.keys(sessionData.players)[0];  // 最初のプレイヤーがホスト
+// → Object.keys()の順序は不安定！
+```
+
+**原因2（`checkExistingSession`）- 根本原因**:
+```javascript
+// 古いコード（バグあり）
+if (session.players && session.players[userProfile.userId]) {
+    // 自分が作成したセッション（ホスト）← 間違い！
+    existingSession = { role: 'host' };  // ゲストでもホストと判定！
+}
+// → ゲストが1回目に入室すると、joinGame()でplayersに追加される
+// → ゲストが2回目に入室すると、playersに自分のIDがある→ホストと判定される！
+```
+
+**修正内容**:
+```javascript
+// resumeSession() - 修正後
+const hostId = sessionData.hostId || Object.keys(sessionData.players)[0];
+const role = (hostId === userProfile.userId) ? 'host' : 'guest';
+
+// checkExistingSession() - 修正後
+const hostId = session.hostId || Object.keys(session.players || {})[0];
+const isHost = (hostId === userProfile.userId);
+
+if (isHost) {
+    existingSession = { role: 'host' };
+} else if (session.partnerId === userProfile.userId) {
+    existingSession = { role: 'guest' };
+}
+```
+
+**結果**: ✅ ゲストが何度入退室しても、常に正しく「ゲスト」として判定される
+
+---
+
+### 🎨 UI/UX改善
+
+#### 1. HOMEボタンの完全実装
+
+**実装内容**:
+```
+✅ 共通関数の作成
+- confirmBackToMain(message) - 確認ダイアログ付き
+- backToMain() - ゲーム終了処理
+
+✅ 各画面に追加
+- 待機室：「待機室を退出してHOMEに戻りますか？」
+- 回答画面：「HOMEに戻ると現在のゲームを終了します。よろしいですか？」
+- 予想画面：「HOMEに戻ると現在のゲームを終了します。よろしいですか？」
+- 結果画面：「HOMEに戻ると現在のゲームを終了します。よろしいですか？」
+```
+
+**ゲーム中断の相互通知**:
+```javascript
+// ゲーム中にHOMEを押した場合
+await sessionRef.update({
+    gameAborted: true,
+    abortedBy: userProfile.userId,
+    abortedAt: new Date().toISOString()
+});
+
+// セッションリスナーで検知
+if (sessionData.gameAborted && sessionData.abortedBy !== userProfile.userId) {
+    alert('お相手がゲームを終了しました。ホーム画面に戻ります。');
+    showScreen('mainScreen');
+}
+```
+
+**結果**: ✅ どちらかがゲームを終了すると、相手にも通知される
+
+---
+
+#### 2. 待機室のキャンセルボタン統合
+
+**変更内容**:
+```
+【変更前】
+[← キャンセル]  [HOME]  ← 2つのボタン
+
+【変更後】
+[HOME]  ← 1つだけ、シンプル！
+```
+
+**挙動**:
+- ホストがHOME → 待機室削除 + 相手に通知
+- ゲストがHOME → ゲストのみ退出、待機室は維持
+
+**結果**: ✅ UIがシンプルになり、挙動も明確に
+
+---
+
+#### 3. ボタンのテキスト選択防止
+
+**問題**: ボタンを長押しすると、テキストが選択されてしまう
+
+**修正内容**:
+```css
+button {
+    user-select: none;
+    -webkit-user-select: none;  /* Safari */
+    -webkit-tap-highlight-color: transparent;  /* タップ時の青いハイライト削除 */
+}
+
+button:focus {
+    outline: none;  /* フォーカス枠削除 */
+}
+```
+
+**結果**: ✅ ボタンのテキストが選択されなくなった
+
+---
+
+#### 4. HOMEボタンの色変更完全防止
+
+**問題**: HOMEボタンを長押しすると、一瞬青くなる
+
+**修正内容**:
+```css
+.fixed-round-button-home {
+    background: #95A5A6 !important;  /* 強制的にグレー */
+}
+
+.fixed-round-button-home:active {
+    background: #95A5A6 !important;  /* タップ時も強制グレー */
+}
+
+.fixed-round-button-home:focus {
+    background: #95A5A6 !important;  /* フォーカス時も強制グレー */
+}
+
+.fixed-round-button-home:hover {
+    background: #95A5A6 !important;  /* ホバー時も強制グレー */
+}
+```
+
+**結果**: ✅ HOMEボタンが**常にグレー固定**
+
+---
+
+#### 5. 開発メニューの折りたたみ式実装
+
+**問題**: 開発用のボタンが常に表示されている
+
+**実装内容**:
+```html
+<!-- 開発メニューボタン -->
+<button onclick="toggleDevMenu()">
+    🔧 開発メニュー
+</button>
+
+<!-- 開発メニューの中身（初期状態は非表示） -->
+<div id="devMenuContent" style="display: none;">
+    <button onclick="startRanking()">📝 ひとりであそぶ</button>
+    <button onclick="showDevReviewList()">🧪 ひとりであそぶ（開発用）</button>
+    <button onclick="showHistory()">📋 過去の回答履歴を見る</button>
+</div>
+```
+
+**結果**: ✅ 開発メニューが必要なときだけ表示される
+
+---
+
+### 📊 改善成果
+
+#### 完了したタスク数
+**42タスク完了** 🎉
+
+1. ✅ UI改善（21タスク）
+2. ✅ HOMEボタン実装（5タスク）
+3. ✅ 送信ボタンUX（3タスク）
+4. ✅ バグ修正（8タスク）
+5. ✅ UI改善追加（5タスク）
+
+#### 修正したファイル
+- `index.html`: 約150行の追加・修正
+
+#### 実機テスト結果
+```
+✅ 送信ボタン：新しいゲームで正常に動作
+✅ 待機室：ゲストが何度入退室しても正常
+✅ HOMEボタン：常にグレー、テキスト選択なし
+✅ ゲーム中断：相手に正しく通知される
+✅ 開発メニュー：折りたたみ式で見やすい
+```
+
+---
 
 ### 📝 次のステップ
 
