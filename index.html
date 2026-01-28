@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ふたりのらんきんぐ</title>
     
     <!-- LIFFのプログラムを読み込む（LINEが提供しているもの） -->
@@ -117,7 +117,7 @@
             padding: 12px 12px;
             border: 2px solid #B8D9F0;
             border-radius: 10px;
-            font-size: 15px;
+            font-size: 16px;
             transition: border-color 0.3s;
             width: 100%;
             min-width: 0;
@@ -408,7 +408,7 @@
             
             .rank-input {
                 padding: 10px;
-                font-size: 14px;
+                font-size: 16px;
             }
             
             button {
@@ -850,14 +850,14 @@
         </div>
         
         <!-- 結果画面（フェーズ5-Aで追加） -->
-        <div id="resultScreen" class="screen" style="padding-bottom: 100px;">
+        <div id="resultScreen" class="screen" style="padding-bottom: 40px;">
             <h2 style="color: #FF6B9D; margin-bottom: 20px;">🎉 結果発表</h2>
             
             <div id="resultContent" style="margin: 20px 0;">
                 <!-- JavaScriptで動的に生成 -->
             </div>
             
-            <button id="playAgainButton" onclick="playAgain()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); margin-bottom: 20px; width: 100%;">
+            <button id="playAgainButton" onclick="playAgain()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); width: 100%;">
                 🎮 もう一度遊ぶ
             </button>
             
@@ -2524,16 +2524,16 @@
             html += '<div>';
             html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">あなた</p>';
             html += '<p style="color: #FF6B9D; font-size: 32px; font-weight: bold;">' + myScore.score + '<span style="font-size: 16px; color: #999;"> / 10</span><span style="font-size: 13px; color: #999;">pt</span></p>';
-            html += '<p style="color: #999; font-size: 12px;">○あたり（2pt）×' + (myScore.perfectCount || 0) + '個</p>';
-            html += '<p style="color: #999; font-size: 12px;">△おしい（1pt）×' + (myScore.closeCount || 0) + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">あたり！（2pt）×' + (myScore.perfectCount || 0) + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">おしい！（1pt）×' + (myScore.closeCount || 0) + '個</p>';
             html += '</div>';
             
             // パートナーのスコア
             html += '<div>';
             html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">お相手</p>';
             html += '<p style="color: #4A90E2; font-size: 32px; font-weight: bold;">' + partnerScore.score + '<span style="font-size: 16px; color: #999;"> / 10</span><span style="font-size: 13px; color: #999;">pt</span></p>';
-            html += '<p style="color: #999; font-size: 12px;">○あたり（2pt）×' + (partnerScore.perfectCount || 0) + '個</p>';
-            html += '<p style="color: #999; font-size: 12px;">△おしい（1pt）×' + (partnerScore.closeCount || 0) + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">あたり！（2pt）×' + (partnerScore.perfectCount || 0) + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">おしい！（1pt）×' + (partnerScore.closeCount || 0) + '個</p>';
             html += '</div>';
             
             html += '</div>';
