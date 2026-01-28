@@ -877,7 +877,7 @@
             </button>
             
             <!-- 固定配置の丸型ボタン -->
-            <button id="resultHomeButton" onclick="backToMain()" class="fixed-round-button fixed-round-button-home">
+            <button id="resultHomeButton" onclick="confirmBackToMain('HOMEに戻ると現在のゲームを終了します。よろしいですか？')" class="fixed-round-button fixed-round-button-home">
                 HOME
             </button>
         </div>
@@ -2002,6 +2002,22 @@
                 
                 console.log('📡 セッション更新:', sessionData.gameStatus);
                 
+                // ゲームが中断された場合の処理
+                if (sessionData.gameAborted && sessionData.abortedBy !== userProfile.userId) {
+                    console.log('⚠️ 相手がゲームを中断しました');
+                    
+                    // リスナー解除
+                    if (currentSessionRef) {
+                        currentSessionRef.off();
+                        currentSessionRef = null;
+                    }
+                    
+                    currentGameSession = null;
+                    alert('お相手がゲームを終了しました。ホーム画面に戻ります。');
+                    showScreen('mainScreen');
+                    return;
+                }
+                
                 // ステータスに応じて画面を切り替え
                 switch (sessionData.gameStatus) {
                     case 'waiting':
@@ -2085,6 +2101,14 @@
                 document.getElementById('gameRank' + i).value = '';
             }
             
+            // 送信ボタンをリセット
+            const submitButton = document.getElementById('submitGameRankingButton');
+            submitButton.textContent = '💾 ランキングを送信';
+            submitButton.disabled = false;
+            submitButton.style.background = '';
+            submitButton.style.cursor = '';
+            submitButton.style.opacity = '';
+            
             // 自分が既に入力済みかチェック
             if (sessionData.rankings && sessionData.rankings[userProfile.userId]) {
                 // 入力済みの場合は、入力内容を表示
@@ -2092,6 +2116,13 @@
                 for (let i = 1; i <= 5; i++) {
                     document.getElementById('gameRank' + i).value = myRanking[i.toString()] || '';
                 }
+                
+                // 送信済みの場合は、ボタンを「待機中」状態に
+                submitButton.textContent = '⏳ お相手の回答待ち...';
+                submitButton.disabled = true;
+                submitButton.style.background = '#999';
+                submitButton.style.cursor = 'not-allowed';
+                submitButton.style.opacity = '0.6';
             }
             
             // 画面切り替え
@@ -2233,6 +2264,24 @@
             
             // 進行状況を更新
             updateGameProgress(sessionData);
+            
+            // 送信ボタンをリセット
+            const submitButton = document.getElementById('submitGuessButton');
+            submitButton.textContent = '✅ 予想を送信';
+            submitButton.disabled = false;
+            submitButton.style.background = '';
+            submitButton.style.cursor = '';
+            submitButton.style.opacity = '';
+            
+            // 自分が既に予想済みかチェック
+            if (sessionData.guesses && sessionData.guesses[userProfile.userId]) {
+                // 送信済みの場合は、ボタンを「待機中」状態に
+                submitButton.textContent = '⏳ お相手の回答待ち...';
+                submitButton.disabled = true;
+                submitButton.style.background = '#999';
+                submitButton.style.cursor = 'not-allowed';
+                submitButton.style.opacity = '0.6';
+            }
             
             // パートナーのランキング項目を取得
             const partnerRanking = sessionData.rankings[partnerId];
@@ -3185,7 +3234,28 @@
                 
                 // 現在の画面を確認
                 const currentScreen = document.querySelector('.screen.active');
-                const isResultScreen = currentScreen && currentScreen.id === 'resultScreen';
+                const screenId = currentScreen ? currentScreen.id : '';
+                
+                // ゲーム中の画面かどうかを判定
+                const isGameInProgress = ['waitingRoomScreen', 'gameInputScreen', 'guessScreen'].includes(screenId);
+                const isResultScreen = screenId === 'resultScreen';
+                
+                // ゲーム中にHOMEを押した場合、相手にも通知
+                if (isGameInProgress && currentGameSession) {
+                    const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
+                    await sessionRef.update({
+                        gameAborted: true,
+                        abortedBy: userProfile.userId,
+                        abortedAt: new Date().toISOString()
+                    });
+                    console.log('✅ ゲーム中断を通知しました');
+                    
+                    // 少し待ってからセッション削除（相手が通知を受け取れるように）
+                    setTimeout(async () => {
+                        await sessionRef.remove();
+                        console.log('✅ セッション削除成功（ゲーム中断）');
+                    }, 1000);
+                }
                 
                 // 結果画面から戻る場合は、セッションを削除
                 if (isResultScreen && currentGameSession) {
