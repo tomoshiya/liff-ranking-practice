@@ -142,6 +142,9 @@
             margin-top: 10px;
             transition: all 0.3s;
             touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         
         button:hover {
@@ -152,6 +155,10 @@
         
         button:active {
             transform: scale(0.98);
+        }
+        
+        button:focus {
+            outline: none;
         }
         
         .secondary-button {
@@ -348,9 +355,19 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s, box-shadow 0.2s;
             line-height: 1.2;
             padding: 5px;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .fixed-round-button:focus {
+            outline: none;
+        }
+        
+        .fixed-round-button:active {
+            transform: none;
         }
         
         .fixed-round-button-home {
@@ -1786,16 +1803,20 @@
                         const session = childSnapshot.val();
                         const sessionId = childSnapshot.key;
                         
+                        // 明示的なhostIdを使用してホスト判定
+                        const hostId = session.hostId || Object.keys(session.players || {})[0];
+                        const isHost = (hostId === userProfile.userId);
+                        
                         // このセッションに自分が関わっているか確認
-                        if (session.players && session.players[userProfile.userId]) {
-                            // 自分が作成したセッション（ホスト）
+                        if (isHost) {
+                            // 自分がホストのセッション
                             existingSession = {
                                 id: sessionId,
                                 data: session,
                                 role: 'host'
                             };
                         } else if (session.partnerId === userProfile.userId) {
-                            // パートナーが作成したセッション（ゲスト）
+                            // パートナーが作成したセッション（自分はゲスト）
                             existingSession = {
                                 id: sessionId,
                                 data: session,
@@ -1806,6 +1827,8 @@
                     
                     if (existingSession) {
                         // 既存のセッションがある
+                        console.log('🔍 既存セッション発見 - role:', existingSession.role, 'hostId:', existingSession.data.hostId, 'userId:', userProfile.userId);
+                        
                         if (existingSession.role === 'host') {
                             // ホスト：既存の待機室を表示
                             showWaitingRoom(existingSession.id, existingSession.data, 'host');
