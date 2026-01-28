@@ -2522,18 +2522,18 @@
             
             // 自分のスコア
             html += '<div>';
-            html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">あなた' + (isHost ? '（ホスト）' : '（ゲスト）') + '</p>';
-            html += '<p style="color: #FF6B9D; font-size: 32px; font-weight: bold;">' + myScore.score + '<span style="font-size: 16px; color: #999;"> / 10</span></p>';
-            html += '<p style="color: #999; font-size: 12px;">完全一致: ' + (myScore.perfectCount || 0) + '個（×2点）</p>';
-            html += '<p style="color: #999; font-size: 12px;">おしい（±1）: ' + (myScore.closeCount || 0) + '個（×1点）</p>';
+            html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">あなた</p>';
+            html += '<p style="color: #FF6B9D; font-size: 32px; font-weight: bold;">' + myScore.score + '<span style="font-size: 16px; color: #999;"> / 10</span><span style="font-size: 13px; color: #999;">pt</span></p>';
+            html += '<p style="color: #999; font-size: 12px;">○あたり（2pt）×' + (myScore.perfectCount || 0) + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">△おしい（1pt）×' + (myScore.closeCount || 0) + '個</p>';
             html += '</div>';
             
             // パートナーのスコア
             html += '<div>';
-            html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">' + partnerName + (isPartnerHost ? '（ホスト）' : '（ゲスト）') + '</p>';
-            html += '<p style="color: #4A90E2; font-size: 32px; font-weight: bold;">' + partnerScore.score + '<span style="font-size: 16px; color: #999;"> / 10</span></p>';
-            html += '<p style="color: #999; font-size: 12px;">完全一致: ' + (partnerScore.perfectCount || 0) + '個（×2点）</p>';
-            html += '<p style="color: #999; font-size: 12px;">おしい（±1）: ' + (partnerScore.closeCount || 0) + '個（×1点）</p>';
+            html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">お相手</p>';
+            html += '<p style="color: #4A90E2; font-size: 32px; font-weight: bold;">' + partnerScore.score + '<span style="font-size: 16px; color: #999;"> / 10</span><span style="font-size: 13px; color: #999;">pt</span></p>';
+            html += '<p style="color: #999; font-size: 12px;">○あたり（2pt）×' + (partnerScore.perfectCount || 0) + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">△おしい（1pt）×' + (partnerScore.closeCount || 0) + '個</p>';
             html += '</div>';
             
             html += '</div>';
@@ -2568,7 +2568,7 @@
             html += '<div style="background: #F0FFF4; border-radius: 10px; padding: 20px; margin-bottom: 20px; text-align: center;">';
             html += '<h3 style="color: #50C878; font-size: 16px; margin-bottom: 15px;">💑 ふたりの成績</h3>';
             html += '<p style="font-size: 48px; margin-bottom: 10px;">' + cooperativeEmoji + '</p>';
-            html += '<p style="color: #50C878; font-size: 32px; font-weight: bold; margin-bottom: 5px;">' + totalScore + '<span style="font-size: 20px; color: #999;"> / ' + maxScore + '点</span></p>';
+            html += '<p style="color: #50C878; font-size: 32px; font-weight: bold; margin-bottom: 5px;">' + totalScore + '<span style="font-size: 16px; color: #999;"> / ' + maxScore + '</span><span style="font-size: 13px; color: #999;">pt</span></p>';
             html += '<p style="color: #666; font-size: 16px; font-weight: bold;">' + cooperativeMessage + '</p>';
             html += '</div>';
                     
