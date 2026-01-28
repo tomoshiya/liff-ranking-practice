@@ -768,6 +768,11 @@
             <button onclick="cancelWaitingRoom()" class="secondary-button">
                 ← キャンセル
             </button>
+            
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="confirmBackToMain('待機室を退出してHOMEに戻りますか？')" class="fixed-round-button fixed-round-button-home">
+                HOME
+            </button>
         </div>
         
         <!-- ゲーム入力画面（フェーズ5-Aで追加） -->
@@ -810,8 +815,13 @@
                 </div>
             </div>
             
-            <button onclick="submitGameRanking()">
+            <button id="submitGameRankingButton" onclick="submitGameRanking()">
                 💾 ランキングを送信
+            </button>
+            
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="confirmBackToMain('HOMEに戻ると現在のゲームを終了します。よろしいですか？')" class="fixed-round-button fixed-round-button-home">
+                HOME
             </button>
         </div>
         
@@ -844,8 +854,13 @@
                 <!-- JavaScriptで動的に生成 -->
             </div>
             
-            <button onclick="submitGuess()">
+            <button id="submitGuessButton" onclick="submitGuess()">
                 ✅ 予想を送信
+            </button>
+            
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="confirmBackToMain('HOMEに戻ると現在のゲームを終了します。よろしいですか？')" class="fixed-round-button fixed-round-button-home">
+                HOME
             </button>
         </div>
         
@@ -858,7 +873,7 @@
             </div>
             
             <button id="playAgainButton" onclick="playAgain()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); width: 100%;">
-                🎮 もう一度遊ぶ
+                🎮 新しいテーマでもう一度あそぶ
             </button>
             
             <!-- 固定配置の丸型ボタン -->
@@ -2170,6 +2185,14 @@
                 .then(() => {
                     console.log('✅ ランキング送信成功');
                     
+                    // ボタンを「待機中」状態に変更
+                    const button = document.getElementById('submitGameRankingButton');
+                    button.textContent = '⏳ お相手の回答待ち...';
+                    button.disabled = true;
+                    button.style.background = '#999';
+                    button.style.cursor = 'not-allowed';
+                    button.style.opacity = '0.6';
+                    
                     // 両者が入力完了したかチェック
                     return sessionRef.once('value');
                 })
@@ -2386,6 +2409,14 @@
             sessionRef.update(updateData)
                 .then(() => {
                     console.log('✅ 予想送信成功');
+                    
+                    // ボタンを「待機中」状態に変更
+                    const button = document.getElementById('submitGuessButton');
+                    button.textContent = '⏳ お相手の回答待ち...';
+                    button.disabled = true;
+                    button.style.background = '#999';
+                    button.style.cursor = 'not-allowed';
+                    button.style.opacity = '0.6';
                     
                     // 両者が予想完了したかチェック
                     return sessionRef.once('value');
@@ -3140,6 +3171,14 @@
             }
         }
         
+        // HOME画面に戻る（確認ダイアログ付き）
+        function confirmBackToMain(message) {
+            if (confirm(message || 'HOMEに戻りますか？')) {
+                backToMain();
+            }
+        }
+        
+        // HOME画面に戻る（ゲーム終了処理）
         async function backToMain() {
             try {
                 console.log('🏠 HOMEボタンが押されました');
