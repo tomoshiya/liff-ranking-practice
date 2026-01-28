@@ -2572,30 +2572,40 @@
             html += '<p style="color: #666; font-size: 16px; font-weight: bold;">' + cooperativeMessage + '</p>';
             html += '</div>';
                     
-                    // 正解ランキング表示（表形式）
+                    // お相手の成績（正解&結果）
                     html += '<div style="background: #FFF8F0; border-radius: 10px; padding: 20px; margin-bottom: 20px; overflow-x: auto;">';
-                    html += '<h3 style="color: #FF9800; font-size: 16px; margin-bottom: 15px;">✨ ' + partnerName + 'さんの正解ランキング</h3>';
+                    html += '<h3 style="color: #FF9800; font-size: 16px; margin-bottom: 15px;">お相手の成績（正解&結果）</h3>';
                     
-                    // タイトル行
-                    html += '<div style="display: grid; grid-template-columns: 45px 1fr 60px 45px 50px; gap: 8px; padding: 8px; background: #FFE4CC; border-radius: 6px; margin-bottom: 8px; font-weight: bold; font-size: 12px; color: #666;">';
-                    html += '<div style="text-align: center;">予想</div>';
-                    html += '<div>項目</div>';
-                    html += '<div style="text-align: center;">正解順位</div>';
+                    // ヘッダー行（2行構造）
+                    // 1行目：「正しい順位」を統合
+                    html += '<div style="display: grid; grid-template-columns: 45px 1fr 85px 45px 50px; gap: 8px; padding: 8px 8px 4px 8px; background: #FFE4CC; border-radius: 6px 6px 0 0; font-weight: bold; font-size: 11px; color: #666; border-bottom: 1px solid #FFD4A3;">';
+                    html += '<div style="grid-column: 1 / 3; text-align: center;">正しい順位</div>';
+                    html += '<div style="text-align: center;">あなたの予想</div>';
                     html += '<div style="text-align: center;">評価</div>';
                     html += '<div style="text-align: center;">得点</div>';
                     html += '</div>';
                     
-                    // データ行（新方式：予想ごとに正解順位を探す）
+                    // 2行目：サブヘッダー
+                    html += '<div style="display: grid; grid-template-columns: 45px 1fr 85px 45px 50px; gap: 8px; padding: 4px 8px 8px 8px; background: #FFE4CC; border-radius: 0 0 6px 6px; margin-bottom: 8px; font-weight: bold; font-size: 10px; color: #999;">';
+                    html += '<div style="text-align: center;">順位</div>';
+                    html += '<div>項目</div>';
+                    html += '<div></div>';
+                    html += '<div></div>';
+                    html += '<div></div>';
+                    html += '</div>';
+                    
+                    // データ行（正解順位でソート）
                     const partnerRanking = rankings[partnerId];
                     const myGuess = guesses[myId];
-                    for (let guessRank = 1; guessRank <= 5; guessRank++) {
-                        const guessedItem = myGuess[guessRank.toString()];
+                    
+                    for (let correctRank = 1; correctRank <= 5; correctRank++) {
+                        const correctItem = partnerRanking[correctRank.toString()];
                         
-                        // この項目が正解で何位なのか探す
-                        let correctRank = 0;
+                        // この項目をあなたが何位に予想したか探す
+                        let guessRank = 0;
                         for (let rank = 1; rank <= 5; rank++) {
-                            if (partnerRanking[rank.toString()] === guessedItem) {
-                                correctRank = rank;
+                            if (myGuess[rank.toString()] === correctItem) {
+                                guessRank = rank;
                                 break;
                             }
                         }
@@ -2604,7 +2614,7 @@
                         let icon = '';
                         let bgColor = 'transparent';
                         let pointEarned = 0;
-                        if (correctRank > 0) {
+                        if (guessRank > 0) {
                             const diff = Math.abs(guessRank - correctRank);
                             if (diff === 0) {
                                 icon = '○';
@@ -2621,42 +2631,52 @@
                             icon = '×';
                         }
                         
-                        const correctRankText = correctRank > 0 ? correctRank + '位' : '-';
+                        const guessRankText = guessRank > 0 ? guessRank + '位' : '-';
                         
-                        html += '<div style="display: grid; grid-template-columns: 45px 1fr 60px 45px 50px; gap: 8px; padding: 10px; border-radius: 6px; background: ' + bgColor + '; align-items: center; font-size: 13px;">';
-                        html += '<div style="text-align: center; font-weight: bold; color: #666;">' + guessRank + '位</div>';
-                        html += '<div style="color: #333;">' + guessedItem + '</div>';
-                        html += '<div style="text-align: center; font-weight: bold; color: #666;">' + correctRankText + '</div>';
+                        html += '<div style="display: grid; grid-template-columns: 45px 1fr 85px 45px 50px; gap: 8px; padding: 10px; border-radius: 6px; background: ' + bgColor + '; align-items: center; font-size: 13px;">';
+                        html += '<div style="text-align: center; font-weight: bold; color: #666;">' + correctRank + '位</div>';
+                        html += '<div style="color: #333;">' + correctItem + '</div>';
+                        html += '<div style="text-align: center; font-weight: bold; color: #666;">' + guessRankText + '</div>';
                         html += '<div style="text-align: center; font-size: 18px;">' + icon + '</div>';
                         html += '<div style="text-align: center; font-weight: bold; color: ' + (pointEarned > 0 ? '#50C878' : '#999') + ';">' + pointEarned + 'pt</div>';
                         html += '</div>';
                     }
                     html += '</div>';
                     
-                    // 自分のランキング表示（表形式）
+                    // あなたの成績（正解&結果）
                     html += '<div style="background: #F8F9FA; border-radius: 10px; padding: 20px; margin-bottom: 20px; overflow-x: auto;">';
-                    html += '<h3 style="color: #4A90E2; font-size: 16px; margin-bottom: 15px;">✨ あなたの正解ランキング</h3>';
+                    html += '<h3 style="color: #4A90E2; font-size: 16px; margin-bottom: 15px;">あなたの成績（正解&結果）</h3>';
                     
-                    // タイトル行
-                    html += '<div style="display: grid; grid-template-columns: 45px 1fr 60px 45px 50px; gap: 8px; padding: 8px; background: #E3F2FD; border-radius: 6px; margin-bottom: 8px; font-weight: bold; font-size: 12px; color: #666;">';
-                    html += '<div style="text-align: center;">予想</div>';
-                    html += '<div>項目</div>';
-                    html += '<div style="text-align: center;">正解順位</div>';
+                    // ヘッダー行（2行構造）
+                    // 1行目：「正しい順位」を統合
+                    html += '<div style="display: grid; grid-template-columns: 45px 1fr 85px 45px 50px; gap: 8px; padding: 8px 8px 4px 8px; background: #E3F2FD; border-radius: 6px 6px 0 0; font-weight: bold; font-size: 11px; color: #666; border-bottom: 1px solid #BBDEFB;">';
+                    html += '<div style="grid-column: 1 / 3; text-align: center;">正しい順位</div>';
+                    html += '<div style="text-align: center;">お相手の予想</div>';
                     html += '<div style="text-align: center;">評価</div>';
                     html += '<div style="text-align: center;">得点</div>';
                     html += '</div>';
                     
-                    // データ行（新方式：予想ごとに正解順位を探す）
+                    // 2行目：サブヘッダー
+                    html += '<div style="display: grid; grid-template-columns: 45px 1fr 85px 45px 50px; gap: 8px; padding: 4px 8px 8px 8px; background: #E3F2FD; border-radius: 0 0 6px 6px; margin-bottom: 8px; font-weight: bold; font-size: 10px; color: #999;">';
+                    html += '<div style="text-align: center;">順位</div>';
+                    html += '<div>項目</div>';
+                    html += '<div></div>';
+                    html += '<div></div>';
+                    html += '<div></div>';
+                    html += '</div>';
+                    
+                    // データ行（正解順位でソート）
                     const myRanking = rankings[myId];
                     const partnerGuess = guesses[partnerId];
-                    for (let guessRank = 1; guessRank <= 5; guessRank++) {
-                        const guessedItem = partnerGuess[guessRank.toString()];
+                    
+                    for (let correctRank = 1; correctRank <= 5; correctRank++) {
+                        const correctItem = myRanking[correctRank.toString()];
                         
-                        // この項目が正解で何位なのか探す
-                        let correctRank = 0;
+                        // この項目をお相手が何位に予想したか探す
+                        let guessRank = 0;
                         for (let rank = 1; rank <= 5; rank++) {
-                            if (myRanking[rank.toString()] === guessedItem) {
-                                correctRank = rank;
+                            if (partnerGuess[rank.toString()] === correctItem) {
+                                guessRank = rank;
                                 break;
                             }
                         }
@@ -2665,7 +2685,7 @@
                         let icon = '';
                         let bgColor = 'transparent';
                         let pointEarned = 0;
-                        if (correctRank > 0) {
+                        if (guessRank > 0) {
                             const diff = Math.abs(guessRank - correctRank);
                             if (diff === 0) {
                                 icon = '○';
@@ -2682,12 +2702,12 @@
                             icon = '×';
                         }
                         
-                        const correctRankText = correctRank > 0 ? correctRank + '位' : '-';
+                        const guessRankText = guessRank > 0 ? guessRank + '位' : '-';
                         
-                        html += '<div style="display: grid; grid-template-columns: 45px 1fr 60px 45px 50px; gap: 8px; padding: 10px; border-radius: 6px; background: ' + bgColor + '; align-items: center; font-size: 13px;">';
-                        html += '<div style="text-align: center; font-weight: bold; color: #666;">' + guessRank + '位</div>';
-                        html += '<div style="color: #333;">' + guessedItem + '</div>';
-                        html += '<div style="text-align: center; font-weight: bold; color: #666;">' + correctRankText + '</div>';
+                        html += '<div style="display: grid; grid-template-columns: 45px 1fr 85px 45px 50px; gap: 8px; padding: 10px; border-radius: 6px; background: ' + bgColor + '; align-items: center; font-size: 13px;">';
+                        html += '<div style="text-align: center; font-weight: bold; color: #666;">' + correctRank + '位</div>';
+                        html += '<div style="color: #333;">' + correctItem + '</div>';
+                        html += '<div style="text-align: center; font-weight: bold; color: #666;">' + guessRankText + '</div>';
                         html += '<div style="text-align: center; font-size: 18px;">' + icon + '</div>';
                         html += '<div style="text-align: center; font-weight: bold; color: ' + (pointEarned > 0 ? '#50C878' : '#999') + ';">' + pointEarned + 'pt</div>';
                         html += '</div>';
