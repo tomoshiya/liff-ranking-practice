@@ -453,8 +453,15 @@
         
         <!-- メイン画面 -->
         <div id="mainScreen" class="screen">
-            <!-- ペア状態表示エリア（フェーズ4で追加） -->
-            <div id="pairStatus" style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center;">
+            <!-- セクション1: ふたりであそぶ（メイン機能） -->
+            <div style="margin-bottom: 20px;">
+                <button id="realtimeGameButton" onclick="tryStartRealtimeGame()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); font-size: 17px; padding: 18px 20px;">
+                    🎮 ふたりであそぶ
+                </button>
+            </div>
+            
+            <!-- ペア状態表示エリア -->
+            <div id="pairStatus" style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 30px; text-align: center;">
                 <p style="color: #666; font-size: 13px; margin-bottom: 8px;">👥 ペアの設定状態</p>
                 <div id="pairStatusContent">
                     <p style="color: #999; font-size: 14px;">読み込み中...</p>
@@ -465,36 +472,17 @@
                 </button>
             </div>
             
-            <!-- セクション1: ふたりであそぶ -->
-            <div style="margin-bottom: 20px;">
-                <p style="color: #999; font-size: 12px; margin-bottom: 10px; text-align: center;">━━━ ふたりであそぶ ━━━</p>
-                <button id="realtimeGameButton" onclick="startRealtimeGame()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); font-size: 17px; padding: 18px 20px;">
-                    🎮 ふたりであそぶ
-                </button>
-            </div>
-            
-            <!-- セクション2: ひとりで試す -->
-            <div style="margin-bottom: 20px;">
-                <p style="color: #999; font-size: 12px; margin-bottom: 10px; text-align: center;">━━━ ひとりで試す ━━━</p>
-                <button onclick="startRanking()">
-                    🎯 新しいテーマでランキングを作る
+            <!-- セクション2: 開発メニュー -->
+            <div style="padding-top: 20px; border-top: 2px dashed #ddd;">
+                <p style="text-align: center; color: #999; font-size: 12px; margin-bottom: 10px;">━━━ 🔧 開発メニュー ━━━</p>
+                <button onclick="startRanking()" style="background: #666;">
+                    📝 ひとりであそぶ
                 </button>
                 <button onclick="showDevReviewList()" style="background: #FF6B35;">
                     🧪 ひとりであそぶ（開発用）
                 </button>
-                <button onclick="showHistory()" class="secondary-button">
+                <button onclick="showHistory()" style="background: #666;">
                     📋 過去の回答履歴を見る
-                </button>
-            </div>
-            
-            <!-- セクション3: Firebase接続テスト -->
-            <div style="padding-top: 20px; border-top: 2px dashed #ddd;">
-                <p style="text-align: center; color: #999; font-size: 12px; margin-bottom: 10px;">━━━ Firebase接続テスト ━━━</p>
-                <button onclick="testFirebaseConnection()" style="background: #FF6B35;">
-                    🔌 Firebase接続確認
-                </button>
-                <button onclick="testFirebaseSave()" style="background: #9B59B6;">
-                    💾 テストデータ保存
                 </button>
             </div>
         </div>
@@ -1248,18 +1236,20 @@
                             
                             // ボタンを有効化
                             if (realtimeGameButton) {
-                                realtimeGameButton.disabled = false;
                                 realtimeGameButton.style.opacity = '1';
                                 realtimeGameButton.style.cursor = 'pointer';
+                                realtimeGameButton.style.background = 'linear-gradient(135deg, #FF6B9D, #4A90E2)';
+                                realtimeGameButton.style.filter = 'none';
                             }
                         } else {
                             statusContent.innerHTML = '<p style="color: #ff6b6b; font-size: 14px;">⚠️ パートナー情報が見つかりません</p>';
                             
-                            // ボタンを無効化
+                            // ボタンをグレーアウト
                             if (realtimeGameButton) {
-                                realtimeGameButton.disabled = true;
                                 realtimeGameButton.style.opacity = '0.5';
                                 realtimeGameButton.style.cursor = 'not-allowed';
+                                realtimeGameButton.style.background = '#999';
+                                realtimeGameButton.style.filter = 'grayscale(80%)';
                             }
                         }
                     })
@@ -1267,25 +1257,26 @@
                         console.error('❌ パートナー情報取得エラー:', error);
                         statusContent.innerHTML = '<p style="color: #ff6b6b; font-size: 14px;">❌ 情報取得エラー</p>';
                         
-                        // ボタンを無効化
+                        // ボタンをグレーアウト
                         if (realtimeGameButton) {
-                            realtimeGameButton.disabled = true;
                             realtimeGameButton.style.opacity = '0.5';
                             realtimeGameButton.style.cursor = 'not-allowed';
+                            realtimeGameButton.style.background = '#999';
+                            realtimeGameButton.style.filter = 'grayscale(80%)';
                         }
                     });
             } else {
                 // パートナーがいない場合
                 statusContent.innerHTML = 
                     '<p style="color: #999; font-size: 14px;">まだペアが設定されていません</p>' +
-                    '<p style="color: #9B59B6; font-size: 13px; margin-top: 5px;">「ペアを設定する」からコードを共有しましょう</p>';
+                    '<p style="color: #9B59B6; font-size: 13px; margin-top: 5px;">下の「ペアを設定する」ボタンから始めましょう</p>';
                 
-                // ボタンを無効化（グレーアウト）
+                // ボタンをグレーアウト（disabledは使わない - クリック時にメッセージ表示）
                 if (realtimeGameButton) {
-                    realtimeGameButton.disabled = true;
                     realtimeGameButton.style.opacity = '0.5';
                     realtimeGameButton.style.cursor = 'not-allowed';
-                    realtimeGameButton.style.background = '#CCC';
+                    realtimeGameButton.style.background = '#999';
+                    realtimeGameButton.style.filter = 'grayscale(80%)';
                 }
             }
         }
@@ -1615,14 +1606,17 @@
         // リアルタイムゲーム機能（フェーズ5-Aで追加）
         // ========================================
         
-        // リアルタイムゲーム開始
-        function startRealtimeGame() {
-            // ペアチェック
+        // リアルタイムゲーム開始を試みる（ペアチェック付き）
+        function tryStartRealtimeGame() {
             if (!currentUser || !currentUser.partnerId) {
-                alert('❌ パートナーが設定されていません。\n\n先に「ペア設定」からパートナーとペアになってください。');
+                alert('❌ まずペアを設定してください\n\n下の「⚙️ ペアを設定する」ボタンからパートナーとペアになってください。');
                 return;
             }
-            
+            startRealtimeGame();
+        }
+        
+        // リアルタイムゲーム開始
+        function startRealtimeGame() {
             // 既存のセッションをチェック（ゲスト参加判定）
             // 既存セッションがあれば自動参加、なければホストとしてモード選択へ
             checkExistingSession();
@@ -2613,7 +2607,7 @@
                         if (correctRank > 0) {
                             const diff = Math.abs(guessRank - correctRank);
                             if (diff === 0) {
-                                icon = '⭕';
+                                icon = '○';
                                 bgColor = '#F0FFF4';
                                 pointEarned = 2;
                             } else if (diff === 1) {
@@ -2621,10 +2615,10 @@
                                 bgColor = '#FFF8F0';
                                 pointEarned = 1;
                             } else {
-                                icon = '✕';
+                                icon = '×';
                             }
                         } else {
-                            icon = '✕';
+                            icon = '×';
                         }
                         
                         const correctRankText = correctRank > 0 ? correctRank + '位' : '-';
@@ -2674,7 +2668,7 @@
                         if (correctRank > 0) {
                             const diff = Math.abs(guessRank - correctRank);
                             if (diff === 0) {
-                                icon = '⭕';
+                                icon = '○';
                                 bgColor = '#F0FFF4';
                                 pointEarned = 2;
                             } else if (diff === 1) {
@@ -2682,10 +2676,10 @@
                                 bgColor = '#FFF8F0';
                                 pointEarned = 1;
                             } else {
-                                icon = '✕';
+                                icon = '×';
                             }
                         } else {
-                            icon = '✕';
+                            icon = '×';
                         }
                         
                         const correctRankText = correctRank > 0 ? correctRank + '位' : '-';
@@ -3052,7 +3046,7 @@
                 let evalText = '';
                 
                 if (matchType === 'perfect') {
-                    icon = '⭕';
+                    icon = '○';
                     bgColor = '#F0FFF4';
                     evalText = '完全一致';
                 } else if (matchType === 'close') {
@@ -3337,65 +3331,6 @@
         // ========================================
         // Firebase 接続テスト機能（フェーズ3で追加）
         // ========================================
-        
-        // 接続確認
-        function testFirebaseConnection() {
-            if (!database) {
-                alert('❌ Firebaseが初期化されていません。\nページを再読み込みしてください。');
-                return;
-            }
-            
-            // データベースへの接続テスト
-            const testRef = database.ref('.info/connected');
-            
-            testRef.on('value', (snapshot) => {
-                if (snapshot.val() === true) {
-                    alert('✅ Firebase接続成功！\n\nデータベースに正常に接続できました。');
-                    console.log('✅ Firebase Realtime Database 接続成功');
-                } else {
-                    alert('⚠️ 接続が確立されていません。\nインターネット接続を確認してください。');
-                }
-            });
-        }
-        
-        // テストデータ保存
-        function testFirebaseSave() {
-            if (!database) {
-                alert('❌ Firebaseが初期化されていません。\nページを再読み込みしてください。');
-                return;
-            }
-            
-            if (!userProfile) {
-                alert('❌ ユーザー情報が取得できていません。');
-                return;
-            }
-            
-            // テストデータを作成
-            const testData = {
-                userId: userProfile.userId,
-                userName: userProfile.displayName,
-                message: 'これはFirebase接続テストです！',
-                timestamp: new Date().toISOString(),
-                testNumber: Math.floor(Math.random() * 1000)
-            };
-            
-            // Firebaseに保存
-            const testRef = database.ref('test/' + Date.now());
-            
-            testRef.set(testData)
-                .then(() => {
-                    alert('✅ データ保存成功！\n\n' +
-                          'ユーザー名: ' + testData.userName + '\n' +
-                          'テスト番号: ' + testData.testNumber + '\n\n' +
-                          'Firebaseコンソールの「データ」タブで\n' +
-                          '「test」フォルダを確認してみてください！');
-                    console.log('✅ テストデータ保存成功:', testData);
-                })
-                .catch((error) => {
-                    alert('❌ データ保存エラー:\n' + error.message);
-                    console.error('❌ データ保存エラー:', error);
-                });
-        }
         
         // ========================================
         // 開発用：SortableJS を使った実装
@@ -3738,7 +3673,7 @@
                 let evalText = '';
                 
                 if (matchType === 'perfect') {
-                    icon = '⭕';
+                    icon = '○';
                     bgColor = '#F0FFF4';
                     evalText = '完全一致';
                 } else if (matchType === 'close') {
