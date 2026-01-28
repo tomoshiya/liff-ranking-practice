@@ -1388,8 +1388,8 @@
             const sessionId = session.id;
             const sessionData = session.data;
             
-            // ホスト or ゲスト判定
-            const hostId = Object.keys(sessionData.players)[0];  // 最初のプレイヤーがホスト
+            // ホスト or ゲスト判定（明示的なhostIdを使用）
+            const hostId = sessionData.hostId || Object.keys(sessionData.players)[0];
             const role = (hostId === userProfile.userId) ? 'host' : 'guest';
             
             currentGameSession = {
@@ -1398,7 +1398,7 @@
                 role: role
             };
             
-            console.log('🔄 セッション復元:', sessionData.gameStatus, 'role:', role);
+            console.log('🔄 セッション復元:', sessionData.gameStatus, 'role:', role, 'hostId:', hostId, 'userId:', userProfile.userId);
             
             // ステータスに応じて画面を表示
             switch (sessionData.gameStatus) {
