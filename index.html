@@ -353,11 +353,6 @@
             padding: 5px;
         }
         
-        .fixed-round-button:active {
-            transform: scale(0.95);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        }
-        
         .fixed-round-button-home {
             left: 20px;
             background: #95A5A6;
@@ -764,10 +759,6 @@
                     ✨ 参加する
                 </button>
             </div>
-            
-            <button onclick="cancelWaitingRoom()" class="secondary-button">
-                ← キャンセル
-            </button>
             
             <!-- 固定配置の丸型ボタン -->
             <button onclick="confirmBackToMain('待機室を退出してHOMEに戻りますか？')" class="fixed-round-button fixed-round-button-home">
@@ -3236,9 +3227,23 @@
                 const currentScreen = document.querySelector('.screen.active');
                 const screenId = currentScreen ? currentScreen.id : '';
                 
-                // ゲーム中の画面かどうかを判定
-                const isGameInProgress = ['waitingRoomScreen', 'gameInputScreen', 'guessScreen'].includes(screenId);
+                // 画面タイプを判定
+                const isWaitingRoom = screenId === 'waitingRoomScreen';
+                const isGameInProgress = ['gameInputScreen', 'guessScreen'].includes(screenId);
                 const isResultScreen = screenId === 'resultScreen';
+                
+                // 待機室からの退出処理
+                if (isWaitingRoom && currentGameSession) {
+                    // ホストの場合は、待機室を削除（相手に「セッションが削除されました」と通知）
+                    if (currentGameSession.role === 'host') {
+                        const sessionRef = database.ref('gameSessions/' + currentGameSession.id);
+                        await sessionRef.remove();
+                        console.log('✅ ホストが待機室を削除しました');
+                    } else {
+                        // ゲストの場合は、自分だけ退出（待機室は維持）
+                        console.log('✅ ゲストが待機室を退出しました（待機室は維持）');
+                    }
+                }
                 
                 // ゲーム中にHOMEを押した場合、相手にも通知
                 if (isGameInProgress && currentGameSession) {
