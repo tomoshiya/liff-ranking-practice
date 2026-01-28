@@ -1152,6 +1152,12 @@
                     // Firebaseを初期化（フェーズ3で追加）
                     initializeFirebase();
                     
+                    // Firebase匿名認証（Phase 6追加：Security Rules対応）
+                    return firebase.auth().signInAnonymously();
+                })
+                .then(() => {
+                    console.log('✅ Firebase認証成功');
+                    
                     // ユーザー情報をFirebaseに保存・取得（フェーズ4で追加）
                     initializeUser();
                     
@@ -1159,9 +1165,11 @@
                     showScreen('mainScreen');
                 })
                 .catch((err) => {
-                    console.error('プロフィール取得に失敗しました:', err);
+                    console.error('認証エラー:', err);
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('error').style.display = 'block';
+                    document.getElementById('error').innerHTML = 
+                        '<p><strong>エラー:</strong> ' + err.message + '</p>';
                 });
         }
         
