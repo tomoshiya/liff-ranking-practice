@@ -103,6 +103,48 @@
             gap: 10px;
         }
         
+        /* ドラッグ可能な回答入力項目 */
+        .ranking-form .draggable-item {
+            background: white;
+            border: 2px solid #E0E0E0;
+            border-radius: 10px;
+            padding: 10px;
+            cursor: default;
+            
+            /* テキスト選択無効化（ドラッグ時のテキスト選択防止） */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* ただし、input要素内は文字選択可能 */
+        .ranking-form .draggable-item input {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+        
+        /* ドラッグハンドル（≡アイコン） */
+        .ranking-form .drag-handle {
+            font-size: 24px;
+            color: #999;
+            cursor: grab;
+            margin-left: 10px;
+            padding: 0 5px;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            flex-shrink: 0;
+        }
+        
+        .ranking-form .drag-handle:active {
+            cursor: grabbing;
+        }
+        
         .rank-label {
             background: linear-gradient(135deg, #4A90E2, #7AB8F5);
             color: white;
@@ -821,26 +863,31 @@
                 </div>
             </div>
             
-            <div class="ranking-form">
-                <div class="rank-item">
+            <div class="ranking-form" id="gameRankingForm">
+                <div class="rank-item draggable-item" data-rank="1">
                     <div class="rank-label">1位</div>
                     <input type="text" class="rank-input" id="gameRank1" placeholder="1位を入力（50文字まで）" maxlength="50">
+                    <span class="drag-handle">≡</span>
                 </div>
-                <div class="rank-item">
+                <div class="rank-item draggable-item" data-rank="2">
                     <div class="rank-label">2位</div>
                     <input type="text" class="rank-input" id="gameRank2" placeholder="2位を入力（50文字まで）" maxlength="50">
+                    <span class="drag-handle">≡</span>
                 </div>
-                <div class="rank-item">
+                <div class="rank-item draggable-item" data-rank="3">
                     <div class="rank-label">3位</div>
                     <input type="text" class="rank-input" id="gameRank3" placeholder="3位を入力（50文字まで）" maxlength="50">
+                    <span class="drag-handle">≡</span>
                 </div>
-                <div class="rank-item">
+                <div class="rank-item draggable-item" data-rank="4">
                     <div class="rank-label">4位</div>
                     <input type="text" class="rank-input" id="gameRank4" placeholder="4位を入力（50文字まで）" maxlength="50">
+                    <span class="drag-handle">≡</span>
                 </div>
-                <div class="rank-item">
+                <div class="rank-item draggable-item" data-rank="5">
                     <div class="rank-label">5位</div>
                     <input type="text" class="rank-input" id="gameRank5" placeholder="5位を入力（50文字まで）" maxlength="50">
+                    <span class="drag-handle">≡</span>
                 </div>
             </div>
             
@@ -1085,7 +1132,8 @@
         let reviewCorrectAnswer = null;   // 正解データ
         
         // SortableJSインスタンス（ふたりであそぶ用）
-        let gameSortableInstance = null;
+        let gameSortableInstance = null;  // 予想画面用
+        let gameInputSortableInstance = null;  // 回答入力用
         
         // ========================================
         // Firebase 設定（フェーズ3で追加）
@@ -2154,10 +2202,16 @@
             
             // 自分が既に入力済みかチェック
             if (sessionData.rankings && sessionData.rankings[userProfile.userId]) {
-                // 入力済みの場合は、入力内容を表示
+                // 入力済みの場合は、入力内容を表示（DOM順序で設定）
                 const myRanking = sessionData.rankings[userProfile.userId];
-                for (let i = 1; i <= 5; i++) {
-                    document.getElementById('gameRank' + i).value = myRanking[i.toString()] || '';
+                const container = document.getElementById('gameRankingForm');
+                const items = container.children;
+                
+                for (let i = 0; i < items.length; i++) {
+                    const input = items[i].querySelector('.rank-input');
+                    if (input) {
+                        input.value = myRanking[(i + 1).toString()] || '';
+                    }
                 }
                 
                 // 送信済みの場合は、ボタンを「待機中」状態に
@@ -2171,10 +2225,68 @@
             // 画面切り替え
             showScreen('gameInputScreen');
             
+            // SortableJSを初期化（スワイプで並び替え可能に）
+            initGameInputSortable();
+            
             // 1位の入力欄にフォーカス
             setTimeout(() => {
                 document.getElementById('gameRank1').focus();
             }, 100);
+        }
+        
+        // 回答入力画面でSortableJSを初期化（スワイプで並び替え）
+        function initGameInputSortable() {
+            const container = document.getElementById('gameRankingForm');
+            
+            if (!container) {
+                console.error('❌ gameRankingForm が見つかりません');
+                return;
+            }
+            
+            // 既存のSortableインスタンスを破棄
+            if (gameInputSortableInstance) {
+                gameInputSortableInstance.destroy();
+                gameInputSortableInstance = null;
+            }
+            
+            // SortableJS初期化
+            gameInputSortableInstance = new Sortable(container, {
+                animation: 150,                    // アニメーション速度
+                delay: 50,                         // 50ms長押しでドラッグ開始
+                delayOnTouchOnly: true,            // スマホのみ長押し判定
+                forceFallback: true,               // カスタムドラッグ有効化
+                fallbackOnBody: true,              // body要素に追加（指に追従）
+                swapThreshold: 0.65,               // 入れ替え感度（0.65 = 65%）
+                handle: '.drag-handle',            // ≡アイコンだけでドラッグ可能
+                ghostClass: 'sortable-ghost',      // ドラッグ中のスタイル
+                chosenClass: 'sortable-chosen',    // 選択中のスタイル
+                dragClass: 'sortable-drag',        // ドラッグ中の要素スタイル
+                fallbackClass: 'sortable-fallback',// フォールバック時のスタイル
+                
+                // ドラッグ終了時に順位番号を更新
+                onEnd: function() {
+                    updateGameInputRankNumbers();
+                }
+            });
+            
+            console.log('✅ SortableJS 初期化完了（回答入力）');
+        }
+        
+        // 回答入力画面の順位番号を更新
+        function updateGameInputRankNumbers() {
+            const container = document.getElementById('gameRankingForm');
+            if (!container) return;
+            
+            const items = container.children;
+            for (let i = 0; i < items.length; i++) {
+                const rankLabel = items[i].querySelector('.rank-label');
+                if (rankLabel) {
+                    rankLabel.textContent = (i + 1) + '位';
+                }
+                
+                // data-rank属性も更新
+                items[i].setAttribute('data-rank', i + 1);
+            }
         }
         
         // 進行状況を更新
@@ -2227,19 +2339,25 @@
         
         // ランキング送信
         function submitGameRanking() {
-            // 入力値を取得
+            // 並び替え後のDOM順序で入力値を取得
+            const container = document.getElementById('gameRankingForm');
+            const items = container.children;
             const rankings = [];
-            for (let i = 1; i <= 5; i++) {
-                const value = document.getElementById('gameRank' + i).value.trim();
+            
+            // 各項目の入力値をチェック
+            for (let i = 0; i < items.length; i++) {
+                const input = items[i].querySelector('.rank-input');
+                const value = input ? input.value.trim() : '';
+                
                 if (value === '') {
-                    alert((i) + '位を入力してください！');
-                    document.getElementById('gameRank' + i).focus();
+                    alert((i + 1) + '位を入力してください！');
+                    if (input) input.focus();
                     return;
                 }
                 rankings.push(value);
             }
             
-            // ランキングデータを作成
+            // ランキングデータを作成（並び替え後の順序）
             const rankingData = {
                 "1": rankings[0],
                 "2": rankings[1],
