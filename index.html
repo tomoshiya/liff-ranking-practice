@@ -2187,9 +2187,17 @@
             // 進行状況を更新
             updateGameProgress(sessionData);
             
+            // DOM順序をリセット（バグ修正：2ゲーム目で順位が保持される問題）
+            resetGameInputOrder();
+            
             // 入力欄をクリア
-            for (let i = 1; i <= 5; i++) {
-                document.getElementById('gameRank' + i).value = '';
+            const container = document.getElementById('gameRankingForm');
+            const items = container.children;
+            for (let i = 0; i < items.length; i++) {
+                const input = items[i].querySelector('.rank-input');
+                if (input) {
+                    input.value = '';
+                }
             }
             
             // 送信ボタンをリセット
@@ -2202,10 +2210,8 @@
             
             // 自分が既に入力済みかチェック
             if (sessionData.rankings && sessionData.rankings[userProfile.userId]) {
-                // 入力済みの場合は、入力内容を表示（DOM順序で設定）
+                // 入力済みの場合は、入力内容を表示（正しい順位で設定）
                 const myRanking = sessionData.rankings[userProfile.userId];
-                const container = document.getElementById('gameRankingForm');
-                const items = container.children;
                 
                 for (let i = 0; i < items.length; i++) {
                     const input = items[i].querySelector('.rank-input');
@@ -2228,10 +2234,38 @@
             // SortableJSを初期化（スワイプで並び替え可能に）
             initGameInputSortable();
             
-            // 1位の入力欄にフォーカス
+            // 1位の入力欄にフォーカス（DOM順序でフォーカス）
             setTimeout(() => {
-                document.getElementById('gameRank1').focus();
+                const firstInput = container.children[0]?.querySelector('.rank-input');
+                if (firstInput) firstInput.focus();
             }, 100);
+        }
+        
+        // DOM順序をリセット（正しい順番に並べ直す）
+        function resetGameInputOrder() {
+            const container = document.getElementById('gameRankingForm');
+            if (!container) return;
+            
+            // 全ての要素を取得
+            const items = Array.from(container.children);
+            
+            // data-rank属性でソート（正しい順序：1, 2, 3, 4, 5）
+            items.sort((a, b) => {
+                const rankA = parseInt(a.getAttribute('data-rank')) || 0;
+                const rankB = parseInt(b.getAttribute('data-rank')) || 0;
+                return rankA - rankB;
+            });
+            
+            // DOMから一旦削除
+            items.forEach(item => item.remove());
+            
+            // 正しい順序で再追加
+            items.forEach(item => container.appendChild(item));
+            
+            // 順位番号とプレースホルダーを更新
+            updateGameInputRankNumbers();
+            
+            console.log('✅ DOM順序をリセット完了');
         }
         
         // 回答入力画面でSortableJSを初期化（スワイプで並び替え）
@@ -2282,6 +2316,12 @@
                 const rankLabel = items[i].querySelector('.rank-label');
                 if (rankLabel) {
                     rankLabel.textContent = (i + 1) + '位';
+                }
+                
+                // プレースホルダーも更新（バグ修正）
+                const input = items[i].querySelector('.rank-input');
+                if (input) {
+                    input.placeholder = (i + 1) + '位を入力（50文字まで）';
                 }
                 
                 // data-rank属性も更新
@@ -3346,16 +3386,27 @@
                 });
             }
             
-            // ゲーム入力（フェーズ5-Aで追加）
-            for (let i = 1; i <= 5; i++) {
-                const input = document.getElementById('gameRank' + i);
-                input.addEventListener('keydown', function(event) {
-                    if (event.key === 'Enter') {
+            // ゲーム入力（バグ修正：DOM順序ベースに変更）
+            const container = document.getElementById('gameRankingForm');
+            if (container) {
+                container.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' && event.target.classList.contains('rank-input')) {
                         event.preventDefault();
-                        if (i < 5) {
-                            document.getElementById('gameRank' + (i + 1)).focus();
+                        
+                        // 現在のinputの親要素（rank-item）を取得
+                        const currentItem = event.target.closest('.rank-item');
+                        if (!currentItem) return;
+                        
+                        // 次の要素を取得（DOM順序）
+                        const nextItem = currentItem.nextElementSibling;
+                        
+                        if (nextItem) {
+                            // 次の入力欄にフォーカス
+                            const nextInput = nextItem.querySelector('.rank-input');
+                            if (nextInput) nextInput.focus();
                         } else {
-                            this.blur();
+                            // 最後の場合はフォーカスを外す
+                            event.target.blur();
                         }
                     }
                 });
