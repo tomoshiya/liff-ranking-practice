@@ -773,9 +773,14 @@
                 <div style="background: white; border: 2px dashed #9B59B6; border-radius: 8px; padding: 15px; text-align: center;">
                     <p id="myPairCode" style="font-size: 32px; font-weight: bold; color: #9B59B6; letter-spacing: 4px; font-family: 'Courier New', monospace;">------</p>
                 </div>
-                <button onclick="copyPairCode()" style="background: #9B59B6; margin-top: 10px; font-size: 14px; padding: 10px;">
-                    📋 コードをコピー
-                </button>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button onclick="copyPairCode()" style="background: #9B59B6; font-size: 14px; padding: 10px; flex: 1;">
+                        📋 コードをコピー
+                    </button>
+                    <button onclick="sharePairCodeToLine()" style="background: #06C755; font-size: 14px; padding: 10px; flex: 1;">
+                        📱 LINEで送る
+                    </button>
+                </div>
             </div>
             
             <!-- パートナーのペアコード入力 -->
@@ -815,6 +820,10 @@
                     <p id="waitingMessage" style="color: #666; font-size: 16px; line-height: 1.8; font-weight: bold;">パートナーを待っています...</p>
                     <p style="color: #999; font-size: 13px; margin-top: 15px;">パートナーがアプリを開くと<br>自動的にゲームが開始されます</p>
                 </div>
+                
+                <button onclick="shareSessionToLine()" style="background: #06C755; font-size: 16px; padding: 15px 20px; margin-bottom: 20px;">
+                    📱 LINEで招待を送る
+                </button>
             </div>
             
             <!-- 参加確認の表示 -->
@@ -1201,6 +1210,9 @@
                     
                     // ユーザー情報をFirebaseに保存・取得（フェーズ4で追加）
                     initializeUser();
+                    
+                    // URLパラメータをチェック（招待URL処理）
+                    checkUrlParameters();
                     
                     document.getElementById('loading').style.display = 'none';
                     showScreen('mainScreen');
@@ -3627,6 +3639,148 @@
             if (confirm(message || 'HOMEに戻りますか？')) {
                 backToMain();
             }
+        }
+        
+        // ========================================
+        // LINE招待機能
+        // ========================================
+        
+        // 待機室からLINEで招待を送る
+        function shareSessionToLine() {
+            if (!currentGameSession || !currentGameSession.id) {
+                alert('❌ セッション情報がありません。');
+                return;
+            }
+            
+            const liffUrl = `https://liff.line.me/${LIFF_ID}`;
+            const sessionUrl = `${liffUrl}?session=${currentGameSession.id}`;
+            
+            liff.shareTargetPicker([{
+                type: 'text',
+                text: `一緒にランキングゲームで遊ぼう！🎮\n\n参加はこちらから👇\n${sessionUrl}`
+            }])
+            .then(() => {
+                console.log('✅ LINE招待送信成功');
+            })
+            .catch((error) => {
+                console.error('❌ LINE招待エラー:', error);
+                // エラー時はコピー機能にフォールバック
+                navigator.clipboard.writeText(sessionUrl)
+                    .then(() => {
+                        alert('📋 招待URLをコピーしました！\nLINEで送信してください。');
+                    })
+                    .catch(() => {
+                        alert('❌ 招待の送信に失敗しました。');
+                    });
+            });
+        }
+        
+        // ペア設定画面からLINEで招待を送る
+        function sharePairCodeToLine() {
+            if (!currentUser || !currentUser.pairCode) {
+                alert('❌ ペアコード情報がありません。');
+                return;
+            }
+            
+            const liffUrl = `https://liff.line.me/${LIFF_ID}`;
+            const pairUrl = `${liffUrl}?pairCode=${currentUser.pairCode}`;
+            
+            liff.shareTargetPicker([{
+                type: 'text',
+                text: `一緒にランキングゲームのペアになろう！💑\n\nペア登録はこちらから👇\n${pairUrl}`
+            }])
+            .then(() => {
+                console.log('✅ ペアコード招待送信成功');
+            })
+            .catch((error) => {
+                console.error('❌ ペアコード招待エラー:', error);
+                // エラー時はコピー機能にフォールバック
+                navigator.clipboard.writeText(pairUrl)
+                    .then(() => {
+                        alert('📋 招待URLをコピーしました！\nLINEで送信してください。');
+                    })
+                    .catch(() => {
+                        alert('❌ 招待の送信に失敗しました。');
+                    });
+            });
+        }
+        
+        // URLパラメータをチェック（招待URL処理）
+        function checkUrlParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // セッション招待URLの場合
+            const sessionId = urlParams.get('session');
+            if (sessionId) {
+                console.log('🎮 セッション招待URLを検出:', sessionId);
+                handleSessionInvite(sessionId);
+                return;
+            }
+            
+            // ペアコード招待URLの場合
+            const pairCode = urlParams.get('pairCode');
+            if (pairCode) {
+                console.log('💑 ペアコード招待URLを検出:', pairCode);
+                handlePairCodeInvite(pairCode);
+                return;
+            }
+        }
+        
+        // セッション招待を処理
+        function handleSessionInvite(sessionId) {
+            // ユーザー初期化完了後に実行
+            const checkUserReady = setInterval(() => {
+                if (currentUser) {
+                    clearInterval(checkUserReady);
+                    
+                    // セッション情報を取得
+                    const sessionRef = database.ref('gameSessions/' + sessionId);
+                    sessionRef.once('value')
+                        .then((snapshot) => {
+                            if (snapshot.exists()) {
+                                const sessionData = snapshot.val();
+                                
+                                // 待機室を表示
+                                showWaitingRoom(sessionId, sessionData, 'guest');
+                            } else {
+                                alert('このゲームセッションは既に終了しています。');
+                                showScreen('mainScreen');
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('❌ セッション取得エラー:', error);
+                            alert('セッション情報の取得に失敗しました。');
+                            showScreen('mainScreen');
+                        });
+                }
+            }, 100);
+            
+            // タイムアウト（10秒）
+            setTimeout(() => {
+                clearInterval(checkUserReady);
+            }, 10000);
+        }
+        
+        // ペアコード招待を処理
+        function handlePairCodeInvite(pairCode) {
+            // ユーザー初期化完了後に実行
+            const checkUserReady = setInterval(() => {
+                if (currentUser) {
+                    clearInterval(checkUserReady);
+                    
+                    // ペア設定画面を表示し、ペアコードを入力
+                    showScreen('pairScreen');
+                    document.getElementById('partnerCodeInput').value = pairCode.toUpperCase();
+                    
+                    // 確認メッセージ
+                    alert('✨ ペアコードが入力されました！\n「ペアになる」ボタンを押してください。');
+                }
+            }, 100);
+            
+            // タイムアウト（10秒）
+            setTimeout(() => {
+                clearInterval(checkUserReady);
+            }, 10000);
         }
         
         // HOME画面に戻る（ゲーム終了処理）
