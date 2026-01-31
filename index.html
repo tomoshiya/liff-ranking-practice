@@ -773,14 +773,9 @@
                 <div style="background: white; border: 2px dashed #9B59B6; border-radius: 8px; padding: 15px; text-align: center;">
                     <p id="myPairCode" style="font-size: 32px; font-weight: bold; color: #9B59B6; letter-spacing: 4px; font-family: 'Courier New', monospace;">------</p>
                 </div>
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    <button onclick="copyPairCode()" style="background: #9B59B6; font-size: 14px; padding: 10px; flex: 1;">
-                        📋 コードをコピー
-                    </button>
-                    <button onclick="sharePairCodeToLine()" style="background: #06C755; font-size: 14px; padding: 10px; flex: 1;">
-                        📱 LINEで送る
-                    </button>
-                </div>
+                <button onclick="copyPairUrl()" style="background: #9B59B6; margin-top: 10px; font-size: 14px; padding: 10px; width: 100%;">
+                    📋 ペア設定用のURLをコピー
+                </button>
             </div>
             
             <!-- パートナーのペアコード入力 -->
@@ -788,7 +783,13 @@
                 <h3 style="color: #FF9800; font-size: 16px; margin-bottom: 10px;">🔗 パートナーとペアになる</h3>
                 <p style="color: #666; font-size: 13px; margin-bottom: 12px;">パートナーのペアコードを入力してください</p>
                 <input type="text" id="partnerCodeInput" placeholder="ABC123" maxlength="6" 
+                    oninput="updatePartnerNamePreview()"
                     style="width: 100%; padding: 15px; border: 2px solid #FF9800; border-radius: 8px; font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 4px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-bottom: 10px;">
+                <div id="partnerNamePreview" style="display: none; background: #FFF; border: 2px solid #50C878; border-radius: 8px; padding: 12px; margin-bottom: 10px; text-align: center;">
+                    <p style="color: #50C878; font-size: 14px; font-weight: bold; margin: 0;">
+                        <span id="partnerNamePreviewText">---</span>さんのペアコード
+                    </p>
+                </div>
                 <button onclick="connectWithPartner()" style="background: #FF9800;">
                     ✨ ペアになる
                 </button>
@@ -821,8 +822,8 @@
                     <p style="color: #999; font-size: 13px; margin-top: 15px;">パートナーがアプリを開くと<br>自動的にゲームが開始されます</p>
                 </div>
                 
-                <button onclick="shareSessionToLine()" style="background: #06C755; font-size: 16px; padding: 15px 20px; margin-bottom: 20px;">
-                    📱 LINEで招待を送る
+                <button onclick="copySessionUrl()" style="background: #9B59B6; font-size: 16px; padding: 15px 20px; margin-bottom: 20px;">
+                    📋 待機室のURLをコピー
                 </button>
             </div>
             
@@ -3651,8 +3652,8 @@
         // LINE招待機能
         // ========================================
         
-        // 待機室からLINEで招待を送る
-        function shareSessionToLine() {
+        // 待機室のURLをコピー
+        function copySessionUrl() {
             if (!currentGameSession || !currentGameSession.id) {
                 alert('❌ セッション情報がありません。');
                 return;
@@ -3661,48 +3662,20 @@
             const liffUrl = `https://liff.line.me/${LIFF_ID}`;
             const sessionUrl = `${liffUrl}?session=${currentGameSession.id}`;
             
-            // shareTargetPicker API が利用可能かチェック
-            if (!liff.isApiAvailable('shareTargetPicker')) {
-                console.warn('⚠️ shareTargetPicker API が利用できません（外部ブラウザまたはLIFFバージョンが古い）');
-                // APIが利用できない場合はコピー機能にフォールバック
-                navigator.clipboard.writeText(sessionUrl)
-                    .then(() => {
-                        alert('📋 招待URLをコピーしました！\nLINEで送信してください。');
-                    })
-                    .catch(() => {
-                        alert('❌ URLのコピーに失敗しました。');
-                    });
-                return;
-            }
-            
-            // LINE送信先選択画面を表示
-            liff.shareTargetPicker([{
-                type: 'text',
-                text: `一緒にランキングゲームで遊ぼう！🎮\n\n参加はこちらから👇\n${sessionUrl}`
-            }])
-            .then(() => {
-                console.log('✅ LINE招待送信成功');
-            })
-            .catch((error) => {
-                console.error('❌ LINE招待エラー:', error);
-                console.error('エラー詳細:', {
-                    message: error.message,
-                    code: error.code,
-                    name: error.name
+            // URLをクリップボードにコピー
+            navigator.clipboard.writeText(sessionUrl)
+                .then(() => {
+                    alert('📋 待機室のURLをコピーしました！\nLINEでパートナーに送信してください。');
+                    console.log('✅ URLコピー成功:', sessionUrl);
+                })
+                .catch((error) => {
+                    console.error('❌ URLコピーエラー:', error);
+                    alert('❌ URLのコピーに失敗しました。');
                 });
-                // エラー時はコピー機能にフォールバック
-                navigator.clipboard.writeText(sessionUrl)
-                    .then(() => {
-                        alert('📋 招待URLをコピーしました！\nLINEで送信してください。');
-                    })
-                    .catch(() => {
-                        alert('❌ 招待の送信に失敗しました。');
-                    });
-            });
         }
         
-        // ペア設定画面からLINEで招待を送る
-        function sharePairCodeToLine() {
+        // ペア設定用のURLをコピー
+        function copyPairUrl() {
             if (!currentUser || !currentUser.pairCode) {
                 alert('❌ ペアコード情報がありません。');
                 return;
@@ -3711,44 +3684,58 @@
             const liffUrl = `https://liff.line.me/${LIFF_ID}`;
             const pairUrl = `${liffUrl}?pairCode=${currentUser.pairCode}`;
             
-            // shareTargetPicker API が利用可能かチェック
-            if (!liff.isApiAvailable('shareTargetPicker')) {
-                console.warn('⚠️ shareTargetPicker API が利用できません（外部ブラウザまたはLIFFバージョンが古い）');
-                // APIが利用できない場合はコピー機能にフォールバック
-                navigator.clipboard.writeText(pairUrl)
-                    .then(() => {
-                        alert('📋 招待URLをコピーしました！\nLINEで送信してください。');
-                    })
-                    .catch(() => {
-                        alert('❌ URLのコピーに失敗しました。');
-                    });
-                return;
-            }
-            
-            // LINE送信先選択画面を表示
-            liff.shareTargetPicker([{
-                type: 'text',
-                text: `一緒にランキングゲームのペアになろう！💑\n\nペア登録はこちらから👇\n${pairUrl}`
-            }])
-            .then(() => {
-                console.log('✅ ペアコード招待送信成功');
-            })
-            .catch((error) => {
-                console.error('❌ ペアコード招待エラー:', error);
-                console.error('エラー詳細:', {
-                    message: error.message,
-                    code: error.code,
-                    name: error.name
+            // URLをクリップボードにコピー
+            navigator.clipboard.writeText(pairUrl)
+                .then(() => {
+                    alert('📋 ペア設定用のURLをコピーしました！\nLINEでパートナーに送信してください。');
+                    console.log('✅ URLコピー成功:', pairUrl);
+                })
+                .catch((error) => {
+                    console.error('❌ URLコピーエラー:', error);
+                    alert('❌ URLのコピーに失敗しました。');
                 });
-                // エラー時はコピー機能にフォールバック
-                navigator.clipboard.writeText(pairUrl)
-                    .then(() => {
-                        alert('📋 招待URLをコピーしました！\nLINEで送信してください。');
+        }
+        
+        // ペアコード入力時にパートナー名をプレビュー表示
+        function updatePartnerNamePreview() {
+            const input = document.getElementById('partnerCodeInput');
+            const preview = document.getElementById('partnerNamePreview');
+            const previewText = document.getElementById('partnerNamePreviewText');
+            const pairCode = input.value.trim().toUpperCase();
+            
+            // 6文字入力された場合のみ表示
+            if (pairCode.length === 6) {
+                // Firebaseからペアコードに対応するユーザーを検索
+                database.ref('pairCodes/' + pairCode).once('value')
+                    .then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const userId = snapshot.val();
+                            
+                            // ユーザー名を取得
+                            return database.ref('users/' + userId).once('value');
+                        } else {
+                            // ペアコードが存在しない
+                            preview.style.display = 'none';
+                            return null;
+                        }
                     })
-                    .catch(() => {
-                        alert('❌ 招待の送信に失敗しました。');
+                    .then((userSnapshot) => {
+                        if (userSnapshot && userSnapshot.exists()) {
+                            const user = userSnapshot.val();
+                            previewText.textContent = user.displayName;
+                            preview.style.display = 'block';
+                        } else {
+                            preview.style.display = 'none';
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('❌ パートナー名取得エラー:', error);
+                        preview.style.display = 'none';
                     });
-            });
+            } else {
+                // 6文字未満の場合は非表示
+                preview.style.display = 'none';
+            }
         }
         
         // URLパラメータをチェック（招待URL処理）
@@ -3839,18 +3826,40 @@
                         return;
                     }
                     
-                    // ペア設定画面を表示し、ペアコードを入力
-                    showScreen('pairScreen');
-                    document.getElementById('partnerCodeInput').value = pairCode.toUpperCase();
-                    
-                    // 「あなたのペアコード」セクションを非表示
-                    const myPairCodeSection = document.querySelector('#pairScreen > div:first-of-type');
-                    if (myPairCodeSection) {
-                        myPairCodeSection.style.display = 'none';
-                    }
-                    
-                    // 確認メッセージ
-                    alert('✨ ペアコードが入力されました！\n「ペアになる」ボタンを押してください。');
+                    // 既にペア設定済みかチェック
+                    database.ref('pairCodes/' + pairCode.toUpperCase()).once('value')
+                        .then((snapshot) => {
+                            if (snapshot.exists()) {
+                                const inviterUserId = snapshot.val();
+                                
+                                // 既にこのユーザーとペア設定済みの場合
+                                if (currentUser.partnerId === inviterUserId) {
+                                    console.log('🏠 既にペア設定済み：HOME画面を表示');
+                                    showScreen('mainScreen');
+                                    return;
+                                }
+                            }
+                            
+                            // ペア設定画面を表示し、ペアコードを入力
+                            showScreen('pairScreen');
+                            document.getElementById('partnerCodeInput').value = pairCode.toUpperCase();
+                            
+                            // 「あなたのペアコード」セクションを非表示
+                            const myPairCodeSection = document.querySelector('#pairScreen > div:first-of-type');
+                            if (myPairCodeSection) {
+                                myPairCodeSection.style.display = 'none';
+                            }
+                            
+                            // パートナー名をプレビュー表示
+                            updatePartnerNamePreview();
+                            
+                            // 確認メッセージ
+                            alert('✨ ペアコードが入力されました！\n「ペアになる」ボタンを押してください。');
+                        })
+                        .catch((error) => {
+                            console.error('❌ ペア設定確認エラー:', error);
+                            showScreen('mainScreen');
+                        });
                 }
             }, 100);
             
