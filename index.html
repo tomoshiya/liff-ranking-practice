@@ -2293,6 +2293,12 @@
             submitButton.style.cursor = '';
             submitButton.style.opacity = '';
             
+            // 画面切り替え
+            showScreen('gameInputScreen');
+            
+            // SortableJSを初期化（スワイプで並び替え可能に）
+            initGameInputSortable();
+            
             // 自分が既に入力済みかチェック
             if (sessionData.rankings && sessionData.rankings[userProfile.userId]) {
                 // 入力済みの場合は、入力内容を表示（正しい順位で設定）
@@ -2317,13 +2323,12 @@
                 setTimeout(() => {
                     lockGameInput();
                 }, 100);
+            } else {
+                // 送信済みでない場合は、必ずロックを解除（前回の状態をクリア）
+                setTimeout(() => {
+                    unlockGameInput();
+                }, 100);
             }
-            
-            // 画面切り替え
-            showScreen('gameInputScreen');
-            
-            // SortableJSを初期化（スワイプで並び替え可能に）
-            initGameInputSortable();
             
             // 1位の入力欄にフォーカス（DOM順序でフォーカス）
             setTimeout(() => {
@@ -2449,6 +2454,37 @@
             }
             
             console.log('✅ 回答入力をロック完了');
+        }
+        
+        // 回答入力のロックを解除（新しいゲーム開始時）
+        function unlockGameInput() {
+            const container = document.getElementById('gameRankingForm');
+            if (!container) return;
+            
+            // SortableJSを有効化
+            if (gameInputSortableInstance) {
+                gameInputSortableInstance.option("disabled", false);
+                console.log('✅ 回答入力のスワイプを有効化');
+            }
+            
+            // 全ての入力欄を有効化
+            const items = container.children;
+            for (let i = 0; i < items.length; i++) {
+                const input = items[i].querySelector('.rank-input');
+                if (input) {
+                    input.disabled = false;
+                    input.style.background = '';
+                    input.style.color = '';
+                }
+                
+                // ドラッグハンドルを表示
+                const handle = items[i].querySelector('.drag-handle');
+                if (handle) {
+                    handle.style.display = '';
+                }
+            }
+            
+            console.log('✅ 回答入力のロックを解除完了');
         }
         
         // 進行状況を更新
@@ -2637,6 +2673,11 @@
                 setTimeout(() => {
                     lockGuessInput();
                 }, 100);
+            } else {
+                // 送信済みでない場合は、ロックを解除（前回の状態をクリア）
+                setTimeout(() => {
+                    unlockGuessInput();
+                }, 100);
             }
             
             // 画面切り替え
@@ -2753,6 +2794,32 @@
             }
             
             console.log('✅ 予想入力をロック完了');
+        }
+        
+        // 予想入力のロックを解除（新しいゲーム開始時）
+        function unlockGuessInput() {
+            const container = document.getElementById('guessRankingArea');
+            if (!container) return;
+            
+            // SortableJSを有効化
+            if (gameSortableInstance) {
+                gameSortableInstance.option("disabled", false);
+                console.log('✅ 予想のスワイプを有効化');
+            }
+            
+            // 全てのドラッグハンドルを表示
+            const items = container.children;
+            for (let i = 0; i < items.length; i++) {
+                const handle = items[i].querySelector('.drag-handle');
+                if (handle) {
+                    handle.style.display = '';
+                }
+                
+                // 項目の見た目を元に戻す
+                items[i].style.opacity = '';
+            }
+            
+            console.log('✅ 予想入力のロックを解除完了');
         }
         
         // 項目を移動（ボタン用）
