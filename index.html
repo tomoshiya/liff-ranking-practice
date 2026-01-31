@@ -1324,6 +1324,7 @@
         
         // ペア設定のリアルタイム監視
         let pairListenerInitialized = false;
+        let skipNextPairNotification = false;  // 操作直後の通知をスキップするフラグ
         
         function setupPairListener() {
             if (!userProfile || !database) return;
@@ -1346,6 +1347,16 @@
                 
                 // 値が変わっていない場合はスキップ
                 if (oldPartnerId === newPartnerId) {
+                    return;
+                }
+                
+                // 操作直後のフラグが立っている場合はスキップ
+                if (skipNextPairNotification) {
+                    console.log('⏭️ 操作直後のため通知をスキップ');
+                    skipNextPairNotification = false;
+                    if (currentUser) {
+                        currentUser.partnerId = newPartnerId;
+                    }
                     return;
                 }
                 
@@ -1735,6 +1746,13 @@
                         .then(() => {
                             // 成功
                             currentUser.partnerId = partnerId;
+                            
+                            // リアルタイム通知をスキップするフラグを立てる
+                            skipNextPairNotification = true;
+                            setTimeout(() => {
+                                skipNextPairNotification = false;
+                            }, 3000);
+                            
                             alert('✅ ペア設定完了！\n\nパートナー: ' + partnerData.displayName + '\n\nこれでお互いのランキングを共有できます。');
                             
                             // 表示を更新
@@ -1780,6 +1798,13 @@
                 .then(() => {
                     // 成功
                     currentUser.partnerId = null;
+                    
+                    // リアルタイム通知をスキップするフラグを立てる
+                    skipNextPairNotification = true;
+                    setTimeout(() => {
+                        skipNextPairNotification = false;
+                    }, 3000);
+                    
                     alert('✅ ペアを解除しました。');
                     
                     // 表示を更新
