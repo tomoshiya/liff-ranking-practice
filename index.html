@@ -822,7 +822,7 @@
                     <p style="color: #999; font-size: 13px; margin-top: 15px;">パートナーがアプリを開くと<br>自動的にゲームが開始されます</p>
                 </div>
                 
-                <button onclick="copySessionUrl()" style="background: #9B59B6; font-size: 16px; padding: 15px 20px; margin-bottom: 20px;">
+                <button id="copySessionUrlButton" onclick="copySessionUrl()" style="background: #4A90E2; font-size: 16px; padding: 15px 20px; margin-bottom: 20px;">
                     📋 待機室のURLをコピー
                 </button>
             </div>
@@ -1297,6 +1297,9 @@
                                 currentUser = newUser;
                                 console.log('✅ 新規ユーザー作成:', currentUser);
                                 updatePairStatus();
+                                
+                                // ペア設定のリアルタイム監視を開始
+                                setupPairListener();
                             })
                             .catch((error) => {
                                 console.error('❌ ユーザー作成エラー:', error);
@@ -1310,10 +1313,77 @@
                     
                     // 古いセッションのクリーンアップと状態復元
                     cleanupAndRestoreSessions();
+                    
+                    // ペア設定のリアルタイム監視を開始
+                    setupPairListener();
                 })
                 .catch((error) => {
                     console.error('❌ ユーザー情報取得エラー:', error);
                 });
+        }
+        
+        // ペア設定のリアルタイム監視
+        function setupPairListener() {
+            if (!userProfile || !database) return;
+            
+            const userRef = database.ref('users/' + userProfile.userId + '/partnerId');
+            
+            userRef.on('value', (snapshot) => {
+                const newPartnerId = snapshot.val();
+                const oldPartnerId = currentUser ? currentUser.partnerId : null;
+                
+                // 初回実行（起動時）はスキップ
+                if (oldPartnerId === newPartnerId || oldPartnerId === undefined) {
+                    if (currentUser) {
+                        currentUser.partnerId = newPartnerId;
+                    }
+                    return;
+                }
+                
+                // ペア設定が変更された
+                console.log('🔔 ペア設定が変更されました:', oldPartnerId, '->', newPartnerId);
+                
+                // currentUser を更新
+                if (currentUser) {
+                    currentUser.partnerId = newPartnerId;
+                }
+                
+                // ゲーム中かどうかをチェック
+                const currentScreen = document.querySelector('.screen[style*="display: block"]');
+                const screenId = currentScreen ? currentScreen.id : '';
+                const isInGame = ['gameInputScreen', 'guessScreen', 'waitingRoomScreen', 'resultScreen'].includes(screenId);
+                
+                // ゲーム中でない場合のみ通知
+                if (!isInGame) {
+                    if (newPartnerId) {
+                        // ペア成立
+                        database.ref('users/' + newPartnerId).once('value')
+                            .then((partnerSnapshot) => {
+                                if (partnerSnapshot.exists()) {
+                                    const partner = partnerSnapshot.val();
+                                    alert(`✨ ペアが成立しました！\n\n${partner.displayName}さんとペアになりました。`);
+                                    
+                                    // HOME画面またはペア設定画面の場合はリフレッシュ
+                                    if (screenId === 'mainScreen') {
+                                        updatePairStatus();
+                                    } else if (screenId === 'pairScreen') {
+                                        showPairScreen();
+                                    }
+                                }
+                            });
+                    } else {
+                        // ペア解除
+                        alert('❌ ペアが解除されました。');
+                        
+                        // HOME画面またはペア設定画面の場合はリフレッシュ
+                        if (screenId === 'mainScreen') {
+                            updatePairStatus();
+                        } else if (screenId === 'pairScreen') {
+                            showPairScreen();
+                        }
+                    }
+                }
+            });
         }
         
         // ペア状態の表示更新
@@ -2082,6 +2152,10 @@
                 document.getElementById('waitingArea').style.display = 'block';
                 document.getElementById('joinArea').style.display = 'none';
                 
+                // URLコピーボタンを表示
+                const copyButton = document.getElementById('copySessionUrlButton');
+                if (copyButton) copyButton.style.display = 'block';
+                
                 // パートナー名を取得
                 database.ref('users/' + currentUser.partnerId).once('value')
                     .then((snapshot) => {
@@ -2095,6 +2169,10 @@
                 // ゲスト：参加確認画面
                 document.getElementById('waitingArea').style.display = 'none';
                 document.getElementById('joinArea').style.display = 'block';
+                
+                // URLコピーボタンを非表示
+                const copyButton = document.getElementById('copySessionUrlButton');
+                if (copyButton) copyButton.style.display = 'none';
                 
                 // ホスト名を取得
                 const hostId = sessionData.hostId || Object.keys(sessionData.players)[0];
@@ -3705,26 +3783,26 @@
             
             // 6文字入力された場合のみ表示
             if (pairCode.length === 6) {
-                // Firebaseからペアコードに対応するユーザーを検索
-                database.ref('pairCodes/' + pairCode).once('value')
+                // 全ユーザーを検索してペアコードが一致するユーザーを探す
+                database.ref('users').orderByChild('pairCode').equalTo(pairCode).once('value')
                     .then((snapshot) => {
                         if (snapshot.exists()) {
-                            const userId = snapshot.val();
+                            // 最初に見つかったユーザーを取得
+                            let foundUser = null;
+                            snapshot.forEach((childSnapshot) => {
+                                if (!foundUser) {
+                                    foundUser = childSnapshot.val();
+                                }
+                            });
                             
-                            // ユーザー名を取得
-                            return database.ref('users/' + userId).once('value');
+                            if (foundUser) {
+                                previewText.textContent = foundUser.displayName;
+                                preview.style.display = 'block';
+                            } else {
+                                preview.style.display = 'none';
+                            }
                         } else {
                             // ペアコードが存在しない
-                            preview.style.display = 'none';
-                            return null;
-                        }
-                    })
-                    .then((userSnapshot) => {
-                        if (userSnapshot && userSnapshot.exists()) {
-                            const user = userSnapshot.val();
-                            previewText.textContent = user.displayName;
-                            preview.style.display = 'block';
-                        } else {
                             preview.style.display = 'none';
                         }
                     })
@@ -3852,9 +3930,6 @@
                             
                             // パートナー名をプレビュー表示
                             updatePartnerNamePreview();
-                            
-                            // 確認メッセージ
-                            alert('✨ ペアコードが入力されました！\n「ペアになる」ボタンを押してください。');
                         })
                         .catch((error) => {
                             console.error('❌ ペア設定確認エラー:', error);
