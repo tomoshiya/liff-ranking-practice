@@ -1310,7 +1310,13 @@ liff-ranking-practice/
 
 ---
 
-## 🔗 重要な情報
+## 🔗 重要なドキュメント
+
+### プロジェクトドキュメント
+- **PROJECT_MASTER.md**: 技術的な開発記録（このファイル）
+- **BUSINESS_STRATEGY.md**: ビジネス戦略・市場分析・マネタイズ計画
+- **README.md**: プロジェクト概要
+- **GLOSSARY.md**: 開発用語集
 
 ### GitHub
 - **リポジトリ**: https://github.com/tomoshiya/liff-ranking-practice
