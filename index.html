@@ -785,8 +785,8 @@
                 <input type="text" id="partnerCodeInput" placeholder="ABC123" maxlength="6" 
                     oninput="updatePartnerNamePreview()"
                     style="width: 100%; padding: 15px; border: 2px solid #FF9800; border-radius: 8px; font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 4px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-bottom: 10px;">
-                <div id="partnerNamePreview" style="display: none; background: #FFF; border: 2px solid #50C878; border-radius: 8px; padding: 12px; margin-bottom: 10px; text-align: center;">
-                    <p style="color: #50C878; font-size: 14px; font-weight: bold; margin: 0;">
+                <div id="partnerNamePreview" style="display: none; padding: 8px 0; margin-bottom: 8px; text-align: center;">
+                    <p style="color: #666; font-size: 14px; margin: 0;">
                         <span id="partnerNamePreviewText">---</span>さんのペアコード
                     </p>
                 </div>
@@ -1323,6 +1323,8 @@
         }
         
         // ペア設定のリアルタイム監視
+        let pairListenerInitialized = false;
+        
         function setupPairListener() {
             if (!userProfile || !database) return;
             
@@ -1330,13 +1332,20 @@
             
             userRef.on('value', (snapshot) => {
                 const newPartnerId = snapshot.val();
-                const oldPartnerId = currentUser ? currentUser.partnerId : null;
                 
                 // 初回実行（起動時）はスキップ
-                if (oldPartnerId === newPartnerId || oldPartnerId === undefined) {
+                if (!pairListenerInitialized) {
+                    pairListenerInitialized = true;
                     if (currentUser) {
                         currentUser.partnerId = newPartnerId;
                     }
+                    return;
+                }
+                
+                const oldPartnerId = currentUser ? currentUser.partnerId : null;
+                
+                // 値が変わっていない場合はスキップ
+                if (oldPartnerId === newPartnerId) {
                     return;
                 }
                 
@@ -1363,11 +1372,13 @@
                                     const partner = partnerSnapshot.val();
                                     alert(`✨ ペアが成立しました！\n\n${partner.displayName}さんとペアになりました。`);
                                     
-                                    // HOME画面またはペア設定画面の場合はリフレッシュ
+                                    // HOME画面の場合はリフレッシュ
                                     if (screenId === 'mainScreen') {
                                         updatePairStatus();
                                     } else if (screenId === 'pairScreen') {
-                                        showPairScreen();
+                                        // ペア設定画面の場合はHOME画面に戻る
+                                        showScreen('mainScreen');
+                                        updatePairStatus();
                                     }
                                 }
                             });
@@ -3904,18 +3915,25 @@
                         return;
                     }
                     
-                    // 既にペア設定済みかチェック
-                    database.ref('pairCodes/' + pairCode.toUpperCase()).once('value')
+                    // 既にペア設定済みかチェック（users から検索）
+                    database.ref('users').orderByChild('pairCode').equalTo(pairCode.toUpperCase()).once('value')
                         .then((snapshot) => {
+                            let inviterUserId = null;
+                            
                             if (snapshot.exists()) {
-                                const inviterUserId = snapshot.val();
-                                
-                                // 既にこのユーザーとペア設定済みの場合
-                                if (currentUser.partnerId === inviterUserId) {
-                                    console.log('🏠 既にペア設定済み：HOME画面を表示');
-                                    showScreen('mainScreen');
-                                    return;
-                                }
+                                // ペアコードの持ち主を取得
+                                snapshot.forEach((childSnapshot) => {
+                                    if (!inviterUserId) {
+                                        inviterUserId = childSnapshot.key;
+                                    }
+                                });
+                            }
+                            
+                            // 既にこのユーザーとペア設定済みの場合
+                            if (inviterUserId && currentUser.partnerId === inviterUserId) {
+                                console.log('🏠 既にペア設定済み：HOME画面を表示');
+                                showScreen('mainScreen');
+                                return;
                             }
                             
                             // ペア設定画面を表示し、ペアコードを入力
