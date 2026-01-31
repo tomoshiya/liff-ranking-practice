@@ -2226,6 +2226,12 @@
                 submitButton.style.background = '#999';
                 submitButton.style.cursor = 'not-allowed';
                 submitButton.style.opacity = '0.6';
+                
+                // 🔒 送信済みの場合は、編集をロック（バグ修正）
+                // SortableJS初期化後にロックする（setTimeout で少し遅延）
+                setTimeout(() => {
+                    lockGameInput();
+                }, 100);
             }
             
             // 画面切り替え
@@ -2329,6 +2335,37 @@
             }
         }
         
+        // 回答入力をロック（送信後の編集防止）
+        function lockGameInput() {
+            const container = document.getElementById('gameRankingForm');
+            if (!container) return;
+            
+            // SortableJSを無効化
+            if (gameInputSortableInstance) {
+                gameInputSortableInstance.option("disabled", true);
+                console.log('✅ 回答入力のスワイプを無効化');
+            }
+            
+            // 全ての入力欄をdisabled
+            const items = container.children;
+            for (let i = 0; i < items.length; i++) {
+                const input = items[i].querySelector('.rank-input');
+                if (input) {
+                    input.disabled = true;
+                    input.style.background = '#f0f0f0';
+                    input.style.color = '#999';
+                }
+                
+                // ドラッグハンドルを非表示
+                const handle = items[i].querySelector('.drag-handle');
+                if (handle) {
+                    handle.style.display = 'none';
+                }
+            }
+            
+            console.log('✅ 回答入力をロック完了');
+        }
+        
         // 進行状況を更新
         function updateGameProgress(sessionData) {
             const players = sessionData.players || {};
@@ -2425,6 +2462,9 @@
                     button.style.cursor = 'not-allowed';
                     button.style.opacity = '0.6';
                     
+                    // 🔒 送信後は編集をロック（バグ修正）
+                    lockGameInput();
+                    
                     // 両者が入力完了したかチェック
                     return sessionRef.once('value');
                 })
@@ -2475,7 +2515,8 @@
             submitButton.style.opacity = '';
             
             // 自分が既に予想済みかチェック
-            if (sessionData.guesses && sessionData.guesses[userProfile.userId]) {
+            const alreadySubmitted = sessionData.guesses && sessionData.guesses[userProfile.userId];
+            if (alreadySubmitted) {
                 // 送信済みの場合は、ボタンを「待機中」状態に
                 submitButton.textContent = '⏳ お相手の回答待ち...';
                 submitButton.disabled = true;
@@ -2505,6 +2546,13 @@
             
             // 並び替えエリアを生成
             createGuessRankingUI(items);
+            
+            // 🔒 送信済みの場合は、スワイプをロック（バグ修正）
+            if (alreadySubmitted) {
+                setTimeout(() => {
+                    lockGuessInput();
+                }, 100);
+            }
             
             // 画面切り替え
             showScreen('guessScreen');
@@ -2596,6 +2644,32 @@
             }
         }
         
+        // 予想入力をロック（送信後の編集防止）
+        function lockGuessInput() {
+            const container = document.getElementById('guessRankingArea');
+            if (!container) return;
+            
+            // SortableJSを無効化
+            if (gameSortableInstance) {
+                gameSortableInstance.option("disabled", true);
+                console.log('✅ 予想のスワイプを無効化');
+            }
+            
+            // 全てのドラッグハンドルを非表示
+            const items = container.children;
+            for (let i = 0; i < items.length; i++) {
+                const handle = items[i].querySelector('.drag-handle');
+                if (handle) {
+                    handle.style.display = 'none';
+                }
+                
+                // 項目全体を「ロック済み」の見た目に
+                items[i].style.opacity = '0.6';
+            }
+            
+            console.log('✅ 予想入力をロック完了');
+        }
+        
         // 項目を移動（ボタン用）
         function moveItem(index, direction) {
             const container = document.getElementById('guessRankingArea');
@@ -2667,6 +2741,9 @@
                     button.style.background = '#999';
                     button.style.cursor = 'not-allowed';
                     button.style.opacity = '0.6';
+                    
+                    // 🔒 送信後はスワイプをロック（バグ修正）
+                    lockGuessInput();
                     
                     // 両者が予想完了したかチェック
                     return sessionRef.once('value');
