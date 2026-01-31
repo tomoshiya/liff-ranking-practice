@@ -1773,7 +1773,12 @@
                 theme: theme,
                 themeMode: themeMode,
                 gameStatus: 'inputting',
-                lastActivityAt: Date.now()
+                rankings: null,               // ランキングをクリア
+                guesses: null,                // 予想をクリア
+                results: null,                // 結果をクリア
+                finishedAt: null,             // 終了時刻をクリア
+                lastActivityAt: Date.now(),
+                updatedAt: new Date().toISOString()
             };
             
             // 全プレイヤーの状態を 'inputting' に更新
