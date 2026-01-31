@@ -1531,6 +1531,12 @@
                 return;
             }
             
+            // 「あなたのペアコード」セクションを再表示（招待URLから入った場合に非表示になっているため）
+            const myPairCodeSection = document.querySelector('#pairScreen > div:first-of-type');
+            if (myPairCodeSection) {
+                myPairCodeSection.style.display = 'block';
+            }
+            
             // 自分のペアコードを表示
             document.getElementById('myPairCode').textContent = currentUser.pairCode;
             
@@ -3655,6 +3661,21 @@
             const liffUrl = `https://liff.line.me/${LIFF_ID}`;
             const sessionUrl = `${liffUrl}?session=${currentGameSession.id}`;
             
+            // shareTargetPicker API が利用可能かチェック
+            if (!liff.isApiAvailable('shareTargetPicker')) {
+                console.warn('⚠️ shareTargetPicker API が利用できません（外部ブラウザまたはLIFFバージョンが古い）');
+                // APIが利用できない場合はコピー機能にフォールバック
+                navigator.clipboard.writeText(sessionUrl)
+                    .then(() => {
+                        alert('📋 招待URLをコピーしました！\nLINEで送信してください。');
+                    })
+                    .catch(() => {
+                        alert('❌ URLのコピーに失敗しました。');
+                    });
+                return;
+            }
+            
+            // LINE送信先選択画面を表示
             liff.shareTargetPicker([{
                 type: 'text',
                 text: `一緒にランキングゲームで遊ぼう！🎮\n\n参加はこちらから👇\n${sessionUrl}`
@@ -3664,6 +3685,11 @@
             })
             .catch((error) => {
                 console.error('❌ LINE招待エラー:', error);
+                console.error('エラー詳細:', {
+                    message: error.message,
+                    code: error.code,
+                    name: error.name
+                });
                 // エラー時はコピー機能にフォールバック
                 navigator.clipboard.writeText(sessionUrl)
                     .then(() => {
@@ -3685,6 +3711,21 @@
             const liffUrl = `https://liff.line.me/${LIFF_ID}`;
             const pairUrl = `${liffUrl}?pairCode=${currentUser.pairCode}`;
             
+            // shareTargetPicker API が利用可能かチェック
+            if (!liff.isApiAvailable('shareTargetPicker')) {
+                console.warn('⚠️ shareTargetPicker API が利用できません（外部ブラウザまたはLIFFバージョンが古い）');
+                // APIが利用できない場合はコピー機能にフォールバック
+                navigator.clipboard.writeText(pairUrl)
+                    .then(() => {
+                        alert('📋 招待URLをコピーしました！\nLINEで送信してください。');
+                    })
+                    .catch(() => {
+                        alert('❌ URLのコピーに失敗しました。');
+                    });
+                return;
+            }
+            
+            // LINE送信先選択画面を表示
             liff.shareTargetPicker([{
                 type: 'text',
                 text: `一緒にランキングゲームのペアになろう！💑\n\nペア登録はこちらから👇\n${pairUrl}`
@@ -3694,6 +3735,11 @@
             })
             .catch((error) => {
                 console.error('❌ ペアコード招待エラー:', error);
+                console.error('エラー詳細:', {
+                    message: error.message,
+                    code: error.code,
+                    name: error.name
+                });
                 // エラー時はコピー機能にフォールバック
                 navigator.clipboard.writeText(pairUrl)
                     .then(() => {
@@ -3739,9 +3785,27 @@
                         .then((snapshot) => {
                             if (snapshot.exists()) {
                                 const sessionData = snapshot.val();
+                                const hostId = sessionData.hostId;
+                                const partnerId = sessionData.partnerId;
+                                const myUserId = userProfile.userId;
                                 
-                                // 待機室を表示
-                                showWaitingRoom(sessionId, sessionData, 'guest');
+                                // ホスト本人の場合
+                                if (myUserId === hostId) {
+                                    console.log('🎮 ホスト本人：待機室を表示');
+                                    showWaitingRoom(sessionId, sessionData, 'host');
+                                    return;
+                                }
+                                
+                                // ペアの場合
+                                if (myUserId === partnerId) {
+                                    console.log('🎮 ペア：参加確認画面を表示');
+                                    showWaitingRoom(sessionId, sessionData, 'guest');
+                                    return;
+                                }
+                                
+                                // ペア以外の場合
+                                alert('❌ この招待はあなた宛てではありません。\n\nこのゲームはペア専用です。');
+                                showScreen('mainScreen');
                             } else {
                                 alert('このゲームセッションは既に終了しています。');
                                 showScreen('mainScreen');
@@ -3768,9 +3832,22 @@
                 if (currentUser) {
                     clearInterval(checkUserReady);
                     
+                    // 自分のペアコードの場合は、通常通りHOME画面へ
+                    if (pairCode.toUpperCase() === currentUser.pairCode) {
+                        console.log('🏠 自分のペアコード：HOME画面を表示');
+                        showScreen('mainScreen');
+                        return;
+                    }
+                    
                     // ペア設定画面を表示し、ペアコードを入力
                     showScreen('pairScreen');
                     document.getElementById('partnerCodeInput').value = pairCode.toUpperCase();
+                    
+                    // 「あなたのペアコード」セクションを非表示
+                    const myPairCodeSection = document.querySelector('#pairScreen > div:first-of-type');
+                    if (myPairCodeSection) {
+                        myPairCodeSection.style.display = 'none';
+                    }
                     
                     // 確認メッセージ
                     alert('✨ ペアコードが入力されました！\n「ペアになる」ボタンを押してください。');
