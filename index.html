@@ -542,7 +542,8 @@
             </div>
             
             <!-- セクション2: 開発メニュー（折りたたみ式） -->
-            <div style="padding-top: 20px; border-top: 2px dashed #ddd;">
+            <!-- 本番環境では非表示 -->
+            <div style="display: none; padding-top: 20px; border-top: 2px dashed #ddd;">
                 <button id="devMenuToggleButton" onclick="toggleDevMenu()" style="background: #666; font-size: 13px; padding: 10px;">
                     🔧 開発メニュー
                 </button>
@@ -4620,5 +4621,24 @@
             }
         }
     </script>
+    
+    <!-- フッター（プライバシーポリシー・利用規約へのリンク） -->
+    <footer style="
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #f8f9fa;
+        border-top: 1px solid #ddd;
+        padding: 10px 20px;
+        text-align: center;
+        font-size: 12px;
+        color: #666;
+        z-index: 100;
+    ">
+        <a href="./privacy-policy.html" target="_blank" style="color: #4A90E2; text-decoration: none; margin: 0 10px;">プライバシーポリシー</a>
+        <span style="color: #ccc;">|</span>
+        <a href="./terms-of-service.html" target="_blank" style="color: #4A90E2; text-decoration: none; margin: 0 10px;">利用規約</a>
+    </footer>
 </body>
 </html>
