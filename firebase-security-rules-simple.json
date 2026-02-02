@@ -1,0 +1,22 @@
+{
+  "rules": {
+    "users": {
+      "$userId": {
+        ".read": "auth != null && ($userId === auth.uid || data.child('partnerId').val() === auth.uid)",
+        ".write": "auth != null && $userId === auth.uid"
+      }
+    },
+    "gameSessions": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "pairCodes": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}
