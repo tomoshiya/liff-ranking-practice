@@ -1,7 +1,7 @@
 # 🎮 RankQuest - プロジェクトマスタードキュメント
 
-**最終更新**: 2026年2月2日（α版準備完了・モニタリング実装）  
-**プロジェクト状態**: ✅ **α版準備完了** - モニタリング実装、リブランディング完了、テスター受付準備  
+**最終更新**: 2026年2月2日（Firebase Security Rules 修正完了）  
+**プロジェクト状態**: ✅ **α版準備完了** - Security Rules修正、動作確認完了、テスト開始準備  
 **次回セッション予定**: α版テスト開始 → フィードバック収集 → β版準備
 
 > 💡 **このドキュメントについて**  
@@ -18,7 +18,32 @@
 
 ## 🔖 セーフポイント一覧
 
-### #97: α版準備完了（最新・推奨）✨
+### #98: Firebase Security Rules 修正完了（最新・推奨）✨
+- **コミットID**: （次回コミット時に記録）
+- **日時**: 2026年2月2日
+- **状態**: 
+  - ✅ Firebase Security Rules 修正完了
+  - ✅ 認証ベースのシンプルなルールに変更
+  - ✅ ペア設定・ゲームプレイの動作確認完了
+  - ✅ firebase-security-rules-simple.json を履歴管理形式に更新
+  - ✅ α版テスト開始準備完了
+- **問題と解決**:
+  - **問題**: v1.0のSecurity Rulesが動作せず、ペア設定画面でPERMISSION_DENIEDエラー
+  - **原因**: Firebase匿名認証のauth.uidとLINEのuserIdが不一致のため、`$userId === auth.uid`が常にfalse
+  - **解決**: 認証済みユーザー全員にアクセス許可（`auth != null`）のシンプルなルールに変更
+  - **セキュリティ**: LIFF経由の認証必須、α版テストには十分なレベル
+- **主な変更**:
+  1. firebase-security-rules-simple.json: v2.0に更新（履歴管理形式）
+  2. Security Rules: users, gameSessions, pairCodes, analytics, rankings すべてに `auth != null` 権限
+  3. ドキュメント: 今回の問題と解決策を詳細に記録
+- **教訓**: 
+  - 動作しているものを変更する際は、必ず動作確認を行う
+  - 「シンプル = 良い」とは限らない。動作している = 正しい
+  - Security Rules変更後は即座に実機テスト
+- **次のステップ**: この状態でコミット・プッシュ → α版テスト開始
+- **戻す方法**: （次回コミット後に `git reset --hard [コミットID]` で記録）
+
+### #97: α版準備完了（モニタリング実装）
 - **コミットID**: `2afcae3`
 - **コミットメッセージ**: "feat: add basic analytics tracking (user registration, login, pair connection, game start)"
 - **日時**: 2026年2月2日
@@ -439,7 +464,7 @@ git push origin main
 
 ## 📅 今日の作業履歴（2026年2月2日）
 
-### ✅ α版準備完了
+### ✅ α版準備完了（午前）
 - **セーフポイント #97** (`2afcae3`): 簡易モニタリング実装＋リブランディング
 - **コミット #97** (`2afcae3`): Analytics tracking追加
 - **コミット #98** (`be8bc69`): RankQuestへのリブランディング
@@ -447,28 +472,46 @@ git push origin main
 - **コミット #100** (`28ff61d`): プライバシーポリシー・利用規約追加
 - **コミット #101** (`8dc4120`): フィードバックフォーム等のテンプレート追加
 
+### ❌ Security Rules問題の発生と解決（午後）
+- **問題発見**: LIFFアプリでペア設定画面に「ユーザー情報が読み込まれていません」エラー
+- **原因特定**: 
+  - Firebase Security Rules v1.0（簡素化版）が動作しない
+  - Firebase匿名認証の `auth.uid` と LINEの `userId` が不一致
+  - `$userId === auth.uid` が常に false → PERMISSION_DENIED
+- **解決策**: 
+  - 認証ベースのシンプルなルールに変更（v2.0）
+  - すべてのノードに `".read": "auth != null", ".write": "auth != null"` を設定
+  - users, gameSessions, pairCodes, analytics, rankings すべてカバー
+- **動作確認**: ペア設定・ゲームプレイの正常動作を確認
+- **ドキュメント更新**: 
+  - firebase-security-rules-simple.json を履歴管理形式に変更
+  - 変更履歴・使用方法・セキュリティ考察を追加
+  - PROJECT_MASTER.md に問題と解決策を詳細記録
+- **セーフポイント #98**: Security Rules修正完了（次回コミット予定）
+
 ### 📊 実装した機能
 ```
-✅ trackEvent()関数
+✅ trackEvent()関数（午前）
    - ユーザー登録
    - ログイン
    - ペア接続・解除
    - ゲーム開始
    → Firebase Realtime Databaseに記録
 
-✅ リブランディング
+✅ リブランディング（午前）
    - アプリ名: RankQuest (α版)
    - 全ドキュメント更新（11ファイル）
    
-✅ テスター運用準備
+✅ テスター運用準備（午前）
    - FEEDBACK_FORM_TEMPLATE.md作成
    - LAUNCH_GUIDE.md更新
    - テスター依頼メッセージテンプレート
    
-✅ Security Rules最適化
-   - firebase-security-rules-simple.json作成
-   - 未使用テーブル削除
-   - シンプル化完了
+✅ Security Rules修正（午後）
+   - firebase-security-rules-simple.json v2.0
+   - 履歴管理形式の導入
+   - 認証ベースのシンプルなルール
+   - 動作確認完了
 ```
 
 ### 🎓 学習事項
@@ -488,6 +531,14 @@ git push origin main
 【開発環境】
 - 現状: mainブランチのみ
 - 課題: テスト環境なし
+
+【Security Rules変更の教訓】★重要★
+- 動作しているものを変更する際は、必ず変更前後で動作確認
+- 「複雑 = 悪い」「シンプル = 良い」とは限らない
+- 動作している = 正しい（最優先の判断基準）
+- Firebase匿名認証では auth.uid ≠ LINE userId（今回の失敗原因）
+- Security Rulesの変更後は即座に実機テスト必須
+- ルール変更時は履歴を残す（ロールバック可能にする）
 - 対策: β版準備時にdevelopブランチ導入
 
 【コード分割】
