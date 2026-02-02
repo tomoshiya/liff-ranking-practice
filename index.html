@@ -1168,6 +1168,43 @@
         }
         
         // ========================================
+        // Analytics機能（簡易版）
+        // ========================================
+        function trackEvent(eventName, eventData = {}) {
+            if (!database || !currentUser) return;
+            
+            try {
+                const eventRef = database.ref('analytics/events');
+                eventRef.push({
+                    event: eventName,
+                    userId: currentUser.userId,
+                    displayName: userProfile?.displayName || 'unknown',
+                    data: eventData,
+                    timestamp: Date.now(),
+                    date: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error('Analytics記録エラー:', error);
+            }
+        }
+        
+        // 日次統計の更新
+        function updateDailyStats(statType) {
+            if (!database) return;
+            
+            try {
+                const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+                const statsRef = database.ref(`analytics/daily/${today}/${statType}`);
+                
+                statsRef.transaction((current) => {
+                    return (current || 0) + 1;
+                });
+            } catch (error) {
+                console.error('統計更新エラー:', error);
+            }
+        }
+        
+        // ========================================
         // LIFF初期化
         // ========================================
         window.onload = function() {
@@ -1279,6 +1316,12 @@
                             lastLoginAt: new Date().toISOString()
                         });
                         
+                        // Analytics: ユーザーログイン
+                        trackEvent('user_login', {
+                            userId: currentUser.userId
+                        });
+                        updateDailyStats('logins');
+                        
                         console.log('✅ 既存ユーザー情報取得:', currentUser);
                     } else {
                         // 新規ユーザー：ペアコードを生成して保存
@@ -1297,6 +1340,14 @@
                             .then(() => {
                                 currentUser = newUser;
                                 console.log('✅ 新規ユーザー作成:', currentUser);
+                                
+                                // Analytics: 新規ユーザー登録
+                                trackEvent('user_registered', {
+                                    userId: currentUser.userId,
+                                    displayName: currentUser.displayName
+                                });
+                                updateDailyStats('newUsers');
+                                
                                 updatePairStatus();
                                 
                                 // ペア設定のリアルタイム監視を開始
@@ -1754,6 +1805,13 @@
                                 skipNextPairNotification = false;
                             }, 3000);
                             
+                            // Analytics: ペア設定完了
+                            trackEvent('pair_connected', {
+                                partnerId: partnerId,
+                                partnerName: partnerData.displayName
+                            });
+                            updateDailyStats('pairConnections');
+                            
                             alert('✅ ペア設定完了！\n\nパートナー: ' + partnerData.displayName + '\n\nこれでお互いのランキングを共有できます。');
                             
                             // 表示を更新
@@ -2168,6 +2226,16 @@
             newSessionRef.set(sessionData)
                 .then(() => {
                     console.log('✅ ゲームセッション作成成功:', newSessionRef.key);
+                    
+                    // Analytics: ゲーム開始
+                    trackEvent('game_started', {
+                        sessionId: newSessionRef.key,
+                        mode: sessionData.mode,
+                        theme: theme,
+                        themeMode: themeMode
+                    });
+                    updateDailyStats('gamesStarted');
+                    
                     showWaitingRoom(newSessionRef.key, sessionData, 'host');
                 })
                 .catch((error) => {
