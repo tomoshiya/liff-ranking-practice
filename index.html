@@ -561,6 +561,21 @@
                     </button>
                 </div>
             </div>
+            
+            <!-- フッター（プライバシーポリシー・利用規約へのリンク） -->
+            <div style="
+                background: #f8f9fa;
+                border-top: 1px solid #ddd;
+                padding: 15px 20px;
+                margin-top: 30px;
+                text-align: center;
+                font-size: 12px;
+                color: #666;
+            ">
+                <a href="./privacy-policy.html" target="_blank" style="color: #4A90E2; text-decoration: none; margin: 0 10px;">プライバシーポリシー</a>
+                <span style="color: #ccc;">|</span>
+                <a href="./terms-of-service.html" target="_blank" style="color: #4A90E2; text-decoration: none; margin: 0 10px;">利用規約</a>
+            </div>
         </div>
         
         <!-- ========================================
@@ -765,12 +780,12 @@
         
         <!-- ペア設定画面（フェーズ4で追加） -->
         <div id="pairScreen" class="screen">
-            <h2 style="color: #9B59B6; margin-bottom: 20px;">💑 ペア設定</h2>
+            <h2 style="color: #9B59B6; margin-bottom: 20px;">👥 ペア設定</h2>
             
             <!-- 自分のペアコード表示 -->
             <div style="background: #F8F4FF; border: 2px solid #9B59B6; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
                 <h3 style="color: #9B59B6; font-size: 16px; margin-bottom: 10px;">📌 あなたのペアコード</h3>
-                <p style="color: #666; font-size: 13px; margin-bottom: 12px;">このコードをパートナーに教えてください</p>
+                <p style="color: #666; font-size: 13px; margin-bottom: 12px;">このコードをお相手に教えてください</p>
                 <div style="background: white; border: 2px dashed #9B59B6; border-radius: 8px; padding: 15px; text-align: center;">
                     <p id="myPairCode" style="font-size: 32px; font-weight: bold; color: #9B59B6; letter-spacing: 4px; font-family: 'Courier New', monospace;">------</p>
                 </div>
@@ -779,10 +794,10 @@
                 </button>
             </div>
             
-            <!-- パートナーのペアコード入力 -->
+            <!-- お相手のペアコード入力 -->
             <div style="background: #FFF8F0; border: 2px solid #FF9800; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
-                <h3 style="color: #FF9800; font-size: 16px; margin-bottom: 10px;">🔗 パートナーとペアになる</h3>
-                <p style="color: #666; font-size: 13px; margin-bottom: 12px;">パートナーのペアコードを入力してください</p>
+                <h3 style="color: #FF9800; font-size: 16px; margin-bottom: 10px;">🔗 お相手とペアになる</h3>
+                <p style="color: #666; font-size: 13px; margin-bottom: 12px;">お相手のペアコードを入力してください</p>
                 <input type="text" id="partnerCodeInput" placeholder="ABC123" maxlength="6" 
                     oninput="updatePartnerNamePreview()"
                     style="width: 100%; padding: 15px; border: 2px solid #FF9800; border-radius: 8px; font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 4px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-bottom: 10px;">
@@ -799,7 +814,7 @@
             <!-- 現在のペア情報 -->
             <div id="currentPairInfo" style="background: #F0FFF4; border: 2px solid #50C878; border-radius: 10px; padding: 20px; margin-bottom: 20px; display: none;">
                 <h3 style="color: #50C878; font-size: 16px; margin-bottom: 10px;">✅ ペア成立中</h3>
-                <p style="color: #666; font-size: 14px; margin-bottom: 8px;">パートナー: <span id="partnerName" style="font-weight: bold; color: #333;">---</span></p>
+                <p style="color: #666; font-size: 14px; margin-bottom: 8px;">お相手: <span id="partnerName" style="font-weight: bold; color: #333;">---</span></p>
                 <button onclick="disconnectPair()" style="background: #ff6b6b; font-size: 14px; padding: 10px;">
                     ❌ ペアを解除
                 </button>
@@ -819,8 +834,8 @@
             <div id="waitingArea" style="text-align: center; padding: 40px 20px;">
                 <div style="background: linear-gradient(135deg, #FFF0F5, #F0F8FF); border: 3px solid #FF6B9D; border-radius: 15px; padding: 30px 20px; margin-bottom: 20px;">
                     <p style="font-size: 48px; margin-bottom: 15px;">⏳</p>
-                    <p id="waitingMessage" style="color: #666; font-size: 16px; line-height: 1.8; font-weight: bold;">パートナーを待っています...</p>
-                    <p style="color: #999; font-size: 13px; margin-top: 15px;">パートナーがアプリを開くと<br>自動的にゲームが開始されます</p>
+                    <p id="waitingMessage" style="color: #666; font-size: 16px; line-height: 1.8; font-weight: bold;">お相手を待っています...</p>
+                    <p style="color: #999; font-size: 13px; margin-top: 15px;">お相手がアプリを開くと<br>自動的にゲームが開始されます</p>
                 </div>
                 
                 <button id="copySessionUrlButton" onclick="copySessionUrl()" style="background: #4A90E2; font-size: 16px; padding: 15px 20px; margin-bottom: 20px;">
@@ -904,7 +919,7 @@
         
         <!-- 予想画面（フェーズ5-Aで追加） -->
         <div id="guessScreen" class="screen">
-            <h2 style="color: #FF6B9D; margin-bottom: 20px;">🤔 パートナーのランキングを予想</h2>
+            <h2 style="color: #FF6B9D; margin-bottom: 20px;">🤔 お相手のランキングを予想</h2>
             
             <div style="background: #FFF0F5; border: 2px solid #FF6B9D; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
                 <p style="color: #666; font-size: 14px; line-height: 1.8; text-align: center;">
@@ -1110,10 +1125,10 @@
             'わたしの学生時代の得意科目TOP5',
             'わたしの学生時代の苦手科目TOP5',
             
-            // カップル系（3個）
-            'パートナーの好きなところTOP5',
-            'パートナーに感謝をした場面・シーンTOP5',
-            'パートナーを素敵と感じた場面・シーンTOP5'
+            // 関係性（3個）
+            'お相手の好きなところTOP5',
+            'お相手に感謝をした場面・シーンTOP5',
+            'お相手を素敵と感じた場面・シーンTOP5'
         ];
         
         // ========================================
@@ -1479,7 +1494,7 @@
                             const partner = snapshot.val();
                             statusContent.innerHTML = 
                                 '<p style="color: #50C878; font-size: 15px; font-weight: bold;">✅ ペア成立</p>' +
-                                '<p style="color: #666; font-size: 14px; margin-top: 5px;">パートナー: ' + partner.displayName + '</p>';
+                                '<p style="color: #666; font-size: 14px; margin-top: 5px;">お相手: ' + partner.displayName + '</p>';
                             
                             // ボタンを有効化
                             if (realtimeGameButton) {
@@ -1489,7 +1504,7 @@
                                 realtimeGameButton.style.filter = 'none';
                             }
                         } else {
-                            statusContent.innerHTML = '<p style="color: #ff6b6b; font-size: 14px;">⚠️ パートナー情報が見つかりません</p>';
+                            statusContent.innerHTML = '<p style="color: #ff6b6b; font-size: 14px;">⚠️ お相手の情報が見つかりません</p>';
                             
                             // ボタンをグレーアウト
                             if (realtimeGameButton) {
@@ -1720,15 +1735,15 @@
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(code)
                     .then(() => {
-                        alert('✅ ペアコードをコピーしました！\n\nコード: ' + code + '\n\nパートナーにこのコードを送ってください。');
+                        alert('✅ ペアコードをコピーしました！\n\nコード: ' + code + '\n\nお相手にこのコードを送ってください。');
                     })
                     .catch(() => {
                         // コピー失敗時
-                        alert('ペアコード: ' + code + '\n\nこのコードをパートナーに送ってください。');
+                        alert('ペアコード: ' + code + '\n\nこのコードをお相手に送ってください。');
                     });
             } else {
                 // クリップボードAPIが使えない場合
-                alert('ペアコード: ' + code + '\n\nこのコードをパートナーに送ってください。');
+                alert('ペアコード: ' + code + '\n\nこのコードをお相手に送ってください。');
             }
         }
         
@@ -1749,7 +1764,7 @@
             
             // 自分のコードと同じでないかチェック
             if (partnerCode === currentUser.pairCode) {
-                alert('❌ 自分のペアコードは入力できません。\nパートナーのコードを入力してください。');
+                alert('❌ 自分のペアコードは入力できません。\nお相手のコードを入力してください。');
                 return;
             }
             
@@ -1772,13 +1787,13 @@
                     });
                     
                     if (!partnerId || !partnerData) {
-                        alert('❌ パートナー情報の取得に失敗しました。');
+                        alert('❌ お相手の情報の取得に失敗しました。');
                         return;
                     }
                     
                     // 既にペアがいる場合は確認
                     if (currentUser.partnerId) {
-                        if (!confirm('既にペアが設定されています。\n新しいパートナーに変更しますか？')) {
+                        if (!confirm('既にペアが設定されています。\n新しいお相手に変更しますか？')) {
                             return;
                         }
                     }
@@ -1812,7 +1827,7 @@
                             });
                             updateDailyStats('pairConnections');
                             
-                            alert('✅ ペア設定完了！\n\nパートナー: ' + partnerData.displayName + '\n\nこれでお互いのランキングを共有できます。');
+                            alert('✅ ペア設定完了！\n\nお相手: ' + partnerData.displayName + '\n\nこれでお互いのランキングを共有できます。');
                             
                             // 表示を更新
                             updatePairStatus();
@@ -1883,7 +1898,7 @@
         // リアルタイムゲーム開始を試みる（ペアチェック付き）
         function tryStartRealtimeGame() {
             if (!currentUser || !currentUser.partnerId) {
-                alert('❌ まずペアを設定してください\n\n下の「⚙️ ペアを設定する」ボタンからパートナーとペアになってください。');
+                alert('❌ まずペアを設定してください\n\n下の「⚙️ ペアを設定する」ボタンからお相手とペアになってください。');
                 return;
             }
             startRealtimeGame();
@@ -2851,7 +2866,7 @@
             // パートナーのランキング項目を取得
             const partnerRanking = sessionData.rankings[partnerId];
             if (!partnerRanking) {
-                alert('❌ パートナーのランキングが見つかりません。');
+                alert('❌ お相手のランキングが見つかりません。');
                 return;
             }
             
@@ -3202,7 +3217,7 @@
                 resultTitle = 'あなたの勝ち！';
                 resultEmoji = '🎉';
             } else if (myScore.score < partnerScore.score) {
-                resultTitle = 'パートナーの勝ち！';
+                resultTitle = 'お相手の勝ち！';
                 resultEmoji = '😄';
             } else {
                 resultTitle = '引き分け！';
@@ -3212,7 +3227,7 @@
             // パートナー名を取得
             database.ref('users/' + partnerId).once('value')
                 .then((snapshot) => {
-                    const partnerName = snapshot.exists() ? snapshot.val().displayName : 'パートナー';
+                    const partnerName = snapshot.exists() ? snapshot.val().displayName : 'お相手';
                     
                     // 結果HTMLを生成
                     let html = '';
@@ -3240,7 +3255,7 @@
             html += '<p style="color: #999; font-size: 12px;">おしい！（1pt）×' + (myScore.closeCount || 0) + '個</p>';
             html += '</div>';
             
-            // パートナーのスコア
+            // ペア相手のスコア
             html += '<div>';
             html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">お相手</p>';
             html += '<p style="color: #4A90E2; font-size: 32px; font-weight: bold;">' + partnerScore.score + '<span style="font-size: 16px; color: #999;"> / 10</span><span style="font-size: 13px; color: #999;">pt</span></p>';
@@ -3278,7 +3293,7 @@
             }
             
             html += '<div style="background: #F0FFF4; border-radius: 10px; padding: 20px; margin-bottom: 20px; text-align: center;">';
-            html += '<h3 style="color: #50C878; font-size: 16px; margin-bottom: 15px;">💑 ふたりの成績</h3>';
+            html += '<h3 style="color: #50C878; font-size: 16px; margin-bottom: 15px;">🤝 ふたりの成績</h3>';
             html += '<p style="font-size: 48px; margin-bottom: 10px;">' + cooperativeEmoji + '</p>';
             html += '<p style="color: #50C878; font-size: 32px; font-weight: bold; margin-bottom: 5px;">' + totalScore + '<span style="font-size: 16px; color: #999;"> / ' + maxScore + '</span><span style="font-size: 13px; color: #999;">pt</span></p>';
             html += '<p style="color: #666; font-size: 16px; font-weight: bold;">' + cooperativeMessage + '</p>';
@@ -3848,7 +3863,7 @@
             // URLをクリップボードにコピー
             navigator.clipboard.writeText(sessionUrl)
                 .then(() => {
-                    alert('📋 待機室のURLをコピーしました！\nLINEでパートナーに送信してください。');
+                    alert('📋 待機室のURLをコピーしました！\nLINEでお相手に送信してください。');
                     console.log('✅ URLコピー成功:', sessionUrl);
                 })
                 .catch((error) => {
@@ -3870,7 +3885,7 @@
             // URLをクリップボードにコピー
             navigator.clipboard.writeText(pairUrl)
                 .then(() => {
-                    alert('📋 ペア設定用のURLをコピーしました！\nLINEでパートナーに送信してください。');
+                    alert('📋 ペア設定用のURLをコピーしました！\nLINEでお相手に送信してください。');
                     console.log('✅ URLコピー成功:', pairUrl);
                 })
                 .catch((error) => {
@@ -4689,24 +4704,5 @@
             }
         }
     </script>
-    
-    <!-- フッター（プライバシーポリシー・利用規約へのリンク） -->
-    <footer style="
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: #f8f9fa;
-        border-top: 1px solid #ddd;
-        padding: 10px 20px;
-        text-align: center;
-        font-size: 12px;
-        color: #666;
-        z-index: 100;
-    ">
-        <a href="./privacy-policy.html" target="_blank" style="color: #4A90E2; text-decoration: none; margin: 0 10px;">プライバシーポリシー</a>
-        <span style="color: #ccc;">|</span>
-        <a href="./terms-of-service.html" target="_blank" style="color: #4A90E2; text-decoration: none; margin: 0 10px;">利用規約</a>
-    </footer>
 </body>
 </html>
