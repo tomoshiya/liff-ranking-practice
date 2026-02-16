@@ -1013,6 +1013,14 @@
                 <button id="multiCloseRoomButton" onclick="multiCloseRoom()" style="background: #ff6b6b; font-size: 14px; padding: 10px; display: none;">
                     🚪 部屋を閉じる
                 </button>
+                
+                <!-- 開発用：ダミープレイヤー追加 -->
+                <div id="multiDummyArea" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; display: none;">
+                    <p style="color: #999; font-size: 11px; margin-bottom: 8px;">🛠 開発用</p>
+                    <button onclick="multiAddDummyPlayer()" style="background: #999; font-size: 13px; padding: 8px 12px; margin-bottom: 5px;">
+                        🤖 ダミープレイヤーを追加
+                    </button>
+                </div>
             </div>
             <button onclick="multiConfirmLeave('一時退出します。部屋番号で再参加できます。')" class="fixed-round-button fixed-round-button-home">HOME</button>
         </div>
@@ -5926,6 +5934,7 @@
                 
                 multiCurrentRoom = { roomId, role: 'host', data: roomData };
                 document.getElementById('multiCloseRoomButton').style.display = 'block';
+                document.getElementById('multiDummyArea').style.display = 'block';
                 document.getElementById('multiRoomNumber').textContent = roomId;
                 showScreen('multiWaitingRoomScreen');
                 multiStartRoomListener(roomId);
@@ -6771,6 +6780,143 @@
                 players.forEach(id => { updates['players/' + id + '/status'] = 'waiting'; });
                 await ref.update(updates);
             } catch (error) { alert('❌ エラーが発生しました。'); }
+        }
+        
+        // ========================================
+        // 開発用：ダミープレイヤー
+        // ========================================
+        
+        const DUMMY_NAMES = ['テスト太郎', 'テスト花子', 'テスト次郎', 'テスト美咲', 'テスト翔太', 'テスト葵', 'テスト蓮'];
+        let multiDummyCount = 0;
+        
+        async function multiAddDummyPlayer() {
+            if (!multiCurrentRoom || !database) return;
+            const roomRef = database.ref('gameRooms/' + multiCurrentRoom.roomId);
+            const snap = await roomRef.once('value');
+            const data = snap.val();
+            const playerCount = Object.keys(data.players || {}).length;
+            
+            if (playerCount >= data.maxPlayers) { alert('❌ 部屋は満員です。'); return; }
+            
+            const dummyId = 'dummy_' + Date.now() + '_' + multiDummyCount;
+            const name = DUMMY_NAMES[multiDummyCount % DUMMY_NAMES.length];
+            multiDummyCount++;
+            
+            await roomRef.update({
+                ['players/' + dummyId]: { displayName: name, status: 'waiting', isDummy: true },
+                lastActivityAt: Date.now()
+            });
+            
+            console.log('🤖 ダミープレイヤー追加:', name, dummyId);
+            
+            // ダミープレイヤーの自動応答リスナーを開始
+            multiStartDummyListener(dummyId, roomRef);
+        }
+        
+        function multiStartDummyListener(dummyId, roomRef) {
+            const listener = roomRef.on('value', async (snapshot) => {
+                if (!snapshot.exists()) { roomRef.off('value', listener); return; }
+                const data = snapshot.val();
+                
+                // ダミーが削除された場合
+                if (!data.players || !data.players[dummyId]) { roomRef.off('value', listener); return; }
+                
+                if (data.status === 'inputting') {
+                    // ランキング未送信なら自動送信
+                    if (!data.rankings || !data.rankings[dummyId]) {
+                        await multiDummySubmitRanking(dummyId, roomRef, data);
+                    }
+                }
+                
+                if (data.status === 'guessing') {
+                    // 予想未送信なら自動送信
+                    if (!data.guesses || !data.guesses[dummyId]) {
+                        await multiDummySubmitGuess(dummyId, roomRef, data);
+                    }
+                }
+            });
+        }
+        
+        async function multiDummySubmitRanking(dummyId, roomRef, data) {
+            // ランダムなランキングを生成（テーマに合わせた固定リストから）
+            const dummyItems = [
+                ['ラーメン', 'カレー', '寿司', 'ハンバーグ', '焼肉'],
+                ['旅行', '読書', 'ゲーム', '映画', '料理'],
+                ['猫', '犬', 'うさぎ', 'ハムスター', '鳥'],
+                ['海', '山', '温泉', 'テーマパーク', 'カフェ'],
+                ['チョコ', 'アイス', 'ケーキ', 'プリン', 'クッキー']
+            ];
+            const items = dummyItems[Math.floor(Math.random() * dummyItems.length)];
+            // シャッフル
+            for (let i = items.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [items[i], items[j]] = [items[j], items[i]];
+            }
+            
+            const ranking = {};
+            items.forEach((item, i) => { ranking[(i + 1).toString()] = item; });
+            
+            // 少し遅延してから送信（リアルっぽく）
+            setTimeout(async () => {
+                try {
+                    await roomRef.update({
+                        ['rankings/' + dummyId]: ranking,
+                        ['players/' + dummyId + '/status']: 'completed',
+                        lastActivityAt: Date.now()
+                    });
+                    console.log('🤖 ダミーランキング送信:', dummyId);
+                    
+                    // 全員完了チェック
+                    const snap = await roomRef.once('value');
+                    const d = snap.val();
+                    const allPlayers = Object.keys(d.players || {});
+                    if (allPlayers.every(id => d.rankings && d.rankings[id])) {
+                        await roomRef.update({ status: 'guessing', lastActivityAt: Date.now() });
+                    }
+                } catch (e) { console.error('🤖 ダミーランキング送信エラー:', e); }
+            }, 1500 + Math.random() * 2000);
+        }
+        
+        async function multiDummySubmitGuess(dummyId, roomRef, data) {
+            const allPlayers = Object.keys(data.players || {});
+            const targets = allPlayers.filter(id => id !== dummyId);
+            const guessData = {};
+            
+            targets.forEach(targetId => {
+                const correctRanking = data.rankings[targetId];
+                if (!correctRanking) return;
+                
+                // 正解をシャッフルして予想とする（ランダムな精度）
+                const items = [];
+                for (let i = 1; i <= 5; i++) items.push(correctRanking[i.toString()]);
+                for (let i = items.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [items[i], items[j]] = [items[j], items[i]];
+                }
+                const guess = {};
+                items.forEach((item, i) => { guess[(i + 1).toString()] = item; });
+                guessData[targetId] = guess;
+            });
+            
+            setTimeout(async () => {
+                try {
+                    await roomRef.update({
+                        ['guesses/' + dummyId]: guessData,
+                        ['players/' + dummyId + '/status']: 'guessed',
+                        lastActivityAt: Date.now()
+                    });
+                    console.log('🤖 ダミー予想送信:', dummyId);
+                    
+                    // 全員完了チェック
+                    const snap = await roomRef.once('value');
+                    const d = snap.val();
+                    const allPlayers = Object.keys(d.players || {});
+                    if (allPlayers.every(id => d.guesses && d.guesses[id])) {
+                        const results = multiCalculateScores(d);
+                        await roomRef.update({ status: 'finished', results, finishedAt: new Date().toISOString(), lastActivityAt: Date.now() });
+                    }
+                } catch (e) { console.error('🤖 ダミー予想送信エラー:', e); }
+            }, 2000 + Math.random() * 3000);
         }
     </script>
 </body>
