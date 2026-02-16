@@ -475,3 +475,8 @@ button:focus {
         font-size: 13px;
     }
 }
+
+/* 横スクロールタブのスクロールバー非表示 */
+#multiGuessTabArea::-webkit-scrollbar {
+    display: none;
+}
