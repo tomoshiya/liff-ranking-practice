@@ -699,7 +699,7 @@
             <div style="text-align: center; padding: 20px;">
                 <div style="background: linear-gradient(135deg, #e8fdf5, #f0fff4); border: 3px solid #11998e; border-radius: 15px; padding: 30px 20px; margin-bottom: 20px;">
                     <p style="color: #666; font-size: 14px; margin-bottom: 10px;">部屋番号</p>
-                    <p id="betaRoomNumber" style="font-size: 48px; font-weight: bold; color: #11998e; letter-spacing: 8px; font-family: 'Courier New', monospace;">-----</p>
+                    <p id="betaRoomNumber" style="font-size: 48px; font-weight: bold; color: #11998e; letter-spacing: 8px; font-family: 'Courier New', monospace;">----</p>
                     <p style="color: #999; font-size: 12px; margin-top: 10px;">この番号をお相手に伝えてください</p>
                 </div>
                 
@@ -714,10 +714,214 @@
                         <p style="color: #999; font-size: 14px;">お相手の参加を待っています...</p>
                     </div>
                 </div>
+                
+                <!-- ホスト用：部屋を閉じるボタン -->
+                <button id="betaCloseRoomButton" onclick="betaCloseRoom()" style="background: #ff6b6b; font-size: 14px; padding: 10px; display: none;">
+                    🚪 部屋を閉じる
+                </button>
             </div>
             
             <!-- 固定配置の丸型ボタン -->
-            <button onclick="betaConfirmLeaveRoom('待機室を退出してHOMEに戻りますか？')" class="fixed-round-button fixed-round-button-home">
+            <button onclick="betaConfirmLeaveRoom('一時退出します。部屋番号で再参加できます。')" class="fixed-round-button fixed-round-button-home">
+                HOME
+            </button>
+        </div>
+        
+        <!-- β用：ゲーム設定画面（ホスト専用） -->
+        <div id="betaGameSettingsScreen" class="screen">
+            <h2 style="color: #11998e; margin-bottom: 10px;">🎮 ゲーム設定</h2>
+            <p style="color: #666; font-size: 13px; text-align: center; margin-bottom: 20px;">
+                あなたは「ゲームマスター」です。<br>ゲーム設定を行ってください。
+            </p>
+            
+            <!-- テーマモード選択 -->
+            <div style="background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                <p style="color: #11998e; font-weight: bold; font-size: 14px; margin-bottom: 10px; text-align: center;">お題設定</p>
+                <button id="betaThemeModeApp" onclick="betaSelectThemeMode('app')" style="
+                    background: white; color: #333; border: 2px solid #ddd; font-size: 15px; padding: 14px; margin-bottom: 8px; width: 100%; border-radius: 10px; transition: all 0.2s;
+                ">
+                    📋 アプリ内のテーマで遊ぶ
+                </button>
+                <button id="betaThemeModeCustom" onclick="betaSelectThemeMode('custom')" style="
+                    background: white; color: #333; border: 2px solid #ddd; font-size: 15px; padding: 14px; width: 100%; border-radius: 10px; transition: all 0.2s;
+                ">
+                    ✏️ オリジナルのテーマで遊ぶ
+                </button>
+            </div>
+            
+            <!-- テーマ表示エリア（アプリ内テーマ選択時） -->
+            <div id="betaAppThemeArea" style="background: #fff; border: 2px solid #11998e; border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                    <p style="color: #11998e; font-weight: bold; font-size: 14px; margin: 0;">お題</p>
+                    <button onclick="betaRandomizeTheme()" style="background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px; line-height: 1;">🔄</button>
+                </div>
+                <div style="position: relative;">
+                    <div onclick="betaToggleThemeList()" style="
+                        background: #f0fff4; border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-height: 24px;
+                    ">
+                        <span id="betaThemeText" style="color: #333; font-size: 15px; flex: 1;">好きな食べ物・料理TOP5</span>
+                        <span id="betaThemeArrow" style="color: #999; font-size: 12px; margin-left: 8px;">▼</span>
+                    </div>
+                    <!-- テーマリスト（初期非表示） -->
+                    <div id="betaThemeListDropdown" style="
+                        display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
+                        background: white; border: 2px solid #11998e; border-radius: 8px; margin-top: 4px;
+                        max-height: 250px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    ">
+                        <!-- JSで動的に生成 -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- カスタムテーマ入力エリア（初期非表示） -->
+            <div id="betaCustomThemeArea" style="display: none; background: #fff; border: 2px solid #f5576c; border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                <p style="color: #f5576c; font-weight: bold; font-size: 14px; margin-bottom: 10px;">お題</p>
+                <input 
+                    type="text" 
+                    id="betaCustomThemeInput" 
+                    placeholder="例：わたしの好きな音楽TOP5"
+                    maxlength="50"
+                    style="width: 100%; padding: 15px; border: 2px solid #f5576c; border-radius: 8px; font-size: 16px; box-sizing: border-box; outline: none;"
+                />
+                <p style="color: #999; font-size: 12px; margin-top: 8px; text-align: right;">
+                    <span id="betaCustomThemeCount">0</span> / 50文字
+                </p>
+            </div>
+            
+            <!-- ゲームスタートボタン -->
+            <button onclick="betaStartGame()" style="
+                background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                color: white; padding: 18px; width: 100%; border: none; border-radius: 12px;
+                font-size: 18px; font-weight: bold; box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+                cursor: pointer; margin-bottom: 80px;
+            ">
+                🚀 ゲームスタート
+            </button>
+            
+            <button onclick="betaConfirmLeaveRoom('一時退出します。部屋番号で再参加できます。')" class="fixed-round-button fixed-round-button-home">
+                HOME
+            </button>
+        </div>
+        
+        <!-- β用：ゲスト待機画面（ホストがゲーム設定中） -->
+        <div id="betaGuestWaitingScreen" class="screen">
+            <h2 style="color: #11998e; margin-bottom: 20px;">🏠 ふたりであそぶ（β用）</h2>
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="background: linear-gradient(135deg, #e8fdf5, #f0f8ff); border: 3px solid #11998e; border-radius: 15px; padding: 30px 20px; margin-bottom: 20px;">
+                    <p style="font-size: 48px; margin-bottom: 15px;">⏳</p>
+                    <p style="color: #666; font-size: 16px; line-height: 1.8; font-weight: bold;">ホストがゲームを設定中...</p>
+                    <p style="color: #999; font-size: 13px; margin-top: 15px;">しばらくお待ちください</p>
+                </div>
+            </div>
+            <button onclick="betaConfirmLeaveRoom('一時退出します。部屋番号で再参加できます。')" class="fixed-round-button fixed-round-button-home">
+                HOME
+            </button>
+        </div>
+        
+        <!-- β用：ランキング入力画面 -->
+        <div id="betaGameInputScreen" class="screen">
+            <h2 style="color: #11998e; margin-bottom: 20px;">🎮 ランキング入力</h2>
+            
+            <div class="theme-box" style="border-color: #11998e;">
+                <h2 style="color: #11998e;">📌 今回のテーマ</h2>
+                <p class="theme-text" id="betaGameTheme">---</p>
+            </div>
+            
+            <div id="betaGameProgress" style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                <p style="color: #666; font-size: 13px; margin-bottom: 8px;">📊 進行状況</p>
+                <div id="betaGameProgressContent">
+                    <p style="color: #999; font-size: 14px;">---</p>
+                </div>
+            </div>
+            
+            <div class="ranking-form" id="betaGameRankingForm">
+                <div class="rank-item draggable-item" data-rank="1">
+                    <div class="rank-label">1位</div>
+                    <input type="text" class="rank-input" placeholder="1位を入力（50文字まで）" maxlength="50">
+                    <span class="drag-handle">≡</span>
+                </div>
+                <div class="rank-item draggable-item" data-rank="2">
+                    <div class="rank-label">2位</div>
+                    <input type="text" class="rank-input" placeholder="2位を入力（50文字まで）" maxlength="50">
+                    <span class="drag-handle">≡</span>
+                </div>
+                <div class="rank-item draggable-item" data-rank="3">
+                    <div class="rank-label">3位</div>
+                    <input type="text" class="rank-input" placeholder="3位を入力（50文字まで）" maxlength="50">
+                    <span class="drag-handle">≡</span>
+                </div>
+                <div class="rank-item draggable-item" data-rank="4">
+                    <div class="rank-label">4位</div>
+                    <input type="text" class="rank-input" placeholder="4位を入力（50文字まで）" maxlength="50">
+                    <span class="drag-handle">≡</span>
+                </div>
+                <div class="rank-item draggable-item" data-rank="5">
+                    <div class="rank-label">5位</div>
+                    <input type="text" class="rank-input" placeholder="5位を入力（50文字まで）" maxlength="50">
+                    <span class="drag-handle">≡</span>
+                </div>
+            </div>
+            
+            <button id="betaSubmitRankingButton" onclick="betaSubmitRanking()" style="margin-bottom: 80px;">
+                💾 ランキングを送信
+            </button>
+            
+            <button onclick="betaConfirmLeaveRoom('HOMEに戻ると現在のゲームを中断します。部屋番号で再参加できます。')" class="fixed-round-button fixed-round-button-home">
+                HOME
+            </button>
+        </div>
+        
+        <!-- β用：予想画面 -->
+        <div id="betaGuessScreen" class="screen">
+            <h2 style="color: #11998e; margin-bottom: 20px;">🤔 お相手のランキングを予想</h2>
+            
+            <div style="background: #e8fdf5; border: 2px solid #11998e; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                <p style="color: #666; font-size: 14px; line-height: 1.8; text-align: center;">
+                    <span id="betaGuessPartnerName" style="font-weight: bold; color: #11998e;">---</span>さんの<br>
+                    ランキングを正しい順番に並べてください
+                </p>
+            </div>
+            
+            <div class="theme-box" style="border-color: #11998e; margin-bottom: 20px;">
+                <h2 style="color: #11998e;">📌 テーマ</h2>
+                <p class="theme-text" id="betaGuessTheme">---</p>
+            </div>
+            
+            <div id="betaGuessProgress" style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                <p style="color: #666; font-size: 13px; margin-bottom: 8px;">📊 進行状況</p>
+                <div id="betaGuessProgressContent">
+                    <p style="color: #999; font-size: 14px;">---</p>
+                </div>
+            </div>
+            
+            <div id="betaGuessRankingArea" style="margin: 20px 0; padding-bottom: 80px;">
+                <!-- JSで動的に生成 -->
+            </div>
+            
+            <button onclick="betaConfirmLeaveRoom('HOMEに戻ると現在のゲームを中断します。部屋番号で再参加できます。')" class="fixed-round-button fixed-round-button-home">
+                HOME
+            </button>
+            <button onclick="betaSubmitGuess()" class="fixed-round-button fixed-round-button-submit">
+                ANSWER
+            </button>
+        </div>
+        
+        <!-- β用：結果画面 -->
+        <div id="betaResultScreen" class="screen" style="padding-bottom: 40px;">
+            <h2 style="color: #11998e; margin-bottom: 20px;">🎉 結果発表</h2>
+            
+            <div id="betaResultContent" style="margin: 20px 0;">
+                <!-- JSで動的に生成 -->
+            </div>
+            
+            <div id="betaResultButtons" style="margin-bottom: 80px;">
+                <!-- ホスト用：もう一度遊ぶボタン（JSで表示制御） -->
+                <button id="betaPlayAgainButton" onclick="betaPlayAgain()" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); margin-bottom: 10px; display: none;">
+                    🔄 もう一度遊ぶ
+                </button>
+            </div>
+            
+            <button onclick="betaConfirmLeaveRoom('部屋を退出してHOMEに戻りますか？')" class="fixed-round-button fixed-round-button-home">
                 HOME
             </button>
         </div>
@@ -738,8 +942,8 @@
                 <input 
                     type="text" 
                     id="betaRoomNumberInput" 
-                    placeholder="例: 45821"
-                    maxlength="5"
+                    placeholder="例: 4582"
+                    maxlength="4"
                     inputmode="numeric"
                     pattern="[0-9]*"
                     style="
@@ -4409,10 +4613,16 @@
         // ========================================
         
         // β用グローバル変数
-        let betaCurrentRoom = null;       // 現在の部屋情報 { roomId, role, data }
+        let betaCurrentRoom = null;       // { roomId, role, data }
         let betaRoomRef = null;           // Firebase監視リスナーのref
+        let betaSelectedThemeMode = 'app'; // 'app' | 'custom'
+        let betaGameInputSortable = null; // SortableJS（入力画面）
+        let betaGuessSortable = null;     // SortableJS（予想画面）
         
-        // β用：ホスト/ゲスト選択画面を表示
+        // ========================================
+        // β用：画面遷移
+        // ========================================
+        
         function showBetaRoleSelect() {
             if (!userProfile) {
                 alert('❌ ユーザー情報が読み込まれていません。\nページを再読み込みしてください。');
@@ -4421,14 +4631,16 @@
             showScreen('betaRoleSelectScreen');
         }
         
-        // β用：部屋番号を生成（4〜5桁のランダムな数字）
+        // ========================================
+        // β用：部屋の作成・参加・退出
+        // ========================================
+        
         function betaGenerateRoomId() {
-            const min = 10000;
-            const max = 99999;
+            const min = 1000;
+            const max = 9999;
             return String(Math.floor(Math.random() * (max - min + 1)) + min);
         }
         
-        // β用：部屋を作成（ホスト）
         async function betaCreateRoom() {
             if (!userProfile || !database) {
                 alert('❌ ユーザー情報が読み込まれていません。');
@@ -4439,24 +4651,19 @@
                 const roomsRef = database.ref('gameRooms');
                 let roomId = betaGenerateRoomId();
                 let retries = 0;
-                const maxRetries = 10;
                 
-                // 重複チェック
-                while (retries < maxRetries) {
+                while (retries < 10) {
                     const snapshot = await roomsRef.child(roomId).once('value');
-                    if (!snapshot.exists()) {
-                        break;
-                    }
+                    if (!snapshot.exists()) break;
                     roomId = betaGenerateRoomId();
                     retries++;
                 }
                 
-                if (retries >= maxRetries) {
+                if (retries >= 10) {
                     alert('❌ 部屋番号の生成に失敗しました。もう一度お試しください。');
                     return;
                 }
                 
-                // 部屋データ作成
                 const roomData = {
                     roomId: roomId,
                     hostId: userProfile.userId,
@@ -4471,27 +4678,20 @@
                     lastActivityAt: Date.now()
                 };
                 
-                // ホストをプレイヤーに追加
                 roomData.players[userProfile.userId] = {
                     displayName: userProfile.displayName,
                     status: 'waiting'
                 };
                 
-                // Firebaseに保存
                 await roomsRef.child(roomId).set(roomData);
                 console.log('✅ β部屋作成成功:', roomId);
                 
-                // 部屋情報を保持
-                betaCurrentRoom = {
-                    roomId: roomId,
-                    role: 'host',
-                    data: roomData
-                };
+                betaCurrentRoom = { roomId: roomId, role: 'host', data: roomData };
                 
-                // 待機画面を表示
+                // ホスト用：「部屋を閉じる」ボタンを表示
+                document.getElementById('betaCloseRoomButton').style.display = 'block';
+                
                 betaShowWaitingRoom(roomId);
-                
-                // リアルタイム監視を開始
                 betaStartRoomListener(roomId);
                 
             } catch (error) {
@@ -4500,72 +4700,54 @@
             }
         }
         
-        // β用：待機画面を表示
         function betaShowWaitingRoom(roomId) {
             document.getElementById('betaRoomNumber').textContent = roomId;
             showScreen('betaWaitingRoomScreen');
         }
         
-        // β用：部屋番号をクリップボードにコピー
         function betaCopyRoomNumber() {
-            if (!betaCurrentRoom) {
-                alert('❌ 部屋情報がありません。');
-                return;
-            }
-            
+            if (!betaCurrentRoom) return;
             const roomId = betaCurrentRoom.roomId;
-            
             navigator.clipboard.writeText(roomId)
-                .then(() => {
-                    alert('📋 部屋番号「' + roomId + '」をコピーしました！\nお相手に伝えてください。');
-                })
-                .catch((error) => {
-                    console.error('❌ コピーエラー:', error);
-                    alert('部屋番号: ' + roomId + '\n（手動でコピーしてください）');
-                });
+                .then(() => { alert('📋 部屋番号「' + roomId + '」をコピーしました！'); })
+                .catch(() => { alert('部屋番号: ' + roomId + '\n（手動でコピーしてください）'); });
         }
         
-        // β用：部屋参加画面を表示（ゲスト）
         function betaShowJoinRoom() {
             document.getElementById('betaRoomNumberInput').value = '';
             showScreen('betaJoinRoomScreen');
         }
         
-        // β用：部屋に参加（ゲスト）
         async function betaJoinRoom() {
             if (!userProfile || !database) {
                 alert('❌ ユーザー情報が読み込まれていません。');
                 return;
             }
             
-            const roomNumberInput = document.getElementById('betaRoomNumberInput');
-            const roomId = roomNumberInput.value.trim();
+            const input = document.getElementById('betaRoomNumberInput');
+            const roomId = input.value.trim();
             
-            // バリデーション
-            if (!roomId || roomId.length < 4 || roomId.length > 5) {
-                alert('❌ 4〜5桁の部屋番号を入力してください。');
-                roomNumberInput.focus();
+            if (!roomId || roomId.length !== 4) {
+                alert('❌ 4桁の部屋番号を入力してください。');
+                input.focus();
                 return;
             }
-            
             if (!/^\d+$/.test(roomId)) {
                 alert('❌ 部屋番号は数字のみで入力してください。');
-                roomNumberInput.focus();
+                input.focus();
                 return;
             }
             
+            const joinButton = document.getElementById('betaJoinRoomButton');
             try {
-                // 参加ボタンを無効化（二重送信防止）
-                const joinButton = document.getElementById('betaJoinRoomButton');
                 joinButton.disabled = true;
                 joinButton.textContent = '⏳ 接続中...';
                 
-                // 部屋を検索
                 const roomRef = database.ref('gameRooms/' + roomId);
                 const snapshot = await roomRef.once('value');
                 
                 if (!snapshot.exists()) {
-                    alert('❌ 部屋番号「' + roomId + '」は見つかりませんでした。\n番号を確認してください。');
+                    alert('❌ 部屋番号「' + roomId + '」は見つかりませんでした。');
                     joinButton.disabled = false;
                     joinButton.textContent = '✨ 参加する';
                     return;
@@ -4573,15 +4755,6 @@
                 
                 const roomData = snapshot.val();
                 
-                // 部屋の状態チェック
-                if (roomData.status !== 'waiting') {
-                    alert('❌ この部屋はすでにゲームが進行中です。');
-                    joinButton.disabled = false;
-                    joinButton.textContent = '✨ 参加する';
-                    return;
-                }
-                
-                // 自分がホストの部屋には参加できない
                 if (roomData.hostId === userProfile.userId) {
                     alert('❌ 自分が作成した部屋には参加できません。');
                     joinButton.disabled = false;
@@ -4589,56 +4762,96 @@
                     return;
                 }
                 
-                // プレイヤー数チェック
                 const playerCount = roomData.players ? Object.keys(roomData.players).length : 0;
-                if (playerCount >= roomData.maxPlayers) {
+                
+                // 既に参加済みの場合はそのまま入室
+                const alreadyJoined = roomData.players && roomData.players[userProfile.userId];
+                
+                if (!alreadyJoined && playerCount >= roomData.maxPlayers) {
                     alert('❌ この部屋は満員です。');
                     joinButton.disabled = false;
                     joinButton.textContent = '✨ 参加する';
                     return;
                 }
                 
-                // ゲストとして参加
-                const updates = {};
-                updates['players/' + userProfile.userId] = {
-                    displayName: userProfile.displayName,
-                    status: 'waiting'
-                };
-                updates['lastActivityAt'] = Date.now();
+                if (!alreadyJoined) {
+                    const updates = {};
+                    updates['players/' + userProfile.userId] = {
+                        displayName: userProfile.displayName,
+                        status: 'waiting'
+                    };
+                    updates['lastActivityAt'] = Date.now();
+                    await roomRef.update(updates);
+                }
                 
-                await roomRef.update(updates);
                 console.log('✅ β部屋参加成功:', roomId);
                 
-                // 部屋情報を保持
-                betaCurrentRoom = {
-                    roomId: roomId,
-                    role: 'guest',
-                    data: roomData
-                };
+                betaCurrentRoom = { roomId: roomId, role: 'guest', data: roomData };
                 
-                // ボタンを元に戻す
+                // ゲスト用：「部屋を閉じる」ボタンを非表示
+                document.getElementById('betaCloseRoomButton').style.display = 'none';
+                
                 joinButton.disabled = false;
                 joinButton.textContent = '✨ 参加する';
                 
-                // 待機画面を表示
                 betaShowWaitingRoom(roomId);
-                
-                // リアルタイム監視を開始
                 betaStartRoomListener(roomId);
                 
             } catch (error) {
                 console.error('❌ β部屋参加エラー:', error);
                 alert('❌ 部屋への参加に失敗しました。\n' + error.message);
-                
-                const joinButton = document.getElementById('betaJoinRoomButton');
                 joinButton.disabled = false;
                 joinButton.textContent = '✨ 参加する';
             }
         }
         
-        // β用：部屋のリアルタイム監視を開始
+        // β用：一時退出（部屋は残る）
+        function betaConfirmLeaveRoom(message) {
+            if (confirm(message || 'HOMEに戻りますか？')) {
+                betaCleanupRoom();
+                showScreen('mainScreen');
+            }
+        }
+        
+        // β用：部屋を閉じる（ホスト専用・部屋を削除）
+        async function betaCloseRoom() {
+            if (!confirm('部屋を閉じますか？\n全員が退出され、部屋番号は無効になります。')) return;
+            
+            try {
+                if (betaCurrentRoom && database) {
+                    await database.ref('gameRooms/' + betaCurrentRoom.roomId).remove();
+                    console.log('✅ βホストが部屋を閉じました');
+                }
+                betaCleanupRoom();
+                showScreen('mainScreen');
+            } catch (error) {
+                console.error('❌ β部屋削除エラー:', error);
+                betaCleanupRoom();
+                showScreen('mainScreen');
+            }
+        }
+        
+        function betaCleanupRoom() {
+            if (betaRoomRef) {
+                betaRoomRef.off();
+                betaRoomRef = null;
+            }
+            if (betaGameInputSortable) {
+                betaGameInputSortable.destroy();
+                betaGameInputSortable = null;
+            }
+            if (betaGuessSortable) {
+                betaGuessSortable.destroy();
+                betaGuessSortable = null;
+            }
+            betaCurrentRoom = null;
+        }
+        
+        // ========================================
+        // β用：部屋のリアルタイム監視（状態遷移エンジン）
+        // ========================================
+        
         function betaStartRoomListener(roomId) {
-            // 既存のリスナーをクリーンアップ
             if (betaRoomRef) {
                 betaRoomRef.off();
                 betaRoomRef = null;
@@ -4648,7 +4861,6 @@
             
             betaRoomRef.on('value', (snapshot) => {
                 if (!snapshot.exists()) {
-                    // 部屋が削除された
                     console.log('⚠️ β部屋が削除されました');
                     betaCleanupRoom();
                     alert('部屋が閉じられました。HOMEに戻ります。');
@@ -4657,23 +4869,62 @@
                 }
                 
                 const roomData = snapshot.val();
-                betaCurrentRoom = {
-                    roomId: roomId,
-                    role: betaCurrentRoom ? betaCurrentRoom.role : (roomData.hostId === userProfile.userId ? 'host' : 'guest'),
-                    data: roomData
-                };
+                const role = betaCurrentRoom ? betaCurrentRoom.role : (roomData.hostId === userProfile.userId ? 'host' : 'guest');
+                betaCurrentRoom = { roomId: roomId, role: role, data: roomData };
                 
-                // 参加状況を更新
-                betaUpdatePlayersDisplay(roomData);
+                // 現在表示中の画面を取得
+                const activeScreen = document.querySelector('.screen.active');
+                const activeScreenId = activeScreen ? activeScreen.id : '';
                 
-                // ステータスに応じた処理（Phase 2bで拡張予定）
-                // if (roomData.status === 'inputting') { ... }
-                // if (roomData.status === 'guessing') { ... }
-                // if (roomData.status === 'finished') { ... }
+                // 状態遷移
+                switch (roomData.status) {
+                    case 'waiting':
+                        betaUpdatePlayersDisplay(roomData);
+                        // 全員揃ったらホストが自動的にsettingに遷移
+                        const playerCount = Object.keys(roomData.players || {}).length;
+                        if (playerCount >= roomData.maxPlayers && role === 'host') {
+                            database.ref('gameRooms/' + roomId).update({ status: 'setting', lastActivityAt: Date.now() });
+                        }
+                        break;
+                        
+                    case 'setting':
+                        if (role === 'host') {
+                            if (activeScreenId !== 'betaGameSettingsScreen') {
+                                betaShowGameSettingsScreen();
+                            }
+                        } else {
+                            if (activeScreenId !== 'betaGuestWaitingScreen') {
+                                showScreen('betaGuestWaitingScreen');
+                            }
+                        }
+                        break;
+                        
+                    case 'inputting':
+                        if (activeScreenId !== 'betaGameInputScreen') {
+                            betaShowGameInputScreen(roomData);
+                        } else {
+                            betaUpdateProgressDisplay(roomData);
+                        }
+                        break;
+                        
+                    case 'guessing':
+                        if (activeScreenId !== 'betaGuessScreen') {
+                            betaShowGuessScreen(roomData);
+                        } else {
+                            betaUpdateProgressDisplay(roomData);
+                        }
+                        break;
+                        
+                    case 'finished':
+                        if (activeScreenId !== 'betaResultScreen') {
+                            betaShowResultScreen(roomData);
+                        }
+                        break;
+                }
             });
         }
         
-        // β用：参加状況の表示を更新
+        // β用：参加状況表示を更新
         function betaUpdatePlayersDisplay(roomData) {
             const playersArea = document.getElementById('betaRoomPlayersArea');
             if (!playersArea) return;
@@ -4683,68 +4934,636 @@
             const playerCount = playerList.length;
             const maxPlayers = roomData.maxPlayers || 2;
             
-            let html = '';
-            html += '<p style="color: #4A90E2; font-size: 16px; font-weight: bold; margin-bottom: 10px;">';
-            html += playerCount + ' / ' + maxPlayers + ' 人参加中';
-            html += '</p>';
-            
+            let html = '<p style="color: #4A90E2; font-size: 16px; font-weight: bold; margin-bottom: 10px;">' + playerCount + ' / ' + maxPlayers + ' 人参加中</p>';
             playerList.forEach((player) => {
-                html += '<p style="color: #333; font-size: 14px; margin-bottom: 4px;">';
-                html += '👤 ' + player.displayName;
-                html += '</p>';
+                html += '<p style="color: #333; font-size: 14px; margin-bottom: 4px;">👤 ' + player.displayName + '</p>';
             });
             
             if (playerCount < maxPlayers) {
                 html += '<p style="color: #999; font-size: 13px; margin-top: 10px;">⏳ お相手の参加を待っています...</p>';
             } else {
                 html += '<p style="color: #11998e; font-size: 14px; font-weight: bold; margin-top: 10px;">✅ 全員揃いました！</p>';
-                // Phase 2bでゲーム開始ロジックを追加予定
             }
-            
             playersArea.innerHTML = html;
         }
         
-        // β用：部屋退出の確認ダイアログ
-        function betaConfirmLeaveRoom(message) {
-            if (confirm(message || 'HOMEに戻りますか？')) {
-                betaLeaveRoom();
+        // ========================================
+        // β用：ゲーム設定画面
+        // ========================================
+        
+        function betaShowGameSettingsScreen() {
+            // 初期状態：アプリ内テーマモードを選択、ランダムテーマを設定
+            betaSelectThemeMode('app');
+            betaRandomizeTheme();
+            
+            // カスタムテーマ入力の文字数カウンター
+            const customInput = document.getElementById('betaCustomThemeInput');
+            customInput.value = '';
+            document.getElementById('betaCustomThemeCount').textContent = '0';
+            customInput.oninput = function() {
+                document.getElementById('betaCustomThemeCount').textContent = this.value.length;
+            };
+            
+            showScreen('betaGameSettingsScreen');
+        }
+        
+        function betaSelectThemeMode(mode) {
+            betaSelectedThemeMode = mode;
+            const appBtn = document.getElementById('betaThemeModeApp');
+            const customBtn = document.getElementById('betaThemeModeCustom');
+            const appArea = document.getElementById('betaAppThemeArea');
+            const customArea = document.getElementById('betaCustomThemeArea');
+            
+            if (mode === 'app') {
+                appBtn.style.background = '#11998e';
+                appBtn.style.color = 'white';
+                appBtn.style.borderColor = '#11998e';
+                customBtn.style.background = 'white';
+                customBtn.style.color = '#333';
+                customBtn.style.borderColor = '#ddd';
+                appArea.style.display = 'block';
+                customArea.style.display = 'none';
+            } else {
+                customBtn.style.background = '#f5576c';
+                customBtn.style.color = 'white';
+                customBtn.style.borderColor = '#f5576c';
+                appBtn.style.background = 'white';
+                appBtn.style.color = '#333';
+                appBtn.style.borderColor = '#ddd';
+                appArea.style.display = 'none';
+                customArea.style.display = 'block';
+                // カスタム入力欄にフォーカス
+                setTimeout(() => { document.getElementById('betaCustomThemeInput').focus(); }, 100);
             }
         }
         
-        // β用：部屋を退出
-        async function betaLeaveRoom() {
+        function betaRandomizeTheme() {
+            const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+            document.getElementById('betaThemeText').textContent = theme;
+            // リストが開いていたら閉じる
+            document.getElementById('betaThemeListDropdown').style.display = 'none';
+            document.getElementById('betaThemeArrow').textContent = '▼';
+        }
+        
+        function betaToggleThemeList() {
+            const dropdown = document.getElementById('betaThemeListDropdown');
+            const arrow = document.getElementById('betaThemeArrow');
+            
+            if (dropdown.style.display === 'none') {
+                // リストを生成して表示
+                let html = '';
+                THEMES.forEach((theme) => {
+                    html += '<div onclick="betaSelectThemeFromList(\'' + theme.replace(/'/g, "\\'") + '\')" style="padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; color: #333; transition: background 0.1s;" onmouseover="this.style.background=\'#e8fdf5\'" onmouseout="this.style.background=\'white\'">';
+                    html += theme;
+                    html += '</div>';
+                });
+                dropdown.innerHTML = html;
+                dropdown.style.display = 'block';
+                arrow.textContent = '▲';
+            } else {
+                dropdown.style.display = 'none';
+                arrow.textContent = '▼';
+            }
+        }
+        
+        function betaSelectThemeFromList(theme) {
+            document.getElementById('betaThemeText').textContent = theme;
+            document.getElementById('betaThemeListDropdown').style.display = 'none';
+            document.getElementById('betaThemeArrow').textContent = '▼';
+        }
+        
+        // β用：ゲームスタート
+        async function betaStartGame() {
+            if (!betaCurrentRoom || betaCurrentRoom.role !== 'host') return;
+            
+            let theme = '';
+            let themeMode = betaSelectedThemeMode;
+            
+            if (themeMode === 'app') {
+                theme = document.getElementById('betaThemeText').textContent;
+            } else {
+                theme = document.getElementById('betaCustomThemeInput').value.trim();
+                if (!theme || theme.length < 3) {
+                    alert('❌ テーマを3文字以上で入力してください。');
+                    return;
+                }
+            }
+            
             try {
-                if (betaCurrentRoom && database) {
-                    const roomRef = database.ref('gameRooms/' + betaCurrentRoom.roomId);
+                const roomRef = database.ref('gameRooms/' + betaCurrentRoom.roomId);
+                await roomRef.update({
+                    status: 'inputting',
+                    theme: theme,
+                    themeMode: themeMode,
+                    rankings: null,
+                    guesses: null,
+                    results: null,
+                    lastActivityAt: Date.now()
+                });
+                console.log('✅ βゲーム開始:', theme);
+            } catch (error) {
+                console.error('❌ βゲーム開始エラー:', error);
+                alert('❌ ゲームの開始に失敗しました。');
+            }
+        }
+        
+        // ========================================
+        // β用：ランキング入力
+        // ========================================
+        
+        function betaShowGameInputScreen(roomData) {
+            document.getElementById('betaGameTheme').textContent = roomData.theme;
+            betaUpdateProgressDisplay(roomData);
+            
+            // DOM順序リセット
+            const container = document.getElementById('betaGameRankingForm');
+            const items = Array.from(container.children);
+            items.sort((a, b) => (parseInt(a.getAttribute('data-rank')) || 0) - (parseInt(b.getAttribute('data-rank')) || 0));
+            items.forEach(item => container.appendChild(item));
+            
+            // 入力欄クリア + 順位番号リセット
+            Array.from(container.children).forEach((item, i) => {
+                const input = item.querySelector('.rank-input');
+                if (input) { input.value = ''; input.disabled = false; input.style.background = ''; input.style.color = ''; }
+                const label = item.querySelector('.rank-label');
+                if (label) label.textContent = (i + 1) + '位';
+                const handle = item.querySelector('.drag-handle');
+                if (handle) handle.style.display = '';
+                item.setAttribute('data-rank', i + 1);
+            });
+            
+            // 送信ボタンリセット
+            const btn = document.getElementById('betaSubmitRankingButton');
+            btn.textContent = '💾 ランキングを送信';
+            btn.disabled = false;
+            btn.style.background = '';
+            btn.style.opacity = '';
+            
+            showScreen('betaGameInputScreen');
+            
+            // SortableJS初期化
+            if (betaGameInputSortable) { betaGameInputSortable.destroy(); betaGameInputSortable = null; }
+            betaGameInputSortable = new Sortable(container, {
+                animation: 150, delay: 50, delayOnTouchOnly: true,
+                forceFallback: true, fallbackOnBody: true, swapThreshold: 0.65,
+                handle: '.drag-handle',
+                ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
+                dragClass: 'sortable-drag', fallbackClass: 'sortable-fallback',
+                onEnd: function() {
+                    Array.from(container.children).forEach((item, i) => {
+                        const label = item.querySelector('.rank-label');
+                        if (label) label.textContent = (i + 1) + '位';
+                        const input = item.querySelector('.rank-input');
+                        if (input) input.placeholder = (i + 1) + '位を入力（50文字まで）';
+                        item.setAttribute('data-rank', i + 1);
+                    });
+                }
+            });
+            
+            // 自分が既に送信済みならロック
+            if (roomData.rankings && roomData.rankings[userProfile.userId]) {
+                const myRanking = roomData.rankings[userProfile.userId];
+                Array.from(container.children).forEach((item, i) => {
+                    const input = item.querySelector('.rank-input');
+                    if (input) { input.value = myRanking[(i + 1).toString()] || ''; input.disabled = true; input.style.background = '#f0f0f0'; input.style.color = '#999'; }
+                    const handle = item.querySelector('.drag-handle');
+                    if (handle) handle.style.display = 'none';
+                });
+                if (betaGameInputSortable) betaGameInputSortable.option('disabled', true);
+                btn.textContent = '⏳ お相手の回答待ち...';
+                btn.disabled = true;
+                btn.style.background = '#999';
+                btn.style.opacity = '0.6';
+            }
+            
+            setTimeout(() => { const first = container.children[0]?.querySelector('.rank-input'); if (first && !first.disabled) first.focus(); }, 100);
+        }
+        
+        async function betaSubmitRanking() {
+            if (!betaCurrentRoom) return;
+            
+            const container = document.getElementById('betaGameRankingForm');
+            const rankingData = {};
+            
+            for (let i = 0; i < container.children.length; i++) {
+                const input = container.children[i].querySelector('.rank-input');
+                const value = input ? input.value.trim() : '';
+                if (!value) {
+                    alert((i + 1) + '位を入力してください！');
+                    if (input) input.focus();
+                    return;
+                }
+                rankingData[(i + 1).toString()] = value;
+            }
+            
+            try {
+                const roomRef = database.ref('gameRooms/' + betaCurrentRoom.roomId);
+                const updates = {};
+                updates['rankings/' + userProfile.userId] = rankingData;
+                updates['players/' + userProfile.userId + '/status'] = 'completed';
+                updates['lastActivityAt'] = Date.now();
+                await roomRef.update(updates);
+                
+                // 送信ボタンをロック
+                const btn = document.getElementById('betaSubmitRankingButton');
+                btn.textContent = '⏳ お相手の回答待ち...';
+                btn.disabled = true;
+                btn.style.background = '#999';
+                btn.style.opacity = '0.6';
+                
+                // 入力欄をロック
+                Array.from(container.children).forEach((item) => {
+                    const input = item.querySelector('.rank-input');
+                    if (input) { input.disabled = true; input.style.background = '#f0f0f0'; input.style.color = '#999'; }
+                    const handle = item.querySelector('.drag-handle');
+                    if (handle) handle.style.display = 'none';
+                });
+                if (betaGameInputSortable) betaGameInputSortable.option('disabled', true);
+                
+                // 全員入力完了チェック
+                const snap = await roomRef.once('value');
+                const data = snap.val();
+                const allPlayers = Object.keys(data.players || {});
+                const allSubmitted = allPlayers.every(id => data.rankings && data.rankings[id]);
+                if (allSubmitted) {
+                    await roomRef.update({ status: 'guessing', lastActivityAt: Date.now() });
+                }
+            } catch (error) {
+                console.error('❌ βランキング送信エラー:', error);
+                alert('❌ 送信エラー:\n' + error.message);
+            }
+        }
+        
+        // ========================================
+        // β用：予想画面
+        // ========================================
+        
+        function betaShowGuessScreen(roomData) {
+            document.getElementById('betaGuessTheme').textContent = roomData.theme;
+            betaUpdateProgressDisplay(roomData);
+            
+            // 相手のIDと名前を特定
+            const players = Object.keys(roomData.players || {});
+            const partnerId = players.find(id => id !== userProfile.userId);
+            const partnerName = roomData.players[partnerId]?.displayName || 'お相手';
+            document.getElementById('betaGuessPartnerName').textContent = partnerName;
+            
+            // 相手のランキング項目をシャッフル
+            const partnerRanking = roomData.rankings[partnerId];
+            if (!partnerRanking) { alert('❌ お相手のランキングが見つかりません。'); return; }
+            
+            const items = [];
+            for (let i = 1; i <= 5; i++) { items.push(partnerRanking[i.toString()]); }
+            for (let i = items.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [items[i], items[j]] = [items[j], items[i]];
+            }
+            
+            // 予想UIを生成
+            const container = document.getElementById('betaGuessRankingArea');
+            container.innerHTML = '';
+            if (betaGuessSortable) { betaGuessSortable.destroy(); betaGuessSortable = null; }
+            
+            items.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'draggable-item';
+                div.setAttribute('data-item', item);
+                div.style.cssText = '-webkit-user-select:none; user-select:none; -webkit-touch-callout:none;';
+                
+                const rank = document.createElement('span');
+                rank.className = 'rank-number';
+                rank.textContent = (index + 1) + '位';
+                rank.style.cssText = '-webkit-user-select:none; user-select:none;';
+                
+                const text = document.createElement('span');
+                text.textContent = item;
+                text.style.cssText = 'color:#333; font-size:15px; flex:1; padding:0 10px; -webkit-user-select:none; user-select:none;';
+                
+                const handle = document.createElement('span');
+                handle.className = 'drag-handle';
+                handle.textContent = '≡';
+                handle.style.cssText = 'margin-left:auto; -webkit-user-select:none; user-select:none;';
+                
+                div.appendChild(rank);
+                div.appendChild(text);
+                div.appendChild(handle);
+                container.appendChild(div);
+            });
+            
+            betaGuessSortable = new Sortable(container, {
+                animation: 150, delay: 50, delayOnTouchOnly: true,
+                forceFallback: true, fallbackOnBody: true, swapThreshold: 0.65,
+                handle: '.drag-handle',
+                ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
+                dragClass: 'sortable-drag', fallbackClass: 'sortable-fallback',
+                onChange: function() { betaUpdateGuessRankNumbers(); },
+                onEnd: function() { betaUpdateGuessRankNumbers(); }
+            });
+            
+            // 送信済みならロック
+            if (roomData.guesses && roomData.guesses[userProfile.userId]) {
+                setTimeout(() => {
+                    if (betaGuessSortable) betaGuessSortable.option('disabled', true);
+                    Array.from(container.children).forEach(item => {
+                        item.style.opacity = '0.6';
+                        const h = item.querySelector('.drag-handle');
+                        if (h) h.style.display = 'none';
+                    });
+                }, 100);
+            }
+            
+            showScreen('betaGuessScreen');
+        }
+        
+        function betaUpdateGuessRankNumbers() {
+            const container = document.getElementById('betaGuessRankingArea');
+            if (!container) return;
+            Array.from(container.children).forEach((item, i) => {
+                const rank = item.querySelector('.rank-number');
+                if (rank) rank.textContent = (i + 1) + '位';
+            });
+        }
+        
+        async function betaSubmitGuess() {
+            if (!betaCurrentRoom) return;
+            
+            const container = document.getElementById('betaGuessRankingArea');
+            const guessItems = Array.from(container.children).map(el => el.getAttribute('data-item'));
+            
+            if (guessItems.length !== 5) {
+                alert('❌ 予想データが正しくありません。');
+                return;
+            }
+            
+            if (!confirm('この順番で送信しますか？\n\n' +
+                '1位: ' + guessItems[0] + '\n' +
+                '2位: ' + guessItems[1] + '\n' +
+                '3位: ' + guessItems[2] + '\n' +
+                '4位: ' + guessItems[3] + '\n' +
+                '5位: ' + guessItems[4])) {
+                return;
+            }
+            
+            const guessData = {};
+            guessItems.forEach((item, i) => { guessData[(i + 1).toString()] = item; });
+            
+            try {
+                const roomRef = database.ref('gameRooms/' + betaCurrentRoom.roomId);
+                const updates = {};
+                updates['guesses/' + userProfile.userId] = guessData;
+                updates['players/' + userProfile.userId + '/status'] = 'guessed';
+                updates['lastActivityAt'] = Date.now();
+                await roomRef.update(updates);
+                
+                // ロック
+                if (betaGuessSortable) betaGuessSortable.option('disabled', true);
+                Array.from(container.children).forEach(item => {
+                    item.style.opacity = '0.6';
+                    const h = item.querySelector('.drag-handle');
+                    if (h) h.style.display = 'none';
+                });
+                
+                // 全員完了チェック → スコア計算 → finished
+                const snap = await roomRef.once('value');
+                const data = snap.val();
+                const allPlayers = Object.keys(data.players || {});
+                const allGuessed = allPlayers.every(id => data.guesses && data.guesses[id]);
+                if (allGuessed) {
+                    const results = betaCalculateScores(data);
+                    await roomRef.update({
+                        status: 'finished',
+                        results: results,
+                        finishedAt: new Date().toISOString(),
+                        lastActivityAt: Date.now()
+                    });
+                }
+            } catch (error) {
+                console.error('❌ β予想送信エラー:', error);
+                alert('❌ 送信エラー:\n' + error.message);
+            }
+        }
+        
+        // ========================================
+        // β用：スコア計算
+        // ========================================
+        
+        function betaCalculateScores(roomData) {
+            const rankings = roomData.rankings;
+            const guesses = roomData.guesses;
+            const players = Object.keys(roomData.players);
+            const results = {};
+            
+            players.forEach((playerId) => {
+                const partnerId = players.find(id => id !== playerId);
+                const correctRanking = rankings[partnerId];
+                const myGuess = guesses[playerId];
+                
+                let score = 0, perfectCount = 0, closeCount = 0;
+                const details = [];
+                
+                for (let guessRank = 1; guessRank <= 5; guessRank++) {
+                    const guessedItem = myGuess[guessRank.toString()];
+                    let correctRank = 0;
+                    for (let r = 1; r <= 5; r++) {
+                        if (correctRanking[r.toString()] === guessedItem) { correctRank = r; break; }
+                    }
                     
-                    if (betaCurrentRoom.role === 'host') {
-                        // ホストが退出 → 部屋を削除
-                        await roomRef.remove();
-                        console.log('✅ βホストが部屋を削除しました');
+                    let matchType = 'miss', point = 0;
+                    if (correctRank > 0) {
+                        const diff = Math.abs(guessRank - correctRank);
+                        if (diff === 0) { matchType = 'perfect'; point = 2; perfectCount++; }
+                        else if (diff === 1) { matchType = 'close'; point = 1; closeCount++; }
+                    }
+                    score += point;
+                    details.push({ guessRank, item: guessedItem, correctRank, matchType, point });
+                }
+                
+                results[playerId] = { score, perfectCount, closeCount, details };
+            });
+            
+            return results;
+        }
+        
+        // ========================================
+        // β用：結果画面
+        // ========================================
+        
+        function betaShowResultScreen(roomData) {
+            const players = Object.keys(roomData.players || {});
+            const myId = userProfile.userId;
+            const partnerId = players.find(id => id !== myId);
+            const partnerName = roomData.players[partnerId]?.displayName || 'お相手';
+            
+            const myResult = roomData.results[myId] || { score: 0, perfectCount: 0, closeCount: 0 };
+            const partnerResult = roomData.results[partnerId] || { score: 0, perfectCount: 0, closeCount: 0 };
+            
+            // 勝敗判定
+            let resultEmoji, resultTitle;
+            if (myResult.score > partnerResult.score) { resultEmoji = '🎉'; resultTitle = 'あなたの勝ち！'; }
+            else if (myResult.score < partnerResult.score) { resultEmoji = '😄'; resultTitle = partnerName + 'さんの勝ち！'; }
+            else { resultEmoji = '🤝'; resultTitle = '引き分け！'; }
+            
+            let html = '';
+            
+            // 勝敗
+            html += '<div style="text-align:center; margin-bottom:30px;">';
+            html += '<p style="font-size:64px; margin-bottom:10px;">' + resultEmoji + '</p>';
+            html += '<h3 style="color:#11998e; font-size:24px;">' + resultTitle + '</h3>';
+            html += '</div>';
+            
+            // 対戦成績
+            html += '<div style="background:#F0F8FF; border-radius:10px; padding:20px; margin-bottom:20px;">';
+            html += '<h3 style="color:#4A90E2; font-size:16px; margin-bottom:15px;">🏆 対戦成績</h3>';
+            html += '<div style="display:flex; justify-content:space-around; text-align:center;">';
+            html += '<div><p style="color:#666; font-size:13px; margin-bottom:5px;">あなた</p>';
+            html += '<p style="color:#11998e; font-size:32px; font-weight:bold;">' + myResult.score + '<span style="font-size:16px; color:#999;"> / 10</span><span style="font-size:13px; color:#999;">pt</span></p>';
+            html += '<p style="color:#999; font-size:12px;">あたり！（2pt）×' + (myResult.perfectCount || 0) + '個</p>';
+            html += '<p style="color:#999; font-size:12px;">おしい！（1pt）×' + (myResult.closeCount || 0) + '個</p></div>';
+            html += '<div><p style="color:#666; font-size:13px; margin-bottom:5px;">' + partnerName + '</p>';
+            html += '<p style="color:#4A90E2; font-size:32px; font-weight:bold;">' + partnerResult.score + '<span style="font-size:16px; color:#999;"> / 10</span><span style="font-size:13px; color:#999;">pt</span></p>';
+            html += '<p style="color:#999; font-size:12px;">あたり！（2pt）×' + (partnerResult.perfectCount || 0) + '個</p>';
+            html += '<p style="color:#999; font-size:12px;">おしい！（1pt）×' + (partnerResult.closeCount || 0) + '個</p></div>';
+            html += '</div></div>';
+            
+            // ふたりの成績
+            const totalScore = myResult.score + partnerResult.score;
+            let coopEmoji, coopMsg;
+            if (totalScore === 20) { coopEmoji = '🎉'; coopMsg = 'パーフェクト！完璧なコンビネーション！'; }
+            else if (totalScore >= 18) { coopEmoji = '😊'; coopMsg = '素晴らしい！ほぼ完璧！'; }
+            else if (totalScore >= 15) { coopEmoji = '👍'; coopMsg = 'いい感じ！お互いをよく知ってる！'; }
+            else if (totalScore >= 12) { coopEmoji = '🤔'; coopMsg = 'まだまだ伸びしろあり！'; }
+            else if (totalScore >= 8) { coopEmoji = '💪'; coopMsg = '次は頑張ろう！'; }
+            else { coopEmoji = '😅'; coopMsg = 'もっと話そう！'; }
+            
+            html += '<div style="background:#F0FFF4; border-radius:10px; padding:20px; margin-bottom:20px; text-align:center;">';
+            html += '<h3 style="color:#50C878; font-size:16px; margin-bottom:15px;">🤝 ふたりの成績</h3>';
+            html += '<p style="font-size:48px; margin-bottom:10px;">' + coopEmoji + '</p>';
+            html += '<p style="color:#50C878; font-size:32px; font-weight:bold; margin-bottom:5px;">' + totalScore + '<span style="font-size:16px; color:#999;"> / 20pt</span></p>';
+            html += '<p style="color:#666; font-size:16px; font-weight:bold;">' + coopMsg + '</p>';
+            html += '</div>';
+            
+            // 答え合わせ（自分の成績）
+            html += betaBuildAnswerTable('あなたの成績', roomData.rankings[partnerId], roomData.guesses[myId], '#4A90E2', '#E3F2FD');
+            
+            // 答え合わせ（相手の成績）
+            html += betaBuildAnswerTable(partnerName + 'の成績', roomData.rankings[myId], roomData.guesses[partnerId], '#FF9800', '#FFE4CC');
+            
+            document.getElementById('betaResultContent').innerHTML = html;
+            
+            // ホストのみ「もう一度遊ぶ」ボタン表示
+            const playAgainBtn = document.getElementById('betaPlayAgainButton');
+            playAgainBtn.style.display = (betaCurrentRoom && betaCurrentRoom.role === 'host') ? 'block' : 'none';
+            
+            showScreen('betaResultScreen');
+        }
+        
+        // β用：答え合わせテーブルを生成
+        function betaBuildAnswerTable(title, correctRanking, guessData, accentColor, headerBg) {
+            let html = '<div style="background:#F5F5F5; border-radius:10px; padding:20px; margin-bottom:20px; overflow-x:auto;">';
+            html += '<h3 style="color:' + accentColor + '; font-size:16px; margin-bottom:15px;">' + title + '</h3>';
+            
+            // ヘッダー
+            html += '<div style="display:grid; grid-template-columns:35px 2fr 50px 35px 40px; gap:6px; padding:8px; background:' + headerBg + '; border-radius:6px; margin-bottom:8px; font-weight:bold; font-size:11px; color:#666; align-items:center;">';
+            html += '<div style="grid-column:1/3; text-align:center;">正しい順位</div>';
+            html += '<div style="text-align:center; line-height:1.4;">予想</div>';
+            html += '<div style="text-align:center;">評価</div>';
+            html += '<div style="text-align:center;">得点</div>';
+            html += '</div>';
+            
+            for (let correctRank = 1; correctRank <= 5; correctRank++) {
+                const correctItem = correctRanking[correctRank.toString()];
+                let guessRank = 0;
+                for (let r = 1; r <= 5; r++) {
+                    if (guessData[r.toString()] === correctItem) { guessRank = r; break; }
+                }
+                
+                let icon = '×', bgColor = 'transparent', point = 0;
+                if (guessRank > 0) {
+                    const diff = Math.abs(guessRank - correctRank);
+                    if (diff === 0) { icon = '○'; bgColor = '#F0FFF4'; point = 2; }
+                    else if (diff === 1) { icon = '△'; bgColor = '#FFF8F0'; point = 1; }
+                }
+                
+                html += '<div style="display:grid; grid-template-columns:35px 2fr 50px 35px 40px; gap:6px; padding:10px; border-radius:6px; background:' + bgColor + '; align-items:center; font-size:13px;">';
+                html += '<div style="text-align:center; font-weight:bold; color:#666; font-size:12px;">' + correctRank + '位</div>';
+                html += '<div style="color:#333; word-break:break-word; font-size:12px;">' + correctItem + '</div>';
+                html += '<div style="text-align:center; font-weight:bold; color:#666; font-size:12px;">' + (guessRank > 0 ? guessRank + '位' : '-') + '</div>';
+                html += '<div style="text-align:center; font-size:16px;">' + icon + '</div>';
+                html += '<div style="text-align:center; font-weight:bold; color:' + (point > 0 ? '#50C878' : '#999') + '; font-size:11px;">' + point + 'pt</div>';
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // ========================================
+        // β用：もう一度遊ぶ
+        // ========================================
+        
+        async function betaPlayAgain() {
+            if (!betaCurrentRoom || betaCurrentRoom.role !== 'host') return;
+            
+            try {
+                const roomRef = database.ref('gameRooms/' + betaCurrentRoom.roomId);
+                await roomRef.update({
+                    status: 'setting',
+                    theme: null,
+                    themeMode: null,
+                    rankings: null,
+                    guesses: null,
+                    results: null,
+                    finishedAt: null,
+                    lastActivityAt: Date.now()
+                });
+                console.log('✅ βもう一度遊ぶ：ゲーム設定画面へ');
+            } catch (error) {
+                console.error('❌ βもう一度遊ぶエラー:', error);
+                alert('❌ エラーが発生しました。');
+            }
+        }
+        
+        // ========================================
+        // β用：進行状況表示の更新
+        // ========================================
+        
+        function betaUpdateProgressDisplay(roomData) {
+            const players = roomData.players || {};
+            const playerIds = Object.keys(players);
+            
+            let html = '';
+            playerIds.forEach((playerId) => {
+                const player = players[playerId];
+                const isMe = playerId === userProfile.userId;
+                const name = isMe ? 'あなた' : player.displayName;
+                
+                let icon = '⏳', text = '---', color = '#999';
+                
+                if (roomData.status === 'inputting') {
+                    if (roomData.rankings && roomData.rankings[playerId]) {
+                        icon = '✅'; text = '入力完了'; color = '#50C878';
                     } else {
-                        // ゲストが退出 → 自分のプレイヤー情報を削除
-                        await roomRef.child('players/' + userProfile.userId).remove();
-                        await roomRef.update({ lastActivityAt: Date.now() });
-                        console.log('✅ βゲストが部屋を退出しました');
+                        icon = '⏳'; text = '入力中...'; color = '#FF9800';
+                    }
+                } else if (roomData.status === 'guessing') {
+                    if (roomData.guesses && roomData.guesses[playerId]) {
+                        icon = '✅'; text = '予想完了'; color = '#50C878';
+                    } else {
+                        icon = '🤔'; text = '予想中...'; color = '#FF9800';
                     }
                 }
                 
-                betaCleanupRoom();
-                showScreen('mainScreen');
-            } catch (error) {
-                console.error('❌ β退出エラー:', error);
-                betaCleanupRoom();
-                showScreen('mainScreen');
-            }
-        }
-        
-        // β用：部屋情報のクリーンアップ
-        function betaCleanupRoom() {
-            if (betaRoomRef) {
-                betaRoomRef.off();
-                betaRoomRef = null;
-            }
-            betaCurrentRoom = null;
+                html += '<div style="display:flex; justify-content:space-between; align-items:center; margin:8px 0;">';
+                html += '<span style="color:#666; font-size:14px;">' + icon + ' ' + name + '</span>';
+                html += '<span style="color:' + color + '; font-size:13px; font-weight:bold;">' + text + '</span>';
+                html += '</div>';
+            });
+            
+            // 入力画面と予想画面の両方の進行状況エリアを更新
+            const inputProgress = document.getElementById('betaGameProgressContent');
+            const guessProgress = document.getElementById('betaGuessProgressContent');
+            if (inputProgress) inputProgress.innerHTML = html;
+            if (guessProgress) guessProgress.innerHTML = html;
         }
     </script>
 </body>

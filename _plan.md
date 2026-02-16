@@ -16,10 +16,10 @@ todos:
     status: completed
   - id: phase2b-game-flow
     content: "Phase 2b: テーマ選択 → ランキング入力 → 予想のゲーム進行ロジック（新関数群）"
-    status: pending
+    status: completed
   - id: phase2c-result
     content: "Phase 2c: スコア計算・結果表示・もう一度遊ぶ機能"
-    status: pending
+    status: completed
   - id: phase3-design
     content: "Phase 3: みんなであそぶモードの詳細設計（Phase 2完了後に着手）"
     status: pending
