@@ -6373,7 +6373,7 @@
                 const bg = isActive ? '#6C5CE7' : (isDone ? '#E8E5FF' : '#f0f0f0');
                 const color = isActive ? 'white' : (isDone ? '#6C5CE7' : '#555');
                 const border = isActive ? '#6C5CE7' : 'transparent';
-                html += '<button onclick="multiSwitchGuessTarget(' + i + ')" style="flex-shrink:0; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:' + (isActive ? 'bold' : 'normal') + '; border:2px solid ' + border + '; background:' + bg + '; color:' + color + '; cursor:pointer; white-space:nowrap;">';
+                html += '<button onclick="multiSwitchGuessTarget(' + i + ')" style="flex-shrink:0; width:auto; margin:0; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:' + (isActive ? 'bold' : 'normal') + '; border:2px solid ' + border + '; background:' + bg + '; color:' + color + '; cursor:pointer; white-space:nowrap;">';
                 html += (isDone ? '✅ ' : '') + name;
                 html += '</button>';
             });
@@ -6409,9 +6409,6 @@
         function multiShowGuessForTarget(roomData) {
             const targetId = multiGuessTargets[multiCurrentGuessIndex];
             if (!targetId) return;
-            
-            const targetName = roomData.players[targetId]?.displayName || '---';
-            document.getElementById('multiGuessTargetName').textContent = targetName;
             
             // タブのアクティブ状態を更新
             multiBuildGuessTabs(roomData);
@@ -6652,7 +6649,7 @@
                 const name = targetId === userProfile.userId ? 'あなた' : (roomData.players[targetId]?.displayName || '---');
                 const isFirst = i === 0;
                 tabHtml += '<button onclick="multiShowPersonResult(\'' + targetId + '\')" id="multiPersonTab_' + targetId + '" style="';
-                tabHtml += 'padding:8px 16px; border-radius:8px; font-size:13px; cursor:pointer; ';
+                tabHtml += 'width:auto; margin:0; padding:8px 16px; border-radius:8px; font-size:13px; cursor:pointer; ';
                 tabHtml += 'border:2px solid ' + (isFirst ? '#6C5CE7' : 'transparent') + '; ';
                 tabHtml += 'background:' + (isFirst ? '#6C5CE7' : '#f0f0f0') + '; ';
                 tabHtml += 'color:' + (isFirst ? 'white' : '#555') + '; ';
