@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -44,57 +45,52 @@
         
         <!-- メイン画面 -->
         <div id="mainScreen" class="screen">
-            <!-- セクション1: ふたりであそぶ（メイン機能） -->
-            <div style="margin-bottom: 20px;">
-                <button id="realtimeGameButton" onclick="tryStartRealtimeGame()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); font-size: 17px; padding: 18px 20px;">
-                    🎮 ふたりであそぶ
-                </button>
-            </div>
-            
-            <!-- セクション: ふたりであそぶ（β用） - 部屋ベースの新フロー -->
+            <!-- ふたりであそぶ -->
             <div style="margin-bottom: 20px;">
                 <button onclick="showBetaRoleSelect()" style="background: linear-gradient(135deg, #11998e, #38ef7d); font-size: 17px; padding: 18px 20px;">
-                    🏠 ふたりであそぶ（β用）
+                    🏠 ふたりであそぶ
                 </button>
-                <p style="color: #999; font-size: 11px; margin-top: 5px;">ペア設定なしで遊べます（部屋番号で接続）</p>
+                <p style="color: #999; font-size: 11px; margin-top: 5px; text-align: center;">ふたり用のゲームモードです</p>
             </div>
             
-            <!-- セクション: みんなであそぶ -->
+            <!-- みんなであそぶ -->
             <div style="margin-bottom: 20px;">
                 <button onclick="showMultiRoleSelect()" style="background: linear-gradient(135deg, #6C5CE7, #a29bfe); font-size: 17px; padding: 18px 20px;">
                     👥 みんなであそぶ
                 </button>
-                <p style="color: #999; font-size: 11px; margin-top: 5px;">3人以上で遊べます（部屋番号で接続）</p>
+                <p style="color: #999; font-size: 11px; margin-top: 5px; text-align: center;">3人以上用のゲームモードです</p>
             </div>
             
-            <!-- ペア状態表示エリア -->
-            <div id="pairStatus" style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 30px; text-align: center;">
-                <p style="color: #666; font-size: 13px; margin-bottom: 8px;">👥 ペアの設定状態</p>
-                <div id="pairStatusContent">
-                    <p style="color: #999; font-size: 14px;">読み込み中...</p>
-                </div>
-                <!-- ペア設定ボタンを枠内に配置 -->
-                <button id="pairSettingButton" onclick="showPairScreen()" style="background: #9B59B6; margin-top: 10px; font-size: 14px; padding: 10px 15px;">
-                    ⚙️ ペアを設定する
-                </button>
-            </div>
-            
-            <!-- セクション2: 開発メニュー（折りたたみ式） -->
-            <!-- 本番環境では非表示 -->
-            <div style="display: none; padding-top: 20px; border-top: 2px dashed #ddd;">
-                <button id="devMenuToggleButton" onclick="toggleDevMenu()" style="background: #666; font-size: 13px; padding: 10px;">
-                    🔧 開発メニュー
+            <!-- 開発用トグル -->
+            <div style="padding-top: 20px; border-top: 1px dashed #ddd; margin-top: 10px;">
+                <button onclick="toggleHomeDevMenu()" style="background: #999; font-size: 13px; padding: 8px 16px;">
+                    🔧 開発用
                 </button>
                 
-                <!-- 開発メニューの中身（初期状態は非表示） -->
-                <div id="devMenuContent" style="display: none; margin-top: 10px;">
-                    <button onclick="startRanking()" style="background: #666;">
+                <div id="homeDevMenuContent" style="display: none; margin-top: 10px;">
+                    <!-- 旧：ふたりであそぶ（ペア方式） -->
+                    <button id="realtimeGameButton" onclick="tryStartRealtimeGame()" style="background: linear-gradient(135deg, #FF6B9D, #4A90E2); font-size: 15px; padding: 14px 20px; margin-bottom: 8px;">
+                        🎮 ふたりであそぶ（旧・ペア方式）
+                    </button>
+                    
+                    <!-- ペア状態表示エリア -->
+                    <div id="pairStatus" style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 15px; text-align: center;">
+                        <p style="color: #666; font-size: 13px; margin-bottom: 8px;">👥 ペアの設定状態</p>
+                        <div id="pairStatusContent">
+                            <p style="color: #999; font-size: 14px;">読み込み中...</p>
+                        </div>
+                        <button id="pairSettingButton" onclick="showPairScreen()" style="background: #9B59B6; margin-top: 10px; font-size: 14px; padding: 10px 15px;">
+                            ⚙️ ペアを設定する
+                        </button>
+                    </div>
+                    
+                    <button onclick="startRanking()" style="background: #666; font-size: 14px; padding: 12px; margin-bottom: 8px;">
                         📝 ひとりであそぶ
                     </button>
-                    <button onclick="showDevReviewList()" style="background: #FF6B35;">
+                    <button onclick="showDevReviewList()" style="background: #FF6B35; font-size: 14px; padding: 12px; margin-bottom: 8px;">
                         🧪 ひとりであそぶ（開発用）
                     </button>
-                    <button onclick="showHistory()" style="background: #666;">
+                    <button onclick="showHistory()" style="background: #666; font-size: 14px; padding: 12px;">
                         📋 過去の回答履歴を見る
                     </button>
                 </div>
@@ -633,7 +629,7 @@
         
         <!-- β用：ホスト/ゲスト選択画面 -->
         <div id="betaRoleSelectScreen" class="screen">
-            <h2 style="color: #11998e; margin-bottom: 20px;">🏠 ふたりであそぶ（β用）</h2>
+            <h2 style="color: #11998e; margin-bottom: 20px;">🏠 ふたりであそぶ</h2>
             
             <p style="color: #666; font-size: 14px; text-align: center; margin-bottom: 30px; line-height: 1.6;">
                 どちらかを選んでください
@@ -816,7 +812,7 @@
         
         <!-- β用：ゲスト待機画面（ホストがゲーム設定中） -->
         <div id="betaGuestWaitingScreen" class="screen">
-            <h2 style="color: #11998e; margin-bottom: 20px;">🏠 ふたりであそぶ（β用）</h2>
+            <h2 style="color: #11998e; margin-bottom: 20px;">🏠 ふたりであそぶ</h2>
             <div style="text-align: center; padding: 40px 20px;">
                 <div style="background: linear-gradient(135deg, #e8fdf5, #f0f8ff); border: 3px solid #11998e; border-radius: 15px; padding: 30px 20px; margin-bottom: 20px;">
                     <p style="font-size: 48px; margin-bottom: 15px;">⏳</p>
@@ -4359,14 +4355,17 @@
             const toggleButton = document.getElementById('devMenuToggleButton');
             
             if (devMenuContent.style.display === 'none') {
-                // 開く
                 devMenuContent.style.display = 'block';
                 toggleButton.textContent = '🔧 開発メニュー（閉じる）';
             } else {
-                // 閉じる
                 devMenuContent.style.display = 'none';
                 toggleButton.textContent = '🔧 開発メニュー';
             }
+        }
+        
+        function toggleHomeDevMenu() {
+            const content = document.getElementById('homeDevMenuContent');
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
         }
         
         // ========================================
@@ -6101,9 +6100,9 @@
             if (!multiCurrentRoom || multiCurrentRoom.role !== 'host') return;
             const players = Object.keys(multiCurrentRoom.data.players || {});
             
-            // 2人の場合はポップアップで確認
-            if (players.length === 2) {
-                if (!confirm('参加者が2人です。\nゲームモード：「ふたりであそぶ」となりますが、よろしいですか？')) return;
+            if (players.length < 3) {
+                alert('「みんなであそぶ」は3人以上用のゲームモードです。\n\nふたりで遊ぶ場合は、HOMEの「ふたりであそぶ」をご利用ください。');
+                return;
             }
             
             database.ref('gameRooms/' + multiCurrentRoom.roomId).update({ status: 'setting', lastActivityAt: Date.now() });
