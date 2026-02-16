@@ -1,7 +1,7 @@
 {
   "CURRENT_RULES": "以下のルールをFirebase Consoleにコピーして使用してください",
-  "LAST_UPDATED": "2026-02-02",
-  "VERSION": "v2.0",
+  "LAST_UPDATED": "2026-02-16",
+  "VERSION": "v2.1",
   
   "rules": {
     "users": {
@@ -9,6 +9,10 @@
       ".write": "auth != null"
     },
     "gameSessions": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "gameRooms": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
@@ -27,6 +31,15 @@
   },
   
   "_CHANGE_HISTORY": [
+    {
+      "date": "2026-02-16",
+      "version": "v2.1",
+      "reason": "Phase 2a: 部屋ベースのゲームフロー追加に伴い、gameRoomsノードのアクセス権限を追加",
+      "changes": [
+        "gameRooms: 新規追加（β用：部屋作成・参加・リアルタイム監視に必要）"
+      ],
+      "security_level": "v2.0と同等：認証済みユーザー全員に読み書き許可"
+    },
     {
       "date": "2026-02-02",
       "version": "v2.0",

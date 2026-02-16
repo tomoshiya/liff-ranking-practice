@@ -51,6 +51,14 @@
                 </button>
             </div>
             
+            <!-- セクション: ふたりであそぶ（β用） - 部屋ベースの新フロー -->
+            <div style="margin-bottom: 20px;">
+                <button onclick="showBetaRoleSelect()" style="background: linear-gradient(135deg, #11998e, #38ef7d); font-size: 17px; padding: 18px 20px;">
+                    🏠 ふたりであそぶ（β用）
+                </button>
+                <p style="color: #999; font-size: 11px; margin-top: 5px;">ペア設定なしで遊べます（部屋番号で接続）</p>
+            </div>
+            
             <!-- ペア状態表示エリア -->
             <div id="pairStatus" style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 30px; text-align: center;">
                 <p style="color: #666; font-size: 13px; margin-bottom: 8px;">👥 ペアの設定状態</p>
@@ -609,6 +617,173 @@
                 HOME
             </button>
         </div>
+        
+        <!-- ========================================
+             β用：部屋ベースのゲーム開始フロー（Phase 2a）
+             既存の「ふたりであそぶ」フローとは完全に独立
+             ======================================== -->
+        
+        <!-- β用：ホスト/ゲスト選択画面 -->
+        <div id="betaRoleSelectScreen" class="screen">
+            <h2 style="color: #11998e; margin-bottom: 20px;">🏠 ふたりであそぶ（β用）</h2>
+            
+            <p style="color: #666; font-size: 14px; text-align: center; margin-bottom: 30px; line-height: 1.6;">
+                どちらかを選んでください
+            </p>
+            
+            <!-- ホスト：部屋を作る -->
+            <button onclick="betaCreateRoom()" style="
+                background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                color: white;
+                padding: 25px;
+                margin-bottom: 15px;
+                border: none;
+                border-radius: 15px;
+                font-size: 16px;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+                transition: transform 0.2s, box-shadow 0.2s;
+            " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <div style="text-align: left;">
+                    <div style="font-size: 20px; font-weight: bold; margin-bottom: 5px;">
+                        👑 部屋をつくる
+                    </div>
+                    <div style="font-size: 13px; opacity: 0.9;">
+                        部屋番号を発行してお相手を待つ
+                    </div>
+                </div>
+                <div style="font-size: 24px;">→</div>
+            </button>
+            
+            <!-- ゲスト：部屋に入る -->
+            <button onclick="betaShowJoinRoom()" style="
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white;
+                padding: 25px;
+                margin-bottom: 15px;
+                border: none;
+                border-radius: 15px;
+                font-size: 16px;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+                transition: transform 0.2s, box-shadow 0.2s;
+            " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <div style="text-align: left;">
+                    <div style="font-size: 20px; font-weight: bold; margin-bottom: 5px;">
+                        🚪 部屋に入る
+                    </div>
+                    <div style="font-size: 13px; opacity: 0.9;">
+                        部屋番号を入力して参加する
+                    </div>
+                </div>
+                <div style="font-size: 24px;">→</div>
+            </button>
+            
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="showScreen('mainScreen')" class="fixed-round-button fixed-round-button-home">
+                HOME
+            </button>
+        </div>
+        
+        <!-- β用：部屋作成完了/待機画面 -->
+        <div id="betaWaitingRoomScreen" class="screen">
+            <h2 style="color: #11998e; margin-bottom: 20px;">🏠 待機室</h2>
+            
+            <!-- 部屋番号表示 -->
+            <div style="text-align: center; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #e8fdf5, #f0fff4); border: 3px solid #11998e; border-radius: 15px; padding: 30px 20px; margin-bottom: 20px;">
+                    <p style="color: #666; font-size: 14px; margin-bottom: 10px;">部屋番号</p>
+                    <p id="betaRoomNumber" style="font-size: 48px; font-weight: bold; color: #11998e; letter-spacing: 8px; font-family: 'Courier New', monospace;">-----</p>
+                    <p style="color: #999; font-size: 12px; margin-top: 10px;">この番号をお相手に伝えてください</p>
+                </div>
+                
+                <button onclick="betaCopyRoomNumber()" style="background: #11998e; font-size: 16px; padding: 15px 20px; margin-bottom: 20px; width: 100%;">
+                    📋 部屋番号をコピー
+                </button>
+                
+                <!-- 参加状況 -->
+                <div style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                    <p style="color: #666; font-size: 13px; margin-bottom: 8px;">👥 参加状況</p>
+                    <div id="betaRoomPlayersArea">
+                        <p style="color: #999; font-size: 14px;">お相手の参加を待っています...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="betaConfirmLeaveRoom('待機室を退出してHOMEに戻りますか？')" class="fixed-round-button fixed-round-button-home">
+                HOME
+            </button>
+        </div>
+        
+        <!-- β用：部屋参加画面 -->
+        <div id="betaJoinRoomScreen" class="screen">
+            <h2 style="color: #4facfe; margin-bottom: 20px;">🚪 部屋に入る</h2>
+            
+            <p style="color: #666; font-size: 14px; text-align: center; margin-bottom: 20px; line-height: 1.6;">
+                お相手から教えてもらった<br>部屋番号を入力してください
+            </p>
+            
+            <!-- 部屋番号入力 -->
+            <div style="background: #f0f8ff; border: 2px solid #4facfe; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                <label for="betaRoomNumberInput" style="display: block; color: #4facfe; font-weight: bold; margin-bottom: 10px; font-size: 14px;">
+                    🔢 部屋番号
+                </label>
+                <input 
+                    type="text" 
+                    id="betaRoomNumberInput" 
+                    placeholder="例: 45821"
+                    maxlength="5"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    style="
+                        width: 100%;
+                        padding: 15px;
+                        border: 2px solid #4facfe;
+                        border-radius: 8px;
+                        font-size: 32px;
+                        font-weight: bold;
+                        text-align: center;
+                        letter-spacing: 8px;
+                        font-family: 'Courier New', monospace;
+                        box-sizing: border-box;
+                        outline: none;
+                        transition: border-color 0.3s;
+                    "
+                    onfocus="this.style.borderColor='#00f2fe'"
+                    onblur="this.style.borderColor='#4facfe'"
+                />
+            </div>
+            
+            <!-- 参加ボタン -->
+            <button id="betaJoinRoomButton" onclick="betaJoinRoom()" style="
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white;
+                padding: 18px;
+                width: 100%;
+                border: none;
+                border-radius: 12px;
+                font-size: 18px;
+                font-weight: bold;
+                box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+                cursor: pointer;
+                transition: transform 0.2s;
+            " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                ✨ 参加する
+            </button>
+            
+            <!-- 固定配置の丸型ボタン -->
+            <button onclick="showScreen('betaRoleSelectScreen')" class="fixed-round-button fixed-round-button-home">
+                戻る
+            </button>
+        </div>
+        
     </div>
 
     <script>
@@ -4225,6 +4400,351 @@
                 devReviewCorrectAnswer = null;
                 showScreen('mainScreen');
             }
+        }
+        
+        // ========================================
+        // β用：部屋ベースのゲームフロー（Phase 2a）
+        // 既存の「ふたりであそぶ」ロジックとは完全に独立
+        // Firebase: gameRooms ノードを使用
+        // ========================================
+        
+        // β用グローバル変数
+        let betaCurrentRoom = null;       // 現在の部屋情報 { roomId, role, data }
+        let betaRoomRef = null;           // Firebase監視リスナーのref
+        
+        // β用：ホスト/ゲスト選択画面を表示
+        function showBetaRoleSelect() {
+            if (!userProfile) {
+                alert('❌ ユーザー情報が読み込まれていません。\nページを再読み込みしてください。');
+                return;
+            }
+            showScreen('betaRoleSelectScreen');
+        }
+        
+        // β用：部屋番号を生成（4〜5桁のランダムな数字）
+        function betaGenerateRoomId() {
+            const min = 10000;
+            const max = 99999;
+            return String(Math.floor(Math.random() * (max - min + 1)) + min);
+        }
+        
+        // β用：部屋を作成（ホスト）
+        async function betaCreateRoom() {
+            if (!userProfile || !database) {
+                alert('❌ ユーザー情報が読み込まれていません。');
+                return;
+            }
+            
+            try {
+                const roomsRef = database.ref('gameRooms');
+                let roomId = betaGenerateRoomId();
+                let retries = 0;
+                const maxRetries = 10;
+                
+                // 重複チェック
+                while (retries < maxRetries) {
+                    const snapshot = await roomsRef.child(roomId).once('value');
+                    if (!snapshot.exists()) {
+                        break;
+                    }
+                    roomId = betaGenerateRoomId();
+                    retries++;
+                }
+                
+                if (retries >= maxRetries) {
+                    alert('❌ 部屋番号の生成に失敗しました。もう一度お試しください。');
+                    return;
+                }
+                
+                // 部屋データ作成
+                const roomData = {
+                    roomId: roomId,
+                    hostId: userProfile.userId,
+                    hostName: userProfile.displayName,
+                    maxPlayers: 2,
+                    gameMode: 'duo',
+                    status: 'waiting',
+                    theme: null,
+                    themeMode: null,
+                    players: {},
+                    createdAt: new Date().toISOString(),
+                    lastActivityAt: Date.now()
+                };
+                
+                // ホストをプレイヤーに追加
+                roomData.players[userProfile.userId] = {
+                    displayName: userProfile.displayName,
+                    status: 'waiting'
+                };
+                
+                // Firebaseに保存
+                await roomsRef.child(roomId).set(roomData);
+                console.log('✅ β部屋作成成功:', roomId);
+                
+                // 部屋情報を保持
+                betaCurrentRoom = {
+                    roomId: roomId,
+                    role: 'host',
+                    data: roomData
+                };
+                
+                // 待機画面を表示
+                betaShowWaitingRoom(roomId);
+                
+                // リアルタイム監視を開始
+                betaStartRoomListener(roomId);
+                
+            } catch (error) {
+                console.error('❌ β部屋作成エラー:', error);
+                alert('❌ 部屋の作成に失敗しました。\n' + error.message);
+            }
+        }
+        
+        // β用：待機画面を表示
+        function betaShowWaitingRoom(roomId) {
+            document.getElementById('betaRoomNumber').textContent = roomId;
+            showScreen('betaWaitingRoomScreen');
+        }
+        
+        // β用：部屋番号をクリップボードにコピー
+        function betaCopyRoomNumber() {
+            if (!betaCurrentRoom) {
+                alert('❌ 部屋情報がありません。');
+                return;
+            }
+            
+            const roomId = betaCurrentRoom.roomId;
+            
+            navigator.clipboard.writeText(roomId)
+                .then(() => {
+                    alert('📋 部屋番号「' + roomId + '」をコピーしました！\nお相手に伝えてください。');
+                })
+                .catch((error) => {
+                    console.error('❌ コピーエラー:', error);
+                    alert('部屋番号: ' + roomId + '\n（手動でコピーしてください）');
+                });
+        }
+        
+        // β用：部屋参加画面を表示（ゲスト）
+        function betaShowJoinRoom() {
+            document.getElementById('betaRoomNumberInput').value = '';
+            showScreen('betaJoinRoomScreen');
+        }
+        
+        // β用：部屋に参加（ゲスト）
+        async function betaJoinRoom() {
+            if (!userProfile || !database) {
+                alert('❌ ユーザー情報が読み込まれていません。');
+                return;
+            }
+            
+            const roomNumberInput = document.getElementById('betaRoomNumberInput');
+            const roomId = roomNumberInput.value.trim();
+            
+            // バリデーション
+            if (!roomId || roomId.length < 4 || roomId.length > 5) {
+                alert('❌ 4〜5桁の部屋番号を入力してください。');
+                roomNumberInput.focus();
+                return;
+            }
+            
+            if (!/^\d+$/.test(roomId)) {
+                alert('❌ 部屋番号は数字のみで入力してください。');
+                roomNumberInput.focus();
+                return;
+            }
+            
+            try {
+                // 参加ボタンを無効化（二重送信防止）
+                const joinButton = document.getElementById('betaJoinRoomButton');
+                joinButton.disabled = true;
+                joinButton.textContent = '⏳ 接続中...';
+                
+                // 部屋を検索
+                const roomRef = database.ref('gameRooms/' + roomId);
+                const snapshot = await roomRef.once('value');
+                
+                if (!snapshot.exists()) {
+                    alert('❌ 部屋番号「' + roomId + '」は見つかりませんでした。\n番号を確認してください。');
+                    joinButton.disabled = false;
+                    joinButton.textContent = '✨ 参加する';
+                    return;
+                }
+                
+                const roomData = snapshot.val();
+                
+                // 部屋の状態チェック
+                if (roomData.status !== 'waiting') {
+                    alert('❌ この部屋はすでにゲームが進行中です。');
+                    joinButton.disabled = false;
+                    joinButton.textContent = '✨ 参加する';
+                    return;
+                }
+                
+                // 自分がホストの部屋には参加できない
+                if (roomData.hostId === userProfile.userId) {
+                    alert('❌ 自分が作成した部屋には参加できません。');
+                    joinButton.disabled = false;
+                    joinButton.textContent = '✨ 参加する';
+                    return;
+                }
+                
+                // プレイヤー数チェック
+                const playerCount = roomData.players ? Object.keys(roomData.players).length : 0;
+                if (playerCount >= roomData.maxPlayers) {
+                    alert('❌ この部屋は満員です。');
+                    joinButton.disabled = false;
+                    joinButton.textContent = '✨ 参加する';
+                    return;
+                }
+                
+                // ゲストとして参加
+                const updates = {};
+                updates['players/' + userProfile.userId] = {
+                    displayName: userProfile.displayName,
+                    status: 'waiting'
+                };
+                updates['lastActivityAt'] = Date.now();
+                
+                await roomRef.update(updates);
+                console.log('✅ β部屋参加成功:', roomId);
+                
+                // 部屋情報を保持
+                betaCurrentRoom = {
+                    roomId: roomId,
+                    role: 'guest',
+                    data: roomData
+                };
+                
+                // ボタンを元に戻す
+                joinButton.disabled = false;
+                joinButton.textContent = '✨ 参加する';
+                
+                // 待機画面を表示
+                betaShowWaitingRoom(roomId);
+                
+                // リアルタイム監視を開始
+                betaStartRoomListener(roomId);
+                
+            } catch (error) {
+                console.error('❌ β部屋参加エラー:', error);
+                alert('❌ 部屋への参加に失敗しました。\n' + error.message);
+                
+                const joinButton = document.getElementById('betaJoinRoomButton');
+                joinButton.disabled = false;
+                joinButton.textContent = '✨ 参加する';
+            }
+        }
+        
+        // β用：部屋のリアルタイム監視を開始
+        function betaStartRoomListener(roomId) {
+            // 既存のリスナーをクリーンアップ
+            if (betaRoomRef) {
+                betaRoomRef.off();
+                betaRoomRef = null;
+            }
+            
+            betaRoomRef = database.ref('gameRooms/' + roomId);
+            
+            betaRoomRef.on('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    // 部屋が削除された
+                    console.log('⚠️ β部屋が削除されました');
+                    betaCleanupRoom();
+                    alert('部屋が閉じられました。HOMEに戻ります。');
+                    showScreen('mainScreen');
+                    return;
+                }
+                
+                const roomData = snapshot.val();
+                betaCurrentRoom = {
+                    roomId: roomId,
+                    role: betaCurrentRoom ? betaCurrentRoom.role : (roomData.hostId === userProfile.userId ? 'host' : 'guest'),
+                    data: roomData
+                };
+                
+                // 参加状況を更新
+                betaUpdatePlayersDisplay(roomData);
+                
+                // ステータスに応じた処理（Phase 2bで拡張予定）
+                // if (roomData.status === 'inputting') { ... }
+                // if (roomData.status === 'guessing') { ... }
+                // if (roomData.status === 'finished') { ... }
+            });
+        }
+        
+        // β用：参加状況の表示を更新
+        function betaUpdatePlayersDisplay(roomData) {
+            const playersArea = document.getElementById('betaRoomPlayersArea');
+            if (!playersArea) return;
+            
+            const players = roomData.players || {};
+            const playerList = Object.values(players);
+            const playerCount = playerList.length;
+            const maxPlayers = roomData.maxPlayers || 2;
+            
+            let html = '';
+            html += '<p style="color: #4A90E2; font-size: 16px; font-weight: bold; margin-bottom: 10px;">';
+            html += playerCount + ' / ' + maxPlayers + ' 人参加中';
+            html += '</p>';
+            
+            playerList.forEach((player) => {
+                html += '<p style="color: #333; font-size: 14px; margin-bottom: 4px;">';
+                html += '👤 ' + player.displayName;
+                html += '</p>';
+            });
+            
+            if (playerCount < maxPlayers) {
+                html += '<p style="color: #999; font-size: 13px; margin-top: 10px;">⏳ お相手の参加を待っています...</p>';
+            } else {
+                html += '<p style="color: #11998e; font-size: 14px; font-weight: bold; margin-top: 10px;">✅ 全員揃いました！</p>';
+                // Phase 2bでゲーム開始ロジックを追加予定
+            }
+            
+            playersArea.innerHTML = html;
+        }
+        
+        // β用：部屋退出の確認ダイアログ
+        function betaConfirmLeaveRoom(message) {
+            if (confirm(message || 'HOMEに戻りますか？')) {
+                betaLeaveRoom();
+            }
+        }
+        
+        // β用：部屋を退出
+        async function betaLeaveRoom() {
+            try {
+                if (betaCurrentRoom && database) {
+                    const roomRef = database.ref('gameRooms/' + betaCurrentRoom.roomId);
+                    
+                    if (betaCurrentRoom.role === 'host') {
+                        // ホストが退出 → 部屋を削除
+                        await roomRef.remove();
+                        console.log('✅ βホストが部屋を削除しました');
+                    } else {
+                        // ゲストが退出 → 自分のプレイヤー情報を削除
+                        await roomRef.child('players/' + userProfile.userId).remove();
+                        await roomRef.update({ lastActivityAt: Date.now() });
+                        console.log('✅ βゲストが部屋を退出しました');
+                    }
+                }
+                
+                betaCleanupRoom();
+                showScreen('mainScreen');
+            } catch (error) {
+                console.error('❌ β退出エラー:', error);
+                betaCleanupRoom();
+                showScreen('mainScreen');
+            }
+        }
+        
+        // β用：部屋情報のクリーンアップ
+        function betaCleanupRoom() {
+            if (betaRoomRef) {
+                betaRoomRef.off();
+                betaRoomRef = null;
+            }
+            betaCurrentRoom = null;
         }
     </script>
 </body>
