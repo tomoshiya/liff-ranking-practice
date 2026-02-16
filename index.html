@@ -771,9 +771,8 @@
                         background: #4A90E2; border: none; color: white; width: 36px; height: 36px; border-radius: 8px;
                         display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
                         box-shadow: 0 2px 8px rgba(74,144,226,0.3); transition: transform 0.15s, box-shadow 0.15s;
-                    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/></svg>
-                    </button>
+                        font-size: 22px; line-height: 1;
+                    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">&#x21bb;</button>
                     <!-- テーマリスト（初期非表示） -->
                     <div id="betaThemeListDropdown" style="
                         display: none; position: absolute; top: 100%; left: 0; right: 44px; z-index: 10;
@@ -986,11 +985,10 @@
                     <p style="color: #666; font-size: 14px; margin-bottom: 10px;">部屋番号</p>
                     <p id="multiRoomNumber" style="font-size: 44px; font-weight: bold; color: #6C5CE7; letter-spacing: 6px; font-family: 'Courier New', monospace;">-----</p>
                     <p style="color: #999; font-size: 12px; margin-top: 10px;">この番号をメンバーに伝えてください</p>
+                    <button onclick="multiCopyRoomNumber()" style="background: #a29bfe; font-size: 14px; padding: 10px 16px; margin-top: 12px; border-radius: 8px;">
+                        📋 番号をコピー
+                    </button>
                 </div>
-                
-                <button onclick="multiCopyRoomNumber()" style="background: #6C5CE7; font-size: 16px; padding: 15px 20px; margin-bottom: 20px; width: 100%;">
-                    📋 部屋番号をコピー
-                </button>
                 
                 <div style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center;">
                     <p style="color: #666; font-size: 13px; margin-bottom: 8px;">👥 参加メンバー</p>
@@ -1006,21 +1004,20 @@
                     font-size: 18px; font-weight: bold; box-shadow: 0 4px 15px rgba(108,92,231,0.3);
                     cursor: pointer; margin-bottom: 10px; display: none;
                 ">
-                    🚀 ゲーム設定へ進む
-                </button>
-                
-                <!-- ホスト用：部屋を閉じるボタン -->
-                <button id="multiCloseRoomButton" onclick="multiCloseRoom()" style="background: #ff6b6b; font-size: 14px; padding: 10px; display: none;">
-                    🚪 部屋を閉じる
+                    🎮 このメンバーで始める
                 </button>
                 
                 <!-- 開発用：ダミープレイヤー追加 -->
-                <div id="multiDummyArea" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; display: none;">
+                <div id="multiDummyArea" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; display: none;">
                     <p style="color: #999; font-size: 11px; margin-bottom: 8px;">🛠 開発用</p>
                     <button onclick="multiAddDummyPlayer()" style="background: #999; font-size: 13px; padding: 8px 12px; margin-bottom: 5px;">
                         🤖 ダミープレイヤーを追加
                     </button>
                 </div>
+                <!-- ホスト用：部屋を閉じるボタン -->
+                <button id="multiCloseRoomButton" onclick="multiCloseRoom()" style="background: #ff6b6b; font-size: 14px; padding: 10px; margin-top: 30px; display: none;">
+                    🚪 部屋を閉じる
+                </button>
             </div>
             <button onclick="multiConfirmLeave('一時退出します。部屋番号で再参加できます。')" class="fixed-round-button fixed-round-button-home">HOME</button>
         </div>
@@ -1074,9 +1071,8 @@
                         background: #4A90E2; border: none; color: white; width: 36px; height: 36px; border-radius: 8px;
                         display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
                         box-shadow: 0 2px 8px rgba(74,144,226,0.3); transition: transform 0.15s;
-                    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/></svg>
-                    </button>
+                        font-size: 22px; line-height: 1;
+                    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">&#x21bb;</button>
                     <div id="multiThemeListDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 44px; z-index: 10; background: white; border: 2px solid #4A90E2; border-radius: 8px; margin-top: 4px; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></div>
                 </div>
             </div>
@@ -1129,9 +1125,9 @@
                 <div class="rank-item draggable-item" data-rank="4"><div class="rank-label">4位</div><input type="text" class="rank-input" placeholder="4位を入力（50文字まで）" maxlength="50"><span class="drag-handle">≡</span></div>
                 <div class="rank-item draggable-item" data-rank="5"><div class="rank-label">5位</div><input type="text" class="rank-input" placeholder="5位を入力（50文字まで）" maxlength="50"><span class="drag-handle">≡</span></div>
             </div>
-            <button id="multiSubmitRankingButton" onclick="multiSubmitRanking()" style="margin-bottom: 10px;">💾 ランキングを送信</button>
-            <!-- ホスト用：回答を締め切るボタン -->
-            <button id="multiCutoffInputButton" onclick="multiCutoffInput()" style="background: #ff9800; font-size: 14px; padding: 12px; margin-bottom: 80px; display: none;">
+            <button id="multiSubmitRankingButton" onclick="multiSubmitRanking()" style="margin-bottom: 80px;">💾 ランキングを送信</button>
+            <!-- ホスト用：回答を締め切るボタン（送信ボタンと入れ替わる） -->
+            <button id="multiCutoffInputButton" onclick="multiCutoffInput()" style="background: #ff9800; font-size: 16px; padding: 16px; margin-bottom: 80px; display: none;">
                 ✂️ 回答を締め切ってゲームを進める
             </button>
             <button onclick="multiConfirmLeave('HOMEに戻ると現在のゲームを中断します。')" class="fixed-round-button fixed-round-button-home">HOME</button>
@@ -1180,19 +1176,20 @@
         <div id="multiResultScreen" class="screen" style="padding-bottom: 40px;">
             <h2 style="color: #6C5CE7; margin-bottom: 15px;">🎉 結果発表</h2>
             
-            <!-- 結果タブ -->
-            <div id="multiResultTabArea" style="display: flex; gap: 4px; overflow-x: auto; padding: 5px 0; margin-bottom: 15px;">
-                <button onclick="multiShowResultTab('summary')" id="multiResultTabSummary" style="flex-shrink: 0; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; border: 2px solid #6C5CE7; background: #6C5CE7; color: white; cursor: pointer;">
-                    🏆 総合
-                </button>
-                <button onclick="multiShowResultTab('mine')" id="multiResultTabMine" style="flex-shrink: 0; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; border: 2px solid #ddd; background: white; color: #333; cursor: pointer;">
-                    📊 あなた
-                </button>
-                <!-- 各ターゲット別タブはJSで動的追加 -->
+            <!-- 理解力ランキング（常時表示） -->
+            <div id="multiResultRanking" style="margin-bottom: 20px;">
+                <!-- JSで動的に生成 -->
             </div>
             
-            <div id="multiResultContent" style="margin: 15px 0;">
-                <!-- JSで動的に生成 -->
+            <!-- ひとりずつの予想＆結果セクション -->
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #6C5CE7; font-size: 16px; margin-bottom: 10px; text-align: center;">🎯 ひとりずつの予想＆結果</h3>
+                <div id="multiResultPersonTabs" style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 15px;">
+                    <!-- JSで動的に生成 -->
+                </div>
+                <div id="multiResultPersonContent" style="margin-bottom: 15px;">
+                    <!-- JSで動的に生成 -->
+                </div>
             </div>
             
             <div style="margin-bottom: 80px;">
@@ -6039,10 +6036,14 @@
                 switch (roomData.status) {
                     case 'waiting':
                         multiUpdatePlayersDisplay(roomData);
-                        // ホストにゲーム開始ボタンを表示（2人以上で表示）
                         if (role === 'host') {
                             const pCount = Object.keys(roomData.players || {}).length;
                             document.getElementById('multiStartGameButton').style.display = pCount >= 2 ? 'block' : 'none';
+                        }
+                        // 結果画面や他の画面から戻ってきた場合は待機室を表示
+                        if (activeId !== 'multiWaitingRoomScreen' && activeId !== 'multiRoleSelectScreen' && activeId !== 'multiJoinRoomScreen') {
+                            document.getElementById('multiRoomNumber').textContent = roomId;
+                            showScreen('multiWaitingRoomScreen');
                         }
                         break;
                     case 'setting':
@@ -6055,16 +6056,19 @@
                     case 'inputting':
                         if (activeId !== 'multiGameInputScreen') multiShowGameInput(roomData);
                         else multiUpdateInputProgress(roomData);
-                        // ホスト：自分が送信済みなら締め切りボタンを表示
+                        // ホスト：自分が送信済みなら送信ボタンを締め切りボタンに入れ替え
                         if (role === 'host' && roomData.rankings && roomData.rankings[userProfile.userId]) {
+                            document.getElementById('multiSubmitRankingButton').style.display = 'none';
                             document.getElementById('multiCutoffInputButton').style.display = 'block';
                         }
                         break;
                     case 'guessing':
                         if (activeId !== 'multiGuessScreen') multiShowGuessScreen(roomData);
                         else multiUpdateGuessProgress(roomData);
-                        // ホスト：自分が送信済みなら締め切りボタンを表示
+                        // ホスト：自分が送信済みなら締め切りボタンを表示（ANSWER非表示＋締め切り表示）
                         if (role === 'host' && roomData.guesses && roomData.guesses[userProfile.userId]) {
+                            const answerBtn = document.querySelector('#multiGuessScreen .fixed-round-button-submit');
+                            if (answerBtn) answerBtn.style.display = 'none';
                             document.getElementById('multiCutoffGuessButton').style.display = 'block';
                         }
                         break;
@@ -6586,153 +6590,113 @@
         // ========================================
         
         function multiShowResultScreen(roomData) {
-            // タブにターゲット別ボタンを追加
-            const tabArea = document.getElementById('multiResultTabArea');
-            // 固定タブ（総合・あなた）はHTMLにあるので、ターゲット別を追加
-            const existingDynamic = tabArea.querySelectorAll('.multi-result-tab-dynamic');
-            existingDynamic.forEach(el => el.remove());
-            
+            const results = roomData.results || {};
             const players = Object.keys(roomData.players || {});
-            players.forEach(targetId => {
-                const name = targetId === userProfile.userId ? 'あなた' : roomData.players[targetId]?.displayName || '---';
-                const btn = document.createElement('button');
-                btn.className = 'multi-result-tab-dynamic';
-                btn.onclick = function() { multiShowResultTab('target_' + targetId); };
-                btn.style.cssText = 'flex-shrink:0; padding:8px 14px; border-radius:20px; font-size:13px; font-weight:bold; border:2px solid #ddd; background:white; color:#333; cursor:pointer; white-space:nowrap;';
-                btn.textContent = '🎯 ' + name;
-                btn.id = 'multiResultTab_target_' + targetId;
-                tabArea.appendChild(btn);
+            
+            // === 理解力ランキング（常時表示） ===
+            const sorted = players.map(id => ({
+                id, name: roomData.players[id]?.displayName || '---',
+                ...(results.players[id] || { totalScore: 0, totalPerfect: 0, totalClose: 0, targetCount: 0 })
+            })).sort((a, b) => b.totalScore - a.totalScore);
+            
+            const maxPossible = sorted[0]?.targetCount ? sorted[0].targetCount * 10 : 10;
+            const avgScore = sorted.length > 0 ? (sorted.reduce((s, p) => s + p.totalScore, 0) / sorted.length) : 0;
+            
+            let rankHtml = '<div style="background:#f0edff; border-radius:12px; padding:20px;">';
+            rankHtml += '<h3 style="color:#6C5CE7; font-size:16px; margin-bottom:15px; text-align:center;">🏆 みんなの理解力ランキング</h3>';
+            sorted.forEach((p, i) => {
+                const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1) + '位'));
+                const isMe = p.id === userProfile.userId;
+                rankHtml += '<div style="display:flex; align-items:center; padding:12px; background:' + (isMe ? '#FFFDE7' : 'white') + '; border-radius:8px; margin-bottom:6px;' + (isMe ? ' border:2px solid #FFD54F;' : '') + '">';
+                rankHtml += '<span style="font-size:20px; margin-right:12px; min-width:32px; text-align:center;">' + medal + '</span>';
+                rankHtml += '<span style="flex:1; font-size:14px; color:#333; font-weight:' + (isMe ? 'bold' : 'normal') + ';">' + p.name + (isMe ? '（あなた）' : '') + '</span>';
+                rankHtml += '<span style="font-size:18px; font-weight:bold; color:#6C5CE7;">' + p.totalScore + '<span style="font-size:12px; color:#999;">/' + maxPossible + 'pt</span></span>';
+                rankHtml += '</div>';
             });
+            rankHtml += '<p style="color:#999; font-size:12px; text-align:center; margin-top:12px;">みんなの平均 ' + avgScore.toFixed(1) + '/' + maxPossible + 'pt</p>';
+            rankHtml += '</div>';
+            document.getElementById('multiResultRanking').innerHTML = rankHtml;
             
-            // ホスト用：待機室へ戻るボタン
-            const backBtn = document.getElementById('multiBackToRoomButton');
-            backBtn.style.display = (multiCurrentRoom && multiCurrentRoom.role === 'host') ? 'block' : 'none';
+            // === ひとりずつの予想＆結果タブ ===
+            let tabHtml = '';
+            players.forEach((targetId, i) => {
+                const name = targetId === userProfile.userId ? 'あなた' : (roomData.players[targetId]?.displayName || '---');
+                const isFirst = i === 0;
+                tabHtml += '<button onclick="multiShowPersonResult(\'' + targetId + '\')" id="multiPersonTab_' + targetId + '" style="';
+                tabHtml += 'padding:8px 14px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer; ';
+                tabHtml += 'border:2px solid ' + (isFirst ? '#6C5CE7' : '#ddd') + '; ';
+                tabHtml += 'background:' + (isFirst ? '#6C5CE7' : 'white') + '; ';
+                tabHtml += 'color:' + (isFirst ? 'white' : '#333') + ';">';
+                tabHtml += name + '</button>';
+            });
+            document.getElementById('multiResultPersonTabs').innerHTML = tabHtml;
             
-            // 総合タブを表示
-            multiShowResultTab('summary');
+            // 最初のプレイヤーの結果を表示
+            if (players.length > 0) multiShowPersonResult(players[0]);
+            
+            // 待機室へ戻るボタン
+            document.getElementById('multiBackToRoomButton').style.display = (multiCurrentRoom && multiCurrentRoom.role === 'host') ? 'block' : 'none';
+            
             showScreen('multiResultScreen');
         }
         
-        function multiShowResultTab(tabName) {
+        function multiShowPersonResult(targetId) {
             if (!multiCurrentRoom) return;
             const roomData = multiCurrentRoom.data;
             const results = roomData.results || {};
             const players = Object.keys(roomData.players || {});
+            const tName = targetId === userProfile.userId ? 'あなた' : (roomData.players[targetId]?.displayName || '---');
             
-            // タブのアクティブ切り替え
-            document.querySelectorAll('#multiResultTabArea button').forEach(btn => {
+            // タブのアクティブ状態を切替
+            document.querySelectorAll('#multiResultPersonTabs button').forEach(btn => {
                 btn.style.background = 'white'; btn.style.color = '#333'; btn.style.borderColor = '#ddd';
             });
-            const activeTabBtn = document.getElementById('multiResultTab' + tabName.charAt(0).toUpperCase() + tabName.slice(1))
-                || document.getElementById('multiResultTab_' + tabName);
-            if (activeTabBtn) { activeTabBtn.style.background = '#6C5CE7'; activeTabBtn.style.color = 'white'; activeTabBtn.style.borderColor = '#6C5CE7'; }
+            const activeBtn = document.getElementById('multiPersonTab_' + targetId);
+            if (activeBtn) { activeBtn.style.background = '#6C5CE7'; activeBtn.style.color = 'white'; activeBtn.style.borderColor = '#6C5CE7'; }
             
-            let html = '';
+            const correctRanking = roomData.rankings[targetId];
+            if (!correctRanking) { document.getElementById('multiResultPersonContent').innerHTML = '<p style="color:#999; text-align:center;">データなし</p>'; return; }
             
-            if (tabName === 'summary') {
-                // === 総合タブ ===
-                // 1. 個人ランキング
-                const sorted = players.map(id => ({
-                    id, name: roomData.players[id]?.displayName || '---',
-                    ...(results.players[id] || { totalScore: 0, totalPerfect: 0, totalClose: 0, targetCount: 0 })
-                })).sort((a, b) => b.totalScore - a.totalScore);
+            const guessers = players.filter(id => id !== targetId);
+            
+            let html = '<div style="background:#F5F5F5; border-radius:12px; padding:15px;">';
+            html += '<p style="color:#6C5CE7; font-weight:bold; font-size:14px; margin-bottom:12px; text-align:center;">' + tName + 'さんの正解ランキング</p>';
+            
+            for (let rank = 1; rank <= 5; rank++) {
+                const item = correctRanking[rank.toString()];
+                html += '<div style="background:white; border-radius:8px; padding:12px; margin-bottom:8px;">';
+                html += '<div style="display:flex; align-items:center; margin-bottom:8px;">';
+                html += '<span style="background:#6C5CE7; color:white; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:12px; margin-right:10px;">' + rank + '位</span>';
+                html += '<span style="color:#333; font-size:14px; font-weight:bold;">' + item + '</span>';
+                html += '</div>';
                 
-                const maxPossible = sorted[0]?.targetCount ? sorted[0].targetCount * 10 : 10;
-                
-                html += '<div style="background:#f0edff; border-radius:12px; padding:20px; margin-bottom:20px;">';
-                html += '<h3 style="color:#6C5CE7; font-size:16px; margin-bottom:15px; text-align:center;">🏆 みんなの理解力ランキング</h3>';
-                sorted.forEach((p, i) => {
-                    const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1) + '位'));
-                    const isMe = p.id === userProfile.userId;
-                    html += '<div style="display:flex; align-items:center; padding:12px; background:' + (isMe ? '#e8e4ff' : 'white') + '; border-radius:8px; margin-bottom:6px;">';
-                    html += '<span style="font-size:20px; margin-right:12px; min-width:32px; text-align:center;">' + medal + '</span>';
-                    html += '<span style="flex:1; font-size:14px; color:#333; font-weight:' + (isMe ? 'bold' : 'normal') + ';">' + p.name + (isMe ? '（あなた）' : '') + '</span>';
-                    html += '<span style="font-size:18px; font-weight:bold; color:#6C5CE7;">' + p.totalScore + '<span style="font-size:12px; color:#999;">/' + maxPossible + 'pt</span></span>';
+                // 各予想者がこの項目を何位に予想したか
+                html += '<div style="padding-left:8px;">';
+                guessers.forEach(gId => {
+                    const gName = gId === userProfile.userId ? 'あなた' : (roomData.players[gId]?.displayName || '---');
+                    const guess = roomData.guesses[gId]?.[targetId];
+                    let gRank = 0;
+                    if (guess) { for (let r = 1; r <= 5; r++) { if (guess[r.toString()] === item) { gRank = r; break; } } }
+                    
+                    let icon = '×', color = '#999', pt = 0;
+                    if (gRank > 0) {
+                        const diff = Math.abs(gRank - rank);
+                        if (diff === 0) { icon = '○'; color = '#50C878'; pt = 2; }
+                        else if (diff === 1) { icon = '△'; color = '#FF9800'; pt = 1; }
+                    }
+                    
+                    html += '<div style="display:flex; align-items:center; font-size:12px; margin:3px 0; color:#666;">';
+                    html += '<span style="width:14px; text-align:center; color:' + color + '; font-weight:bold; margin-right:6px;">' + icon + '</span>';
+                    html += '<span style="flex:1;">' + gName + '</span>';
+                    html += '<span style="color:' + color + '; margin-right:8px;">' + (gRank > 0 ? gRank + '位' : '-') + '</span>';
+                    html += '<span style="color:' + color + '; font-weight:bold; min-width:28px; text-align:right;">' + pt + 'pt</span>';
                     html += '</div>';
                 });
-                html += '</div>';
-                
-                // 2. 全体平均
-                const avgScore = sorted.length > 0 ? (sorted.reduce((s, p) => s + p.totalScore, 0) / sorted.length) : 0;
-                const avgPct = maxPossible > 0 ? Math.round((avgScore / maxPossible) * 100) : 0;
-                let avgEmoji, avgMsg;
-                if (avgPct >= 90) { avgEmoji = '🎉'; avgMsg = '最高のチームワーク！'; }
-                else if (avgPct >= 75) { avgEmoji = '😊'; avgMsg = 'よく分かり合えてる！'; }
-                else if (avgPct >= 60) { avgEmoji = '👍'; avgMsg = 'いい感じ！もっと話そう！'; }
-                else if (avgPct >= 40) { avgEmoji = '🤔'; avgMsg = '伸びしろたっぷり！'; }
-                else { avgEmoji = '💪'; avgMsg = '次はもっと仲良くなれるはず！'; }
-                
-                html += '<div style="background:#F0FFF4; border-radius:12px; padding:20px; margin-bottom:20px; text-align:center;">';
-                html += '<h3 style="color:#50C878; font-size:16px; margin-bottom:10px;">🤝 みんなの平均</h3>';
-                html += '<p style="font-size:40px; margin-bottom:5px;">' + avgEmoji + '</p>';
-                html += '<p style="color:#50C878; font-size:28px; font-weight:bold;">' + avgScore.toFixed(1) + '<span style="font-size:14px; color:#999;">/' + maxPossible + 'pt</span></p>';
-                html += '<p style="color:#666; font-size:14px; margin-top:5px;">理解度 ' + avgPct + '% — ' + avgMsg + '</p>';
-                html += '</div>';
-                
-            } else if (tabName === 'mine') {
-                // === あなたタブ ===
-                const myId = userProfile.userId;
-                const myResult = results.players[myId] || { totalScore: 0, totalPerfect: 0, totalClose: 0, targetCount: 0 };
-                const maxPt = myResult.targetCount * 10;
-                
-                html += '<div style="background:#f0edff; border-radius:12px; padding:20px; margin-bottom:20px; text-align:center;">';
-                html += '<h3 style="color:#6C5CE7; font-size:16px; margin-bottom:10px;">📊 あなたの成績</h3>';
-                html += '<p style="color:#6C5CE7; font-size:36px; font-weight:bold;">' + myResult.totalScore + '<span style="font-size:14px; color:#999;">/' + maxPt + 'pt</span></p>';
-                html += '<p style="color:#999; font-size:12px;">あたり！×' + myResult.totalPerfect + ' おしい！×' + myResult.totalClose + '</p>';
-                html += '</div>';
-                
-                // ターゲット別の内訳
-                const targets = players.filter(id => id !== myId);
-                targets.forEach(targetId => {
-                    const tName = roomData.players[targetId]?.displayName || '---';
-                    const pairKey = myId + '_' + targetId;
-                    const pair = results.pairs[pairKey] || { score: 0, perfectCount: 0, closeCount: 0 };
-                    
-                    html += '<div style="background:#F5F5F5; border-radius:10px; padding:15px; margin-bottom:10px;">';
-                    html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">';
-                    html += '<span style="color:#333; font-size:14px; font-weight:bold;">🎯 ' + tName + 'さん</span>';
-                    html += '<span style="color:#6C5CE7; font-size:16px; font-weight:bold;">' + pair.score + '/10pt</span>';
-                    html += '</div>';
-                    
-                    // 答え合わせテーブル
-                    html += multiBuildCompactTable(roomData.rankings[targetId], roomData.guesses[myId]?.[targetId]);
-                    html += '</div>';
-                });
-                
-            } else if (tabName.startsWith('target_')) {
-                // === 特定ターゲットタブ ===
-                const targetId = tabName.replace('target_', '');
-                const tName = targetId === userProfile.userId ? 'あなた' : (roomData.players[targetId]?.displayName || '---');
-                
-                html += '<div style="background:#f0edff; border-radius:12px; padding:15px; margin-bottom:15px; text-align:center;">';
-                html += '<h3 style="color:#6C5CE7; font-size:16px;">🎯 ' + tName + 'さんの理解者ランキング</h3>';
-                html += '</div>';
-                
-                // このターゲットに対する各プレイヤーのスコアを表示
-                const guessers = players.filter(id => id !== targetId);
-                const guesserScores = guessers.map(gId => {
-                    const pKey = gId + '_' + targetId;
-                    const pair = results.pairs[pKey] || { score: 0, perfectCount: 0, closeCount: 0 };
-                    return { id: gId, name: roomData.players[gId]?.displayName || '---', ...pair };
-                }).sort((a, b) => b.score - a.score);
-                
-                guesserScores.forEach((g, i) => {
-                    const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1) + '位'));
-                    const isMe = g.id === userProfile.userId;
-                    html += '<div style="background:' + (isMe ? '#e8e4ff' : '#F5F5F5') + '; border-radius:10px; padding:12px; margin-bottom:8px;">';
-                    html += '<div style="display:flex; align-items:center; margin-bottom:8px;">';
-                    html += '<span style="font-size:18px; margin-right:10px;">' + medal + '</span>';
-                    html += '<span style="flex:1; font-size:14px; color:#333; font-weight:' + (isMe ? 'bold' : 'normal') + ';">' + g.name + (isMe ? '（あなた）' : '') + '</span>';
-                    html += '<span style="font-size:16px; font-weight:bold; color:#6C5CE7;">' + g.score + '/10pt</span>';
-                    html += '</div>';
-                    
-                    // 答え合わせ
-                    html += multiBuildCompactTable(roomData.rankings[targetId], roomData.guesses[g.id]?.[targetId]);
-                    html += '</div>';
-                });
+                html += '</div></div>';
             }
             
-            document.getElementById('multiResultContent').innerHTML = html;
+            html += '</div>';
+            document.getElementById('multiResultPersonContent').innerHTML = html;
         }
         
         // コンパクトな答え合わせテーブル
