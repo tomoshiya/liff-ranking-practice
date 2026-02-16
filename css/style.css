@@ -1,0 +1,477 @@
+/* ========================================
+   デザイン設定
+   ======================================== */
+
+/* 全体のリセット */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 15px;
+    background: linear-gradient(135deg, #E8F4F8 0%, #F0F8FF 100%);
+    min-height: 100vh;
+}
+
+.container {
+    background: white;
+    border-radius: 20px;
+    padding: 25px 20px;
+    box-shadow: 0 10px 30px rgba(74, 144, 226, 0.15);
+}
+
+h1 {
+    color: #4A90E2;
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 26px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    padding: 0 10px;
+}
+
+.theme-box {
+    background: linear-gradient(135deg, #F0F8FF 0%, #E8F4F8 100%);
+    border: 3px solid #4A90E2;
+    border-radius: 15px;
+    padding: 20px 15px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.theme-box h2 {
+    color: #4A90E2;
+    font-size: 18px;
+    margin: 0 0 10px 0;
+}
+
+.theme-text {
+    color: #333;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1.6;
+    word-break: break-all;
+}
+
+.ranking-form {
+    margin: 20px 0;
+}
+
+.rank-item {
+    display: flex;
+    align-items: center;
+    margin: 12px 0;
+    gap: 10px;
+}
+
+/* ドラッグ可能な回答入力項目 */
+.ranking-form .draggable-item {
+    background: white;
+    border: 2px solid #E0E0E0;
+    border-radius: 10px;
+    padding: 10px;
+    cursor: default;
+    
+    /* テキスト選択無効化（ドラッグ時のテキスト選択防止） */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ただし、input要素内は文字選択可能 */
+.ranking-form .draggable-item input {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+}
+
+/* ドラッグハンドル（≡アイコン） */
+.ranking-form .drag-handle {
+    font-size: 24px;
+    color: #999;
+    cursor: grab;
+    margin-left: 10px;
+    padding: 0 5px;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    flex-shrink: 0;
+}
+
+.ranking-form .drag-handle:active {
+    cursor: grabbing;
+}
+
+.rank-label {
+    background: linear-gradient(135deg, #4A90E2, #7AB8F5);
+    color: white;
+    padding: 12px 15px;
+    border-radius: 10px;
+    font-weight: bold;
+    min-width: 50px;
+    text-align: center;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.rank-input {
+    flex: 1;
+    padding: 12px 12px;
+    border: 2px solid #B8D9F0;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+    width: 100%;
+    min-width: 0;
+}
+
+.rank-input:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+button {
+    background: #4A90E2;
+    color: white;
+    border: none;
+    padding: 15px 20px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: all 0.3s;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:hover {
+    background: #3A7BC8;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:focus {
+    outline: none;
+}
+
+.secondary-button {
+    background: #50C878;
+}
+
+.secondary-button:hover {
+    background: #3FB869;
+}
+
+.history-list {
+    margin: 20px 0;
+}
+
+.history-item {
+    background: #f8f9fa;
+    border-left: 4px solid #4A90E2;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 12px 0;
+}
+
+.history-theme {
+    color: #4A90E2;
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 8px;
+    word-break: break-all;
+}
+
+.history-date {
+    color: #999;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.history-rankings {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.loading {
+    text-align: center;
+    color: #666;
+    padding: 40px 20px;
+}
+
+.error {
+    background: #ffe0e0;
+    border: 2px solid #ff6b6b;
+    border-radius: 10px;
+    padding: 15px;
+    color: #c92a2a;
+    margin: 20px 0;
+    font-size: 14px;
+}
+
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* ドラッグ&ドロップ用スタイル */
+.draggable-item {
+    background: #f8f9fa;
+    border: 2px solid #B8D9F0;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: grab;
+    touch-action: pan-y;  /* ✨ 縦スクロールを許可 */
+    transition: all 0.2s ease;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    position: relative;
+}
+
+.draggable-item * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+.draggable-item.dragging {
+    opacity: 0.95;
+    transform: scale(1.08);
+    background: linear-gradient(135deg, #E8F4F8 0%, #F0F8FF 100%);
+    border: 2px solid #4A90E2;
+    cursor: grabbing;
+    box-shadow: 0 12px 30px rgba(74, 144, 226, 0.5);
+    z-index: 1000;
+}
+
+.draggable-item.drag-over {
+    border-top: 3px solid #FF6B9D;
+}
+
+.rank-number {
+    background: linear-gradient(135deg, #4A90E2, #7AB8F5);
+    color: white;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 8px;
+    min-width: 45px;
+    text-align: center;
+    font-size: 14px;
+    margin-right: 10px;
+}
+
+.drag-handle {
+    color: #999;
+    font-size: 20px;
+    padding: 10px 20px;  /* ✨ タッチ範囲を拡大（上下左右） */
+    cursor: grab;
+    touch-action: none;  /* ✨ ドラッグ優先（スクロール無効） */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.dragging .drag-handle {
+    cursor: grabbing;
+}
+
+/* ========================================
+   SortableJS 用スタイル
+   ======================================== */
+
+/* ドラッグ中のゴースト（プレースホルダー） */
+.sortable-ghost {
+    opacity: 0.4;
+    background: #E8F4F8;
+    border: 2px dashed #4A90E2;
+}
+
+/* 選択中の要素（長押し中の視覚的フィードバック） */
+.sortable-chosen {
+    cursor: grabbing;
+    border: 3px solid #4A90E2 !important;  /* ✨ 輪郭を太く濃く */
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4) !important;  /* ✨ 影を追加 */
+    transform: scale(1.02);  /* ✨ 少し拡大 */
+    background: linear-gradient(135deg, #F0F8FF 0%, #E8F4F8 100%) !important;  /* ✨ 背景を明るく */
+    transition: all 0.1s ease;  /* ✨ スムーズな変化 */
+}
+
+/* ドラッグ中の要素 */
+.sortable-drag {
+    opacity: 1;
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #E8F4F8 0%, #F0F8FF 100%);
+    border: 2px solid #4A90E2;
+    box-shadow: 0 12px 30px rgba(74, 144, 226, 0.5);
+    cursor: grabbing;
+}
+
+/* フォールバック時の要素（指に追従する要素） */
+.sortable-fallback {
+    opacity: 1;
+    transform: scale(1.08) rotate(3deg);
+    background: linear-gradient(135deg, #E8F4F8 0%, #F0F8FF 100%);
+    border: 3px solid #4A90E2;
+    box-shadow: 0 15px 40px rgba(74, 144, 226, 0.6);
+    cursor: grabbing;
+    z-index: 9999;
+    transition: none;
+}
+
+/* 丸型固定ボタン */
+.fixed-round-button {
+    position: fixed;
+    bottom: 20px;
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    border: none;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
+    padding: 5px;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.fixed-round-button:focus {
+    outline: none;
+}
+
+.fixed-round-button:active {
+    transform: none;
+}
+
+.fixed-round-button-home {
+    left: 20px;
+    background: #95A5A6 !important;
+    color: white;
+}
+
+.fixed-round-button-home:active {
+    background: #95A5A6 !important;
+}
+
+.fixed-round-button-home:focus {
+    background: #95A5A6 !important;
+}
+
+.fixed-round-button-home:hover {
+    background: #95A5A6 !important;
+}
+
+.fixed-round-button-submit {
+    right: 20px;
+    background: linear-gradient(135deg, #50C878, #3AA65D);
+    color: white;
+}
+
+/* スマホ最適化 */
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        padding: 20px 15px;
+    }
+    
+    h1 {
+        font-size: 24px;
+    }
+    
+    .subtitle {
+        font-size: 12px;
+    }
+    
+    .theme-box {
+        padding: 15px 12px;
+    }
+    
+    .theme-box h2 {
+        font-size: 16px;
+    }
+    
+    .theme-text {
+        font-size: 15px;
+    }
+    
+    .rank-label {
+        min-width: 45px;
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+    
+    .rank-input {
+        padding: 10px;
+        font-size: 16px;
+    }
+    
+    button {
+        padding: 14px 18px;
+        font-size: 15px;
+    }
+}
+
+/* 極小画面対応 */
+@media (max-width: 360px) {
+    .rank-item {
+        gap: 8px;
+    }
+    
+    .rank-label {
+        min-width: 40px;
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+    
+    .rank-input {
+        padding: 8px;
+        font-size: 13px;
+    }
+}
