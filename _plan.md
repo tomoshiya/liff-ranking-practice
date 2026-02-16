@@ -22,7 +22,10 @@ todos:
     status: completed
   - id: phase3-design
     content: "Phase 3: みんなであそぶモードの詳細設計（Phase 2完了後に着手）"
-    status: pending
+    status: completed
+  - id: phase3-impl
+    content: "Phase 3: みんなであそぶモードの実装（multi用全画面+JS+N-1予想+タブ結果+締め切り+待機室戻り）"
+    status: completed
 ---
 
 # RankQuest: リファクタリング + 部屋ベース新機能の開発計画

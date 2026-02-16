@@ -59,6 +59,14 @@
                 <p style="color: #999; font-size: 11px; margin-top: 5px;">ペア設定なしで遊べます（部屋番号で接続）</p>
             </div>
             
+            <!-- セクション: みんなであそぶ -->
+            <div style="margin-bottom: 20px;">
+                <button onclick="showMultiRoleSelect()" style="background: linear-gradient(135deg, #6C5CE7, #a29bfe); font-size: 17px; padding: 18px 20px;">
+                    👥 みんなであそぶ
+                </button>
+                <p style="color: #999; font-size: 11px; margin-top: 5px;">3人以上で遊べます（部屋番号で接続）</p>
+            </div>
+            
             <!-- ペア状態表示エリア -->
             <div id="pairStatus" style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 30px; text-align: center;">
                 <p style="color: #666; font-size: 13px; margin-bottom: 8px;">👥 ペアの設定状態</p>
@@ -928,6 +936,264 @@
             <button onclick="betaConfirmLeaveRoom('部屋を退出してHOMEに戻りますか？')" class="fixed-round-button fixed-round-button-home">
                 HOME
             </button>
+        </div>
+        
+        <!-- ============================================ -->
+        <!-- みんなであそぶ（multi）用画面群 -->
+        <!-- ============================================ -->
+        
+        <!-- multi用：ホスト/ゲスト選択画面 -->
+        <div id="multiRoleSelectScreen" class="screen">
+            <h2 style="color: #6C5CE7; margin-bottom: 20px;">👥 みんなであそぶ</h2>
+            <p style="color: #666; font-size: 14px; text-align: center; margin-bottom: 30px; line-height: 1.6;">
+                どちらかを選んでください
+            </p>
+            
+            <button onclick="multiCreateRoom()" style="
+                background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
+                color: white; padding: 25px; margin-bottom: 15px; border: none; border-radius: 15px;
+                font-size: 16px; width: 100%; display: flex; align-items: center; justify-content: space-between;
+                box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); transition: transform 0.2s;
+            " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <div style="text-align: left;">
+                    <div style="font-size: 20px; font-weight: bold; margin-bottom: 5px;">👑 部屋をつくる</div>
+                    <div style="font-size: 13px; opacity: 0.9;">部屋番号を発行してメンバーを待つ</div>
+                </div>
+                <div style="font-size: 24px;">→</div>
+            </button>
+            
+            <button onclick="multiShowJoinRoom()" style="
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white; padding: 25px; margin-bottom: 15px; border: none; border-radius: 15px;
+                font-size: 16px; width: 100%; display: flex; align-items: center; justify-content: space-between;
+                box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3); transition: transform 0.2s;
+            " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <div style="text-align: left;">
+                    <div style="font-size: 20px; font-weight: bold; margin-bottom: 5px;">🚪 部屋に入る</div>
+                    <div style="font-size: 13px; opacity: 0.9;">部屋番号を入力して参加する</div>
+                </div>
+                <div style="font-size: 24px;">→</div>
+            </button>
+            
+            <button onclick="showScreen('mainScreen')" class="fixed-round-button fixed-round-button-home">HOME</button>
+        </div>
+        
+        <!-- multi用：待機室 -->
+        <div id="multiWaitingRoomScreen" class="screen">
+            <h2 style="color: #6C5CE7; margin-bottom: 20px;">👥 待機室</h2>
+            <div style="text-align: center; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #f0edff, #f5f3ff); border: 3px solid #6C5CE7; border-radius: 15px; padding: 30px 20px; margin-bottom: 20px;">
+                    <p style="color: #666; font-size: 14px; margin-bottom: 10px;">部屋番号</p>
+                    <p id="multiRoomNumber" style="font-size: 44px; font-weight: bold; color: #6C5CE7; letter-spacing: 6px; font-family: 'Courier New', monospace;">-----</p>
+                    <p style="color: #999; font-size: 12px; margin-top: 10px;">この番号をメンバーに伝えてください</p>
+                </div>
+                
+                <button onclick="multiCopyRoomNumber()" style="background: #6C5CE7; font-size: 16px; padding: 15px 20px; margin-bottom: 20px; width: 100%;">
+                    📋 部屋番号をコピー
+                </button>
+                
+                <div style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                    <p style="color: #666; font-size: 13px; margin-bottom: 8px;">👥 参加メンバー</p>
+                    <div id="multiRoomPlayersArea">
+                        <p style="color: #999; font-size: 14px;">メンバーの参加を待っています...</p>
+                    </div>
+                </div>
+                
+                <!-- ホスト用：ゲーム開始ボタン（3人以上で表示） -->
+                <button id="multiStartGameButton" onclick="multiGoToSettings()" style="
+                    background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
+                    color: white; padding: 18px; width: 100%; border: none; border-radius: 12px;
+                    font-size: 18px; font-weight: bold; box-shadow: 0 4px 15px rgba(108,92,231,0.3);
+                    cursor: pointer; margin-bottom: 10px; display: none;
+                ">
+                    🚀 ゲーム設定へ進む
+                </button>
+                
+                <!-- ホスト用：部屋を閉じるボタン -->
+                <button id="multiCloseRoomButton" onclick="multiCloseRoom()" style="background: #ff6b6b; font-size: 14px; padding: 10px; display: none;">
+                    🚪 部屋を閉じる
+                </button>
+            </div>
+            <button onclick="multiConfirmLeave('一時退出します。部屋番号で再参加できます。')" class="fixed-round-button fixed-round-button-home">HOME</button>
+        </div>
+        
+        <!-- multi用：部屋参加画面 -->
+        <div id="multiJoinRoomScreen" class="screen">
+            <h2 style="color: #6C5CE7; margin-bottom: 20px;">🚪 部屋に入る</h2>
+            <p style="color: #666; font-size: 14px; text-align: center; margin-bottom: 20px; line-height: 1.6;">
+                ホストから教えてもらった<br>部屋番号を入力してください
+            </p>
+            <div style="background: #f0edff; border: 2px solid #6C5CE7; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                <label style="display: block; color: #6C5CE7; font-weight: bold; margin-bottom: 10px; font-size: 14px;">🔢 部屋番号</label>
+                <input type="text" id="multiRoomNumberInput" placeholder="例: 45821" maxlength="5" inputmode="numeric" pattern="[0-9]*"
+                    style="width: 100%; padding: 20px; border: 2px solid #6C5CE7; border-radius: 10px; font-size: 28px; text-align: center; letter-spacing: 8px; font-weight: bold; box-sizing: border-box; outline: none; font-family: 'Courier New', monospace;" />
+            </div>
+            <button id="multiJoinRoomButton" onclick="multiJoinRoom()" style="background: linear-gradient(135deg, #6C5CE7, #a29bfe); font-size: 18px; padding: 18px;">
+                ✨ 参加する
+            </button>
+            <button onclick="showScreen('multiRoleSelectScreen')" class="fixed-round-button fixed-round-button-home" style="background: #6C5CE7;">
+                戻る
+            </button>
+        </div>
+        
+        <!-- multi用：ゲーム設定画面（ホスト専用） -->
+        <div id="multiGameSettingsScreen" class="screen">
+            <h2 style="color: #6C5CE7; margin-bottom: 10px;">🎮 ゲーム設定</h2>
+            <p style="color: #666; font-size: 13px; text-align: center; margin-bottom: 20px;">
+                あなたは「ゲームマスター」です。<br>テーマを設定してください。
+            </p>
+            
+            <div style="background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                <p style="color: #4A90E2; font-weight: bold; font-size: 14px; margin-bottom: 10px; text-align: center;">テーマ設定</p>
+                <button id="multiThemeModeApp" onclick="multiSelectThemeMode('app')" style="
+                    background: white; color: #333; border: 2px solid #ddd; font-size: 15px; padding: 14px; margin-bottom: 8px; width: 100%; border-radius: 10px; transition: all 0.2s;">
+                    📋 アプリ内のテーマで遊ぶ
+                </button>
+                <button id="multiThemeModeCustom" onclick="multiSelectThemeMode('custom')" style="
+                    background: white; color: #333; border: 2px solid #ddd; font-size: 15px; padding: 14px; width: 100%; border-radius: 10px; transition: all 0.2s;">
+                    ✏️ オリジナルのテーマで遊ぶ
+                </button>
+            </div>
+            
+            <div id="multiAppThemeArea" style="background: #fff; border: 2px solid #4A90E2; border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                <p style="color: #4A90E2; font-weight: bold; font-size: 14px; margin-bottom: 10px;">テーマ</p>
+                <div style="position: relative; display: flex; align-items: center; gap: 6px;">
+                    <div onclick="multiToggleThemeList()" style="background: #F0F8FF; border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; cursor: pointer; display: flex; align-items: center; min-height: 24px; flex: 1;">
+                        <span id="multiThemeArrow" style="color: #4A90E2; font-size: 12px; margin-right: 10px; flex-shrink: 0;">▼</span>
+                        <span id="multiThemeText" style="color: #333; font-size: 15px; flex: 1;">好きな食べ物・料理TOP5</span>
+                    </div>
+                    <button onclick="multiRandomizeTheme()" style="
+                        background: #4A90E2; border: none; color: white; width: 36px; height: 36px; border-radius: 8px;
+                        display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+                        box-shadow: 0 2px 8px rgba(74,144,226,0.3); transition: transform 0.15s;
+                    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/></svg>
+                    </button>
+                    <div id="multiThemeListDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 44px; z-index: 10; background: white; border: 2px solid #4A90E2; border-radius: 8px; margin-top: 4px; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></div>
+                </div>
+            </div>
+            
+            <div id="multiCustomThemeArea" style="display: none; background: #fff; border: 2px solid #4A90E2; border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                <p style="color: #4A90E2; font-weight: bold; font-size: 14px; margin-bottom: 10px;">テーマ</p>
+                <input type="text" id="multiCustomThemeInput" placeholder="例：わたしの好きな音楽TOP5" maxlength="50"
+                    style="width: 100%; padding: 15px; border: 2px solid #4A90E2; border-radius: 8px; font-size: 16px; box-sizing: border-box; outline: none;" />
+                <p style="color: #999; font-size: 12px; margin-top: 8px; text-align: right;"><span id="multiCustomThemeCount">0</span> / 50文字</p>
+            </div>
+            
+            <button onclick="multiStartGame()" style="
+                background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
+                color: white; padding: 18px; width: 100%; border: none; border-radius: 12px;
+                font-size: 18px; font-weight: bold; box-shadow: 0 4px 15px rgba(108,92,231,0.3);
+                cursor: pointer; margin-bottom: 80px;">
+                🚀 ゲームスタート
+            </button>
+            <button onclick="multiConfirmLeave('一時退出します。部屋番号で再参加できます。')" class="fixed-round-button fixed-round-button-home">HOME</button>
+        </div>
+        
+        <!-- multi用：ゲスト待機画面 -->
+        <div id="multiGuestWaitingScreen" class="screen">
+            <h2 style="color: #6C5CE7; margin-bottom: 20px;">👥 みんなであそぶ</h2>
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="background: linear-gradient(135deg, #f0edff, #f0f8ff); border: 3px solid #6C5CE7; border-radius: 15px; padding: 30px 20px; margin-bottom: 20px;">
+                    <p style="font-size: 48px; margin-bottom: 15px;">⏳</p>
+                    <p style="color: #666; font-size: 16px; line-height: 1.8; font-weight: bold;">ホストがゲームを設定中...</p>
+                    <p style="color: #999; font-size: 13px; margin-top: 15px;">しばらくお待ちください</p>
+                </div>
+            </div>
+            <button onclick="multiConfirmLeave('一時退出します。部屋番号で再参加できます。')" class="fixed-round-button fixed-round-button-home">HOME</button>
+        </div>
+        
+        <!-- multi用：ランキング入力画面 -->
+        <div id="multiGameInputScreen" class="screen">
+            <h2 style="color: #6C5CE7; margin-bottom: 20px;">🎮 ランキング入力</h2>
+            <div class="theme-box" style="border-color: #6C5CE7;">
+                <h2 style="color: #6C5CE7;">📌 今回のテーマ</h2>
+                <p class="theme-text" id="multiGameTheme">---</p>
+            </div>
+            <div style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                <p style="color: #666; font-size: 13px; margin-bottom: 8px;">📊 進行状況</p>
+                <div id="multiInputProgressContent"><p style="color: #999; font-size: 14px;">---</p></div>
+            </div>
+            <div class="ranking-form" id="multiGameRankingForm">
+                <div class="rank-item draggable-item" data-rank="1"><div class="rank-label">1位</div><input type="text" class="rank-input" placeholder="1位を入力（50文字まで）" maxlength="50"><span class="drag-handle">≡</span></div>
+                <div class="rank-item draggable-item" data-rank="2"><div class="rank-label">2位</div><input type="text" class="rank-input" placeholder="2位を入力（50文字まで）" maxlength="50"><span class="drag-handle">≡</span></div>
+                <div class="rank-item draggable-item" data-rank="3"><div class="rank-label">3位</div><input type="text" class="rank-input" placeholder="3位を入力（50文字まで）" maxlength="50"><span class="drag-handle">≡</span></div>
+                <div class="rank-item draggable-item" data-rank="4"><div class="rank-label">4位</div><input type="text" class="rank-input" placeholder="4位を入力（50文字まで）" maxlength="50"><span class="drag-handle">≡</span></div>
+                <div class="rank-item draggable-item" data-rank="5"><div class="rank-label">5位</div><input type="text" class="rank-input" placeholder="5位を入力（50文字まで）" maxlength="50"><span class="drag-handle">≡</span></div>
+            </div>
+            <button id="multiSubmitRankingButton" onclick="multiSubmitRanking()" style="margin-bottom: 10px;">💾 ランキングを送信</button>
+            <!-- ホスト用：回答を締め切るボタン -->
+            <button id="multiCutoffInputButton" onclick="multiCutoffInput()" style="background: #ff9800; font-size: 14px; padding: 12px; margin-bottom: 80px; display: none;">
+                ✂️ 回答を締め切ってゲームを進める
+            </button>
+            <button onclick="multiConfirmLeave('HOMEに戻ると現在のゲームを中断します。')" class="fixed-round-button fixed-round-button-home">HOME</button>
+        </div>
+        
+        <!-- multi用：予想画面 -->
+        <div id="multiGuessScreen" class="screen">
+            <h2 style="color: #6C5CE7; margin-bottom: 10px;">🤔 ランキングを予想</h2>
+            
+            <!-- 予想対象の切り替えタブ -->
+            <div id="multiGuessTabArea" style="display: flex; gap: 6px; overflow-x: auto; padding: 5px 0; margin-bottom: 15px;">
+                <!-- JSで動的に生成 -->
+            </div>
+            
+            <div style="background: #f0edff; border: 2px solid #6C5CE7; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+                <p style="color: #666; font-size: 14px; line-height: 1.6; text-align: center;">
+                    <span id="multiGuessTargetName" style="font-weight: bold; color: #6C5CE7;">---</span>さんの<br>
+                    ランキングを正しい順番に並べてください
+                </p>
+            </div>
+            
+            <div class="theme-box" style="border-color: #6C5CE7; margin-bottom: 15px;">
+                <h2 style="color: #6C5CE7;">📌 テーマ</h2>
+                <p class="theme-text" id="multiGuessTheme">---</p>
+            </div>
+            
+            <div style="background: #F0F8FF; border: 2px solid #4A90E2; border-radius: 10px; padding: 15px; margin-bottom: 15px; text-align: center;">
+                <p style="color: #666; font-size: 13px; margin-bottom: 8px;">📊 進行状況</p>
+                <div id="multiGuessProgressContent"><p style="color: #999; font-size: 14px;">---</p></div>
+            </div>
+            
+            <div id="multiGuessRankingArea" style="margin: 15px 0; padding-bottom: 80px;">
+                <!-- JSで動的に生成 -->
+            </div>
+            
+            <!-- ホスト用：回答を締め切るボタン -->
+            <button id="multiCutoffGuessButton" onclick="multiCutoffGuess()" style="background: #ff9800; font-size: 14px; padding: 12px; display: none; margin-bottom: 80px;">
+                ✂️ 予想を締め切ってゲームを進める
+            </button>
+            
+            <button onclick="multiConfirmLeave('HOMEに戻ると現在のゲームを中断します。')" class="fixed-round-button fixed-round-button-home">HOME</button>
+            <button onclick="multiSubmitCurrentGuess()" class="fixed-round-button fixed-round-button-submit">NEXT</button>
+        </div>
+        
+        <!-- multi用：結果画面 -->
+        <div id="multiResultScreen" class="screen" style="padding-bottom: 40px;">
+            <h2 style="color: #6C5CE7; margin-bottom: 15px;">🎉 結果発表</h2>
+            
+            <!-- 結果タブ -->
+            <div id="multiResultTabArea" style="display: flex; gap: 4px; overflow-x: auto; padding: 5px 0; margin-bottom: 15px;">
+                <button onclick="multiShowResultTab('summary')" id="multiResultTabSummary" style="flex-shrink: 0; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; border: 2px solid #6C5CE7; background: #6C5CE7; color: white; cursor: pointer;">
+                    🏆 総合
+                </button>
+                <button onclick="multiShowResultTab('mine')" id="multiResultTabMine" style="flex-shrink: 0; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; border: 2px solid #ddd; background: white; color: #333; cursor: pointer;">
+                    📊 あなた
+                </button>
+                <!-- 各ターゲット別タブはJSで動的追加 -->
+            </div>
+            
+            <div id="multiResultContent" style="margin: 15px 0;">
+                <!-- JSで動的に生成 -->
+            </div>
+            
+            <div style="margin-bottom: 80px;">
+                <button id="multiBackToRoomButton" onclick="multiBackToRoom()" style="background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%); margin-bottom: 10px; display: none;">
+                    🏠 待機室へ戻る
+                </button>
+            </div>
+            
+            <button onclick="multiConfirmLeave('部屋を退出してHOMEに戻りますか？')" class="fixed-round-button fixed-round-button-home">HOME</button>
         </div>
         
         <!-- β用：部屋参加画面 -->
@@ -3743,6 +4009,25 @@
                     }
                 });
             }
+            
+            // multi用ゲーム入力（DOM順序ベース）
+            const multiContainer = document.getElementById('multiGameRankingForm');
+            if (multiContainer) {
+                multiContainer.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' && event.target.classList.contains('rank-input')) {
+                        event.preventDefault();
+                        const currentItem = event.target.closest('.rank-item');
+                        if (!currentItem) return;
+                        const nextItem = currentItem.nextElementSibling;
+                        if (nextItem) {
+                            const nextInput = nextItem.querySelector('.rank-input');
+                            if (nextInput) nextInput.focus();
+                        } else {
+                            event.target.blur();
+                        }
+                    }
+                });
+            }
         }
         
         // ========================================
@@ -5586,6 +5871,906 @@
             const guessProgress = document.getElementById('betaGuessProgressContent');
             if (inputProgress) inputProgress.innerHTML = html;
             if (guessProgress) guessProgress.innerHTML = html;
+        }
+        
+        // ========================================
+        // ========================================
+        // みんなであそぶ（multi）用 JavaScript
+        // ========================================
+        // ========================================
+        
+        let multiCurrentRoom = null;       // { roomId, role, data }
+        let multiRoomRef = null;
+        let multiSelectedThemeMode = 'app';
+        let multiGameInputSortable = null;
+        let multiGuessSortable = null;
+        let multiGuessTargets = [];        // 予想対象のプレイヤーID一覧
+        let multiCurrentGuessIndex = 0;    // 現在の予想対象インデックス
+        let multiGuessData = {};           // { targetId: { "1": "...", ... }, ... }
+        
+        // ========================================
+        // multi：画面遷移・部屋管理
+        // ========================================
+        
+        function showMultiRoleSelect() {
+            if (!userProfile) { alert('❌ ユーザー情報が読み込まれていません。'); return; }
+            showScreen('multiRoleSelectScreen');
+        }
+        
+        function multiGenerateRoomId() {
+            return String(Math.floor(Math.random() * 90000) + 10000);
+        }
+        
+        async function multiCreateRoom() {
+            if (!userProfile || !database) { alert('❌ ユーザー情報が読み込まれていません。'); return; }
+            try {
+                const roomsRef = database.ref('gameRooms');
+                let roomId = multiGenerateRoomId();
+                let retries = 0;
+                while (retries < 10) {
+                    const snap = await roomsRef.child(roomId).once('value');
+                    if (!snap.exists()) break;
+                    roomId = multiGenerateRoomId();
+                    retries++;
+                }
+                if (retries >= 10) { alert('❌ 部屋番号の生成に失敗しました。'); return; }
+                
+                const roomData = {
+                    roomId: roomId, hostId: userProfile.userId, hostName: userProfile.displayName,
+                    maxPlayers: 8, gameMode: 'multi', status: 'waiting',
+                    theme: null, themeMode: null, players: {},
+                    createdAt: new Date().toISOString(), lastActivityAt: Date.now()
+                };
+                roomData.players[userProfile.userId] = { displayName: userProfile.displayName, status: 'waiting' };
+                await roomsRef.child(roomId).set(roomData);
+                
+                multiCurrentRoom = { roomId, role: 'host', data: roomData };
+                document.getElementById('multiCloseRoomButton').style.display = 'block';
+                document.getElementById('multiRoomNumber').textContent = roomId;
+                showScreen('multiWaitingRoomScreen');
+                multiStartRoomListener(roomId);
+            } catch (error) {
+                console.error('❌ multi部屋作成エラー:', error);
+                alert('❌ 部屋の作成に失敗しました。');
+            }
+        }
+        
+        function multiCopyRoomNumber() {
+            if (!multiCurrentRoom) return;
+            const roomId = multiCurrentRoom.roomId;
+            navigator.clipboard.writeText(roomId)
+                .then(() => { alert('📋 部屋番号「' + roomId + '」をコピーしました！'); })
+                .catch(() => { alert('部屋番号: ' + roomId); });
+        }
+        
+        function multiShowJoinRoom() {
+            document.getElementById('multiRoomNumberInput').value = '';
+            showScreen('multiJoinRoomScreen');
+        }
+        
+        async function multiJoinRoom() {
+            if (!userProfile || !database) { alert('❌ ユーザー情報が読み込まれていません。'); return; }
+            const input = document.getElementById('multiRoomNumberInput');
+            const roomId = input.value.trim();
+            if (!roomId || roomId.length !== 5 || !/^\d+$/.test(roomId)) {
+                alert('❌ 5桁の部屋番号を入力してください。'); input.focus(); return;
+            }
+            
+            const joinBtn = document.getElementById('multiJoinRoomButton');
+            try {
+                joinBtn.disabled = true; joinBtn.textContent = '⏳ 接続中...';
+                const roomRef = database.ref('gameRooms/' + roomId);
+                const snap = await roomRef.once('value');
+                if (!snap.exists()) { alert('❌ 部屋番号「' + roomId + '」は見つかりませんでした。'); joinBtn.disabled = false; joinBtn.textContent = '✨ 参加する'; return; }
+                
+                const roomData = snap.val();
+                if (roomData.hostId === userProfile.userId) { alert('❌ 自分が作成した部屋には参加できません。'); joinBtn.disabled = false; joinBtn.textContent = '✨ 参加する'; return; }
+                
+                const alreadyJoined = roomData.players && roomData.players[userProfile.userId];
+                const playerCount = roomData.players ? Object.keys(roomData.players).length : 0;
+                if (!alreadyJoined && playerCount >= roomData.maxPlayers) { alert('❌ この部屋は満員です。'); joinBtn.disabled = false; joinBtn.textContent = '✨ 参加する'; return; }
+                
+                if (!alreadyJoined) {
+                    await roomRef.update({ ['players/' + userProfile.userId]: { displayName: userProfile.displayName, status: 'waiting' }, lastActivityAt: Date.now() });
+                }
+                
+                multiCurrentRoom = { roomId, role: 'guest', data: roomData };
+                document.getElementById('multiCloseRoomButton').style.display = 'none';
+                joinBtn.disabled = false; joinBtn.textContent = '✨ 参加する';
+                document.getElementById('multiRoomNumber').textContent = roomId;
+                showScreen('multiWaitingRoomScreen');
+                multiStartRoomListener(roomId);
+            } catch (error) {
+                console.error('❌ multi参加エラー:', error);
+                alert('❌ 参加に失敗しました。');
+                joinBtn.disabled = false; joinBtn.textContent = '✨ 参加する';
+            }
+        }
+        
+        function multiConfirmLeave(msg) {
+            if (confirm(msg || 'HOMEに戻りますか？')) { multiCleanup(); showScreen('mainScreen'); }
+        }
+        
+        async function multiCloseRoom() {
+            if (!confirm('部屋を閉じますか？\n全員が退出され、部屋番号は無効になります。')) return;
+            try {
+                if (multiCurrentRoom && database) await database.ref('gameRooms/' + multiCurrentRoom.roomId).remove();
+                multiCleanup(); showScreen('mainScreen');
+            } catch (error) { multiCleanup(); showScreen('mainScreen'); }
+        }
+        
+        function multiCleanup() {
+            if (multiRoomRef) { multiRoomRef.off(); multiRoomRef = null; }
+            if (multiGameInputSortable) { multiGameInputSortable.destroy(); multiGameInputSortable = null; }
+            if (multiGuessSortable) { multiGuessSortable.destroy(); multiGuessSortable = null; }
+            multiCurrentRoom = null; multiGuessTargets = []; multiCurrentGuessIndex = 0; multiGuessData = {};
+        }
+        
+        // ========================================
+        // multi：リアルタイム監視（状態遷移エンジン）
+        // ========================================
+        
+        function multiStartRoomListener(roomId) {
+            if (multiRoomRef) { multiRoomRef.off(); multiRoomRef = null; }
+            multiRoomRef = database.ref('gameRooms/' + roomId);
+            
+            multiRoomRef.on('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    multiCleanup();
+                    alert('部屋が閉じられました。HOMEに戻ります。');
+                    showScreen('mainScreen'); return;
+                }
+                const roomData = snapshot.val();
+                const role = multiCurrentRoom ? multiCurrentRoom.role : (roomData.hostId === userProfile.userId ? 'host' : 'guest');
+                multiCurrentRoom = { roomId, role, data: roomData };
+                
+                const active = document.querySelector('.screen.active');
+                const activeId = active ? active.id : '';
+                
+                switch (roomData.status) {
+                    case 'waiting':
+                        multiUpdatePlayersDisplay(roomData);
+                        // ホストにゲーム開始ボタンを表示（2人以上で表示）
+                        if (role === 'host') {
+                            const pCount = Object.keys(roomData.players || {}).length;
+                            document.getElementById('multiStartGameButton').style.display = pCount >= 2 ? 'block' : 'none';
+                        }
+                        break;
+                    case 'setting':
+                        if (role === 'host') {
+                            if (activeId !== 'multiGameSettingsScreen') multiShowGameSettings();
+                        } else {
+                            if (activeId !== 'multiGuestWaitingScreen') showScreen('multiGuestWaitingScreen');
+                        }
+                        break;
+                    case 'inputting':
+                        if (activeId !== 'multiGameInputScreen') multiShowGameInput(roomData);
+                        else multiUpdateInputProgress(roomData);
+                        // ホスト：自分が送信済みなら締め切りボタンを表示
+                        if (role === 'host' && roomData.rankings && roomData.rankings[userProfile.userId]) {
+                            document.getElementById('multiCutoffInputButton').style.display = 'block';
+                        }
+                        break;
+                    case 'guessing':
+                        if (activeId !== 'multiGuessScreen') multiShowGuessScreen(roomData);
+                        else multiUpdateGuessProgress(roomData);
+                        // ホスト：自分が送信済みなら締め切りボタンを表示
+                        if (role === 'host' && roomData.guesses && roomData.guesses[userProfile.userId]) {
+                            document.getElementById('multiCutoffGuessButton').style.display = 'block';
+                        }
+                        break;
+                    case 'finished':
+                        if (activeId !== 'multiResultScreen') multiShowResultScreen(roomData);
+                        break;
+                }
+            });
+        }
+        
+        function multiUpdatePlayersDisplay(roomData) {
+            const area = document.getElementById('multiRoomPlayersArea');
+            if (!area) return;
+            const players = roomData.players || {};
+            const list = Object.values(players);
+            const count = list.length;
+            
+            let html = '<p style="color: #6C5CE7; font-size: 16px; font-weight: bold; margin-bottom: 10px;">' + count + ' 人参加中</p>';
+            list.forEach(p => { html += '<p style="color: #333; font-size: 14px; margin-bottom: 4px;">👤 ' + p.displayName + '</p>'; });
+            if (count < 2) html += '<p style="color: #999; font-size: 13px; margin-top: 10px;">⏳ メンバーの参加を待っています...</p>';
+            else html += '<p style="color: #6C5CE7; font-size: 13px; margin-top: 10px;">✅ ゲーム開始可能です！</p>';
+            area.innerHTML = html;
+        }
+        
+        // ========================================
+        // multi：ゲーム設定→開始
+        // ========================================
+        
+        function multiGoToSettings() {
+            if (!multiCurrentRoom || multiCurrentRoom.role !== 'host') return;
+            const players = Object.keys(multiCurrentRoom.data.players || {});
+            
+            // 2人の場合はポップアップで確認
+            if (players.length === 2) {
+                if (!confirm('参加者が2人です。\nゲームモード：「ふたりであそぶ」となりますが、よろしいですか？')) return;
+            }
+            
+            database.ref('gameRooms/' + multiCurrentRoom.roomId).update({ status: 'setting', lastActivityAt: Date.now() });
+        }
+        
+        function multiShowGameSettings() {
+            multiSelectThemeMode('app');
+            multiRandomizeTheme();
+            const ci = document.getElementById('multiCustomThemeInput');
+            ci.value = ''; document.getElementById('multiCustomThemeCount').textContent = '0';
+            ci.oninput = function() { document.getElementById('multiCustomThemeCount').textContent = this.value.length; };
+            showScreen('multiGameSettingsScreen');
+        }
+        
+        function multiSelectThemeMode(mode) {
+            multiSelectedThemeMode = mode;
+            const appBtn = document.getElementById('multiThemeModeApp');
+            const cusBtn = document.getElementById('multiThemeModeCustom');
+            const appArea = document.getElementById('multiAppThemeArea');
+            const cusArea = document.getElementById('multiCustomThemeArea');
+            if (mode === 'app') {
+                appBtn.style.background = '#4A90E2'; appBtn.style.color = 'white'; appBtn.style.borderColor = '#4A90E2';
+                cusBtn.style.background = 'white'; cusBtn.style.color = '#333'; cusBtn.style.borderColor = '#ddd';
+                appArea.style.display = 'block'; cusArea.style.display = 'none';
+            } else {
+                cusBtn.style.background = '#4A90E2'; cusBtn.style.color = 'white'; cusBtn.style.borderColor = '#4A90E2';
+                appBtn.style.background = 'white'; appBtn.style.color = '#333'; appBtn.style.borderColor = '#ddd';
+                appArea.style.display = 'none'; cusArea.style.display = 'block';
+                setTimeout(() => { document.getElementById('multiCustomThemeInput').focus(); }, 100);
+            }
+        }
+        
+        function multiRandomizeTheme() {
+            document.getElementById('multiThemeText').textContent = THEMES[Math.floor(Math.random() * THEMES.length)];
+            document.getElementById('multiThemeListDropdown').style.display = 'none';
+            document.getElementById('multiThemeArrow').textContent = '▼';
+        }
+        
+        function multiToggleThemeList() {
+            const dd = document.getElementById('multiThemeListDropdown');
+            const arrow = document.getElementById('multiThemeArrow');
+            if (dd.style.display === 'none') {
+                let html = '';
+                THEMES.forEach(t => {
+                    html += '<div onclick="multiSelectThemeItem(\'' + t.replace(/'/g, "\\'") + '\')" style="padding:12px 15px; cursor:pointer; border-bottom:1px solid #eee; font-size:14px; color:#333;" onmouseover="this.style.background=\'#F0F8FF\'" onmouseout="this.style.background=\'white\'">' + t + '</div>';
+                });
+                dd.innerHTML = html; dd.style.display = 'block'; arrow.textContent = '▲';
+            } else { dd.style.display = 'none'; arrow.textContent = '▼'; }
+        }
+        
+        function multiSelectThemeItem(theme) {
+            document.getElementById('multiThemeText').textContent = theme;
+            document.getElementById('multiThemeListDropdown').style.display = 'none';
+            document.getElementById('multiThemeArrow').textContent = '▼';
+        }
+        
+        async function multiStartGame() {
+            if (!multiCurrentRoom || multiCurrentRoom.role !== 'host') return;
+            let theme = '', themeMode = multiSelectedThemeMode;
+            if (themeMode === 'app') { theme = document.getElementById('multiThemeText').textContent; }
+            else { theme = document.getElementById('multiCustomThemeInput').value.trim(); if (!theme || theme.length < 3) { alert('❌ テーマを3文字以上で入力してください。'); return; } }
+            
+            try {
+                await database.ref('gameRooms/' + multiCurrentRoom.roomId).update({
+                    status: 'inputting', theme, themeMode, rankings: null, guesses: null, results: null, lastActivityAt: Date.now()
+                });
+            } catch (error) { alert('❌ ゲームの開始に失敗しました。'); }
+        }
+        
+        // ========================================
+        // multi：ランキング入力
+        // ========================================
+        
+        function multiShowGameInput(roomData) {
+            document.getElementById('multiGameTheme').textContent = roomData.theme;
+            multiUpdateInputProgress(roomData);
+            
+            const container = document.getElementById('multiGameRankingForm');
+            const items = Array.from(container.children);
+            items.sort((a, b) => (parseInt(a.getAttribute('data-rank')) || 0) - (parseInt(b.getAttribute('data-rank')) || 0));
+            items.forEach(item => container.appendChild(item));
+            
+            Array.from(container.children).forEach((item, i) => {
+                const input = item.querySelector('.rank-input');
+                if (input) { input.value = ''; input.disabled = false; input.style.background = ''; input.style.color = ''; }
+                const label = item.querySelector('.rank-label');
+                if (label) label.textContent = (i + 1) + '位';
+                const handle = item.querySelector('.drag-handle');
+                if (handle) handle.style.display = '';
+                item.setAttribute('data-rank', i + 1);
+            });
+            
+            const btn = document.getElementById('multiSubmitRankingButton');
+            btn.textContent = '💾 ランキングを送信'; btn.disabled = false; btn.style.background = ''; btn.style.opacity = '';
+            document.getElementById('multiCutoffInputButton').style.display = 'none';
+            
+            showScreen('multiGameInputScreen');
+            
+            if (multiGameInputSortable) { multiGameInputSortable.destroy(); multiGameInputSortable = null; }
+            multiGameInputSortable = new Sortable(container, {
+                animation: 150, delay: 50, delayOnTouchOnly: true, forceFallback: true, fallbackOnBody: true, swapThreshold: 0.65,
+                handle: '.drag-handle', ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen', dragClass: 'sortable-drag', fallbackClass: 'sortable-fallback',
+                onEnd: function() {
+                    Array.from(container.children).forEach((item, i) => {
+                        const l = item.querySelector('.rank-label'); if (l) l.textContent = (i + 1) + '位';
+                        const inp = item.querySelector('.rank-input'); if (inp) inp.placeholder = (i + 1) + '位を入力（50文字まで）';
+                        item.setAttribute('data-rank', i + 1);
+                    });
+                }
+            });
+            
+            if (roomData.rankings && roomData.rankings[userProfile.userId]) {
+                const my = roomData.rankings[userProfile.userId];
+                Array.from(container.children).forEach((item, i) => {
+                    const inp = item.querySelector('.rank-input');
+                    if (inp) { inp.value = my[(i + 1).toString()] || ''; inp.disabled = true; inp.style.background = '#f0f0f0'; inp.style.color = '#999'; }
+                    const h = item.querySelector('.drag-handle'); if (h) h.style.display = 'none';
+                });
+                if (multiGameInputSortable) multiGameInputSortable.option('disabled', true);
+                btn.textContent = '⏳ 他のメンバーの回答待ち...'; btn.disabled = true; btn.style.background = '#999'; btn.style.opacity = '0.6';
+            }
+            
+            setTimeout(() => { const f = container.children[0]?.querySelector('.rank-input'); if (f && !f.disabled) f.focus(); }, 100);
+        }
+        
+        function multiUpdateInputProgress(roomData) {
+            const players = roomData.players || {};
+            let html = '';
+            Object.keys(players).forEach(id => {
+                const name = id === userProfile.userId ? 'あなた' : players[id].displayName;
+                const done = roomData.rankings && roomData.rankings[id];
+                html += '<div style="display:flex; justify-content:space-between; align-items:center; margin:6px 0;">';
+                html += '<span style="color:#666; font-size:13px;">' + (done ? '✅' : '⏳') + ' ' + name + '</span>';
+                html += '<span style="color:' + (done ? '#50C878' : '#FF9800') + '; font-size:12px; font-weight:bold;">' + (done ? '入力完了' : '入力中...') + '</span>';
+                html += '</div>';
+            });
+            const el = document.getElementById('multiInputProgressContent');
+            if (el) el.innerHTML = html;
+        }
+        
+        async function multiSubmitRanking() {
+            if (!multiCurrentRoom) return;
+            const container = document.getElementById('multiGameRankingForm');
+            const rankingData = {};
+            for (let i = 0; i < container.children.length; i++) {
+                const inp = container.children[i].querySelector('.rank-input');
+                const val = inp ? inp.value.trim() : '';
+                if (!val) { alert((i + 1) + '位を入力してください！'); if (inp) inp.focus(); return; }
+                rankingData[(i + 1).toString()] = val;
+            }
+            try {
+                const ref = database.ref('gameRooms/' + multiCurrentRoom.roomId);
+                await ref.update({ ['rankings/' + userProfile.userId]: rankingData, ['players/' + userProfile.userId + '/status']: 'completed', lastActivityAt: Date.now() });
+                
+                const btn = document.getElementById('multiSubmitRankingButton');
+                btn.textContent = '⏳ 他のメンバーの回答待ち...'; btn.disabled = true; btn.style.background = '#999'; btn.style.opacity = '0.6';
+                Array.from(container.children).forEach(item => {
+                    const inp = item.querySelector('.rank-input'); if (inp) { inp.disabled = true; inp.style.background = '#f0f0f0'; inp.style.color = '#999'; }
+                    const h = item.querySelector('.drag-handle'); if (h) h.style.display = 'none';
+                });
+                if (multiGameInputSortable) multiGameInputSortable.option('disabled', true);
+                
+                // 全員完了チェック
+                const snap = await ref.once('value');
+                const d = snap.val();
+                const allPlayers = Object.keys(d.players || {});
+                if (allPlayers.every(id => d.rankings && d.rankings[id])) {
+                    await ref.update({ status: 'guessing', lastActivityAt: Date.now() });
+                }
+            } catch (error) { alert('❌ 送信エラー:\n' + error.message); }
+        }
+        
+        // ホスト用：回答を締め切る（入力フェーズ）
+        async function multiCutoffInput() {
+            if (!confirm('現時点での回答情報のみでゲームを進めますが、よろしいですか？\n（最後まで参加できなかったゲストの情報は反映されません。）')) return;
+            try {
+                const ref = database.ref('gameRooms/' + multiCurrentRoom.roomId);
+                const snap = await ref.once('value');
+                const d = snap.val();
+                // ランキング未提出のプレイヤーを削除
+                const allPlayers = Object.keys(d.players || {});
+                const updates = { status: 'guessing', lastActivityAt: Date.now() };
+                allPlayers.forEach(id => {
+                    if (!d.rankings || !d.rankings[id]) {
+                        updates['players/' + id] = null;
+                    }
+                });
+                await ref.update(updates);
+            } catch (error) { alert('❌ 締め切りエラー'); }
+        }
+        
+        // ========================================
+        // multi：予想フェーズ（N-1人分を順番に）
+        // ========================================
+        
+        function multiShowGuessScreen(roomData) {
+            document.getElementById('multiGuessTheme').textContent = roomData.theme;
+            document.getElementById('multiCutoffGuessButton').style.display = 'none';
+            
+            // 予想対象リスト（自分以外の全員）
+            const allPlayers = Object.keys(roomData.players || {});
+            multiGuessTargets = allPlayers.filter(id => id !== userProfile.userId);
+            multiCurrentGuessIndex = 0;
+            multiGuessData = {};
+            
+            // 既に送信済みの予想があれば復元
+            if (roomData.guesses && roomData.guesses[userProfile.userId]) {
+                multiGuessData = roomData.guesses[userProfile.userId];
+            }
+            
+            // タブを生成
+            multiBuildGuessTabs(roomData);
+            multiUpdateGuessProgress(roomData);
+            
+            showScreen('multiGuessScreen');
+            
+            // 最初の未完了ターゲットを表示
+            multiShowGuessForTarget(roomData);
+        }
+        
+        function multiBuildGuessTabs(roomData) {
+            const tabArea = document.getElementById('multiGuessTabArea');
+            let html = '';
+            multiGuessTargets.forEach((targetId, i) => {
+                const name = roomData.players[targetId]?.displayName || '---';
+                const isDone = multiGuessData[targetId] != null;
+                const isActive = i === multiCurrentGuessIndex;
+                const bg = isActive ? '#6C5CE7' : (isDone ? '#50C878' : 'white');
+                const color = (isActive || isDone) ? 'white' : '#333';
+                const border = isActive ? '#6C5CE7' : (isDone ? '#50C878' : '#ddd');
+                html += '<button onclick="multiSwitchGuessTarget(' + i + ')" style="flex-shrink:0; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:bold; border:2px solid ' + border + '; background:' + bg + '; color:' + color + '; cursor:pointer; white-space:nowrap;">';
+                html += (isDone ? '✅ ' : '') + name;
+                html += '</button>';
+            });
+            tabArea.innerHTML = html;
+        }
+        
+        function multiSwitchGuessTarget(index) {
+            if (!multiCurrentRoom) return;
+            // 現在のソート状態を保存（未送信の場合）
+            multiSaveCurrentGuessState();
+            multiCurrentGuessIndex = index;
+            multiShowGuessForTarget(multiCurrentRoom.data);
+        }
+        
+        function multiSaveCurrentGuessState() {
+            // 現在の予想UIから並び順を取得して一時保存
+            const container = document.getElementById('multiGuessRankingArea');
+            if (!container || container.children.length === 0) return;
+            const targetId = multiGuessTargets[multiCurrentGuessIndex];
+            if (!targetId) return;
+            
+            // 既にFirebaseに送信済みなら上書きしない
+            if (multiGuessData[targetId] && multiCurrentRoom.data.guesses && multiCurrentRoom.data.guesses[userProfile.userId] && multiCurrentRoom.data.guesses[userProfile.userId][targetId]) return;
+            
+            const items = Array.from(container.children).map(el => el.getAttribute('data-item'));
+            if (items.length === 5) {
+                const temp = {};
+                items.forEach((item, i) => { temp[(i + 1).toString()] = item; });
+                multiGuessData[targetId] = temp;
+            }
+        }
+        
+        function multiShowGuessForTarget(roomData) {
+            const targetId = multiGuessTargets[multiCurrentGuessIndex];
+            if (!targetId) return;
+            
+            const targetName = roomData.players[targetId]?.displayName || '---';
+            document.getElementById('multiGuessTargetName').textContent = targetName;
+            
+            // タブのアクティブ状態を更新
+            multiBuildGuessTabs(roomData);
+            
+            // 相手のランキング項目を取得
+            const targetRanking = roomData.rankings[targetId];
+            if (!targetRanking) { document.getElementById('multiGuessRankingArea').innerHTML = '<p style="color:#999; text-align:center;">この方のランキングはありません。</p>'; return; }
+            
+            let items = [];
+            for (let i = 1; i <= 5; i++) items.push(targetRanking[i.toString()]);
+            
+            // 既に一時保存されている並び順があれば復元、なければシャッフル
+            if (multiGuessData[targetId]) {
+                const saved = multiGuessData[targetId];
+                items = [];
+                for (let i = 1; i <= 5; i++) items.push(saved[i.toString()]);
+            } else {
+                for (let i = items.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [items[i], items[j]] = [items[j], items[i]];
+                }
+            }
+            
+            // UI生成
+            const container = document.getElementById('multiGuessRankingArea');
+            container.innerHTML = '';
+            if (multiGuessSortable) { multiGuessSortable.destroy(); multiGuessSortable = null; }
+            
+            const alreadySubmitted = multiCurrentRoom.data.guesses && multiCurrentRoom.data.guesses[userProfile.userId] && multiCurrentRoom.data.guesses[userProfile.userId][targetId];
+            
+            items.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'draggable-item'; div.setAttribute('data-item', item);
+                div.style.cssText = '-webkit-user-select:none; user-select:none;';
+                const rank = document.createElement('span'); rank.className = 'rank-number'; rank.textContent = (index + 1) + '位';
+                const text = document.createElement('span'); text.textContent = item; text.style.cssText = 'color:#333; font-size:15px; flex:1; padding:0 10px;';
+                const handle = document.createElement('span'); handle.className = 'drag-handle'; handle.textContent = '≡';
+                div.appendChild(rank); div.appendChild(text); div.appendChild(handle);
+                container.appendChild(div);
+            });
+            
+            multiGuessSortable = new Sortable(container, {
+                animation: 150, delay: 50, delayOnTouchOnly: true, forceFallback: true, fallbackOnBody: true, swapThreshold: 0.65,
+                handle: '.drag-handle', ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen', dragClass: 'sortable-drag', fallbackClass: 'sortable-fallback',
+                onChange: function() { multiUpdateGuessRankNums(); },
+                onEnd: function() { multiUpdateGuessRankNums(); }
+            });
+            
+            if (alreadySubmitted) {
+                setTimeout(() => {
+                    if (multiGuessSortable) multiGuessSortable.option('disabled', true);
+                    Array.from(container.children).forEach(item => { item.style.opacity = '0.6'; const h = item.querySelector('.drag-handle'); if (h) h.style.display = 'none'; });
+                }, 100);
+            }
+            
+            // NEXTボタンのラベルを更新
+            const nextBtn = document.querySelector('#multiGuessScreen .fixed-round-button-submit');
+            if (nextBtn) {
+                const allDone = multiGuessTargets.every(tid => multiGuessData[tid] != null);
+                nextBtn.textContent = (multiCurrentGuessIndex < multiGuessTargets.length - 1) ? 'NEXT' : (allDone ? 'SEND' : 'NEXT');
+            }
+        }
+        
+        function multiUpdateGuessRankNums() {
+            const container = document.getElementById('multiGuessRankingArea');
+            if (!container) return;
+            Array.from(container.children).forEach((item, i) => {
+                const r = item.querySelector('.rank-number'); if (r) r.textContent = (i + 1) + '位';
+            });
+        }
+        
+        function multiUpdateGuessProgress(roomData) {
+            const players = roomData.players || {};
+            let html = '';
+            Object.keys(players).forEach(id => {
+                const name = id === userProfile.userId ? 'あなた' : players[id].displayName;
+                const done = roomData.guesses && roomData.guesses[id];
+                html += '<div style="display:flex; justify-content:space-between; align-items:center; margin:6px 0;">';
+                html += '<span style="color:#666; font-size:13px;">' + (done ? '✅' : '🤔') + ' ' + name + '</span>';
+                html += '<span style="color:' + (done ? '#50C878' : '#FF9800') + '; font-size:12px; font-weight:bold;">' + (done ? '予想完了' : '予想中...') + '</span>';
+                html += '</div>';
+            });
+            const el = document.getElementById('multiGuessProgressContent');
+            if (el) el.innerHTML = html;
+        }
+        
+        // NEXT/SENDボタン
+        async function multiSubmitCurrentGuess() {
+            if (!multiCurrentRoom) return;
+            
+            // 現在の並び順を保存
+            multiSaveCurrentGuessState();
+            const targetId = multiGuessTargets[multiCurrentGuessIndex];
+            
+            // まだ全員分の予想が揃っていない場合は次のターゲットへ
+            const allTargetsDone = multiGuessTargets.every(tid => multiGuessData[tid] != null);
+            
+            if (!allTargetsDone) {
+                // 次の未完了ターゲットへ移動
+                for (let i = 0; i < multiGuessTargets.length; i++) {
+                    const nextIdx = (multiCurrentGuessIndex + 1 + i) % multiGuessTargets.length;
+                    if (!multiGuessData[multiGuessTargets[nextIdx]]) {
+                        multiCurrentGuessIndex = nextIdx;
+                        multiShowGuessForTarget(multiCurrentRoom.data);
+                        return;
+                    }
+                }
+                // ここには来ないはずだが、念のため
+                multiCurrentGuessIndex = (multiCurrentGuessIndex + 1) % multiGuessTargets.length;
+                multiShowGuessForTarget(multiCurrentRoom.data);
+                return;
+            }
+            
+            // 全員分揃ったので送信確認
+            let confirmMsg = '全員分の予想が完了しました。送信しますか？\n\n';
+            multiGuessTargets.forEach(tid => {
+                const name = multiCurrentRoom.data.players[tid]?.displayName || '---';
+                const g = multiGuessData[tid];
+                confirmMsg += '【' + name + 'さん】\n';
+                for (let r = 1; r <= 5; r++) confirmMsg += '  ' + r + '位: ' + (g[r.toString()] || '---') + '\n';
+                confirmMsg += '\n';
+            });
+            
+            if (!confirm(confirmMsg)) return;
+            
+            // Firebase送信
+            try {
+                const ref = database.ref('gameRooms/' + multiCurrentRoom.roomId);
+                const updates = { ['guesses/' + userProfile.userId]: multiGuessData, ['players/' + userProfile.userId + '/status']: 'guessed', lastActivityAt: Date.now() };
+                await ref.update(updates);
+                
+                // UIをロック
+                if (multiGuessSortable) multiGuessSortable.option('disabled', true);
+                const container = document.getElementById('multiGuessRankingArea');
+                Array.from(container.children).forEach(item => { item.style.opacity = '0.6'; const h = item.querySelector('.drag-handle'); if (h) h.style.display = 'none'; });
+                
+                // 全員完了チェック
+                const snap = await ref.once('value');
+                const d = snap.val();
+                const allPlayers = Object.keys(d.players || {});
+                if (allPlayers.every(id => d.guesses && d.guesses[id])) {
+                    const results = multiCalculateScores(d);
+                    await ref.update({ status: 'finished', results, finishedAt: new Date().toISOString(), lastActivityAt: Date.now() });
+                }
+            } catch (error) { alert('❌ 送信エラー:\n' + error.message); }
+        }
+        
+        // ホスト用：予想を締め切る
+        async function multiCutoffGuess() {
+            if (!confirm('現時点での回答情報のみでゲームを進めますが、よろしいですか？\n（最後まで参加できなかったゲストの情報は反映されません。）')) return;
+            try {
+                const ref = database.ref('gameRooms/' + multiCurrentRoom.roomId);
+                const snap = await ref.once('value');
+                const d = snap.val();
+                const allPlayers = Object.keys(d.players || {});
+                // 予想未提出のプレイヤーを除外
+                const updates = { lastActivityAt: Date.now() };
+                allPlayers.forEach(id => { if (!d.guesses || !d.guesses[id]) updates['players/' + id] = null; });
+                // スコア計算（残ったプレイヤーのみ）
+                const updatedSnap = await ref.update(updates).then(() => ref.once('value'));
+                const ud = (await ref.once('value')).val();
+                const results = multiCalculateScores(ud);
+                await ref.update({ status: 'finished', results, finishedAt: new Date().toISOString(), lastActivityAt: Date.now() });
+            } catch (error) { alert('❌ 締め切りエラー'); }
+        }
+        
+        // ========================================
+        // multi：スコア計算
+        // ========================================
+        
+        function multiCalculateScores(roomData) {
+            const rankings = roomData.rankings || {};
+            const guesses = roomData.guesses || {};
+            const players = Object.keys(roomData.players || {});
+            const results = { players: {}, pairs: {} };
+            
+            players.forEach(playerId => {
+                let totalScore = 0, totalPerfect = 0, totalClose = 0;
+                const targets = players.filter(id => id !== playerId);
+                
+                targets.forEach(targetId => {
+                    const correctRanking = rankings[targetId];
+                    const myGuess = guesses[playerId] ? guesses[playerId][targetId] : null;
+                    
+                    let score = 0, perfectCount = 0, closeCount = 0;
+                    
+                    if (correctRanking && myGuess) {
+                        for (let gRank = 1; gRank <= 5; gRank++) {
+                            const guessedItem = myGuess[gRank.toString()];
+                            let cRank = 0;
+                            for (let r = 1; r <= 5; r++) { if (correctRanking[r.toString()] === guessedItem) { cRank = r; break; } }
+                            if (cRank > 0) {
+                                const diff = Math.abs(gRank - cRank);
+                                if (diff === 0) { score += 2; perfectCount++; }
+                                else if (diff === 1) { score += 1; closeCount++; }
+                            }
+                        }
+                    }
+                    
+                    totalScore += score; totalPerfect += perfectCount; totalClose += closeCount;
+                    
+                    // ペア結果を保存
+                    const pairKey = playerId + '_' + targetId;
+                    results.pairs[pairKey] = { guesserId: playerId, targetId: targetId, score, perfectCount, closeCount };
+                });
+                
+                results.players[playerId] = { totalScore, totalPerfect, totalClose, targetCount: targets.length };
+            });
+            
+            return results;
+        }
+        
+        // ========================================
+        // multi：結果画面
+        // ========================================
+        
+        function multiShowResultScreen(roomData) {
+            // タブにターゲット別ボタンを追加
+            const tabArea = document.getElementById('multiResultTabArea');
+            // 固定タブ（総合・あなた）はHTMLにあるので、ターゲット別を追加
+            const existingDynamic = tabArea.querySelectorAll('.multi-result-tab-dynamic');
+            existingDynamic.forEach(el => el.remove());
+            
+            const players = Object.keys(roomData.players || {});
+            players.forEach(targetId => {
+                const name = targetId === userProfile.userId ? 'あなた' : roomData.players[targetId]?.displayName || '---';
+                const btn = document.createElement('button');
+                btn.className = 'multi-result-tab-dynamic';
+                btn.onclick = function() { multiShowResultTab('target_' + targetId); };
+                btn.style.cssText = 'flex-shrink:0; padding:8px 14px; border-radius:20px; font-size:13px; font-weight:bold; border:2px solid #ddd; background:white; color:#333; cursor:pointer; white-space:nowrap;';
+                btn.textContent = '🎯 ' + name;
+                btn.id = 'multiResultTab_target_' + targetId;
+                tabArea.appendChild(btn);
+            });
+            
+            // ホスト用：待機室へ戻るボタン
+            const backBtn = document.getElementById('multiBackToRoomButton');
+            backBtn.style.display = (multiCurrentRoom && multiCurrentRoom.role === 'host') ? 'block' : 'none';
+            
+            // 総合タブを表示
+            multiShowResultTab('summary');
+            showScreen('multiResultScreen');
+        }
+        
+        function multiShowResultTab(tabName) {
+            if (!multiCurrentRoom) return;
+            const roomData = multiCurrentRoom.data;
+            const results = roomData.results || {};
+            const players = Object.keys(roomData.players || {});
+            
+            // タブのアクティブ切り替え
+            document.querySelectorAll('#multiResultTabArea button').forEach(btn => {
+                btn.style.background = 'white'; btn.style.color = '#333'; btn.style.borderColor = '#ddd';
+            });
+            const activeTabBtn = document.getElementById('multiResultTab' + tabName.charAt(0).toUpperCase() + tabName.slice(1))
+                || document.getElementById('multiResultTab_' + tabName);
+            if (activeTabBtn) { activeTabBtn.style.background = '#6C5CE7'; activeTabBtn.style.color = 'white'; activeTabBtn.style.borderColor = '#6C5CE7'; }
+            
+            let html = '';
+            
+            if (tabName === 'summary') {
+                // === 総合タブ ===
+                // 1. 個人ランキング
+                const sorted = players.map(id => ({
+                    id, name: roomData.players[id]?.displayName || '---',
+                    ...(results.players[id] || { totalScore: 0, totalPerfect: 0, totalClose: 0, targetCount: 0 })
+                })).sort((a, b) => b.totalScore - a.totalScore);
+                
+                const maxPossible = sorted[0]?.targetCount ? sorted[0].targetCount * 10 : 10;
+                
+                html += '<div style="background:#f0edff; border-radius:12px; padding:20px; margin-bottom:20px;">';
+                html += '<h3 style="color:#6C5CE7; font-size:16px; margin-bottom:15px; text-align:center;">🏆 みんなの理解力ランキング</h3>';
+                sorted.forEach((p, i) => {
+                    const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1) + '位'));
+                    const isMe = p.id === userProfile.userId;
+                    html += '<div style="display:flex; align-items:center; padding:12px; background:' + (isMe ? '#e8e4ff' : 'white') + '; border-radius:8px; margin-bottom:6px;">';
+                    html += '<span style="font-size:20px; margin-right:12px; min-width:32px; text-align:center;">' + medal + '</span>';
+                    html += '<span style="flex:1; font-size:14px; color:#333; font-weight:' + (isMe ? 'bold' : 'normal') + ';">' + p.name + (isMe ? '（あなた）' : '') + '</span>';
+                    html += '<span style="font-size:18px; font-weight:bold; color:#6C5CE7;">' + p.totalScore + '<span style="font-size:12px; color:#999;">/' + maxPossible + 'pt</span></span>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                
+                // 2. 全体平均
+                const avgScore = sorted.length > 0 ? (sorted.reduce((s, p) => s + p.totalScore, 0) / sorted.length) : 0;
+                const avgPct = maxPossible > 0 ? Math.round((avgScore / maxPossible) * 100) : 0;
+                let avgEmoji, avgMsg;
+                if (avgPct >= 90) { avgEmoji = '🎉'; avgMsg = '最高のチームワーク！'; }
+                else if (avgPct >= 75) { avgEmoji = '😊'; avgMsg = 'よく分かり合えてる！'; }
+                else if (avgPct >= 60) { avgEmoji = '👍'; avgMsg = 'いい感じ！もっと話そう！'; }
+                else if (avgPct >= 40) { avgEmoji = '🤔'; avgMsg = '伸びしろたっぷり！'; }
+                else { avgEmoji = '💪'; avgMsg = '次はもっと仲良くなれるはず！'; }
+                
+                html += '<div style="background:#F0FFF4; border-radius:12px; padding:20px; margin-bottom:20px; text-align:center;">';
+                html += '<h3 style="color:#50C878; font-size:16px; margin-bottom:10px;">🤝 みんなの平均</h3>';
+                html += '<p style="font-size:40px; margin-bottom:5px;">' + avgEmoji + '</p>';
+                html += '<p style="color:#50C878; font-size:28px; font-weight:bold;">' + avgScore.toFixed(1) + '<span style="font-size:14px; color:#999;">/' + maxPossible + 'pt</span></p>';
+                html += '<p style="color:#666; font-size:14px; margin-top:5px;">理解度 ' + avgPct + '% — ' + avgMsg + '</p>';
+                html += '</div>';
+                
+            } else if (tabName === 'mine') {
+                // === あなたタブ ===
+                const myId = userProfile.userId;
+                const myResult = results.players[myId] || { totalScore: 0, totalPerfect: 0, totalClose: 0, targetCount: 0 };
+                const maxPt = myResult.targetCount * 10;
+                
+                html += '<div style="background:#f0edff; border-radius:12px; padding:20px; margin-bottom:20px; text-align:center;">';
+                html += '<h3 style="color:#6C5CE7; font-size:16px; margin-bottom:10px;">📊 あなたの成績</h3>';
+                html += '<p style="color:#6C5CE7; font-size:36px; font-weight:bold;">' + myResult.totalScore + '<span style="font-size:14px; color:#999;">/' + maxPt + 'pt</span></p>';
+                html += '<p style="color:#999; font-size:12px;">あたり！×' + myResult.totalPerfect + ' おしい！×' + myResult.totalClose + '</p>';
+                html += '</div>';
+                
+                // ターゲット別の内訳
+                const targets = players.filter(id => id !== myId);
+                targets.forEach(targetId => {
+                    const tName = roomData.players[targetId]?.displayName || '---';
+                    const pairKey = myId + '_' + targetId;
+                    const pair = results.pairs[pairKey] || { score: 0, perfectCount: 0, closeCount: 0 };
+                    
+                    html += '<div style="background:#F5F5F5; border-radius:10px; padding:15px; margin-bottom:10px;">';
+                    html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">';
+                    html += '<span style="color:#333; font-size:14px; font-weight:bold;">🎯 ' + tName + 'さん</span>';
+                    html += '<span style="color:#6C5CE7; font-size:16px; font-weight:bold;">' + pair.score + '/10pt</span>';
+                    html += '</div>';
+                    
+                    // 答え合わせテーブル
+                    html += multiBuildCompactTable(roomData.rankings[targetId], roomData.guesses[myId]?.[targetId]);
+                    html += '</div>';
+                });
+                
+            } else if (tabName.startsWith('target_')) {
+                // === 特定ターゲットタブ ===
+                const targetId = tabName.replace('target_', '');
+                const tName = targetId === userProfile.userId ? 'あなた' : (roomData.players[targetId]?.displayName || '---');
+                
+                html += '<div style="background:#f0edff; border-radius:12px; padding:15px; margin-bottom:15px; text-align:center;">';
+                html += '<h3 style="color:#6C5CE7; font-size:16px;">🎯 ' + tName + 'さんの理解者ランキング</h3>';
+                html += '</div>';
+                
+                // このターゲットに対する各プレイヤーのスコアを表示
+                const guessers = players.filter(id => id !== targetId);
+                const guesserScores = guessers.map(gId => {
+                    const pKey = gId + '_' + targetId;
+                    const pair = results.pairs[pKey] || { score: 0, perfectCount: 0, closeCount: 0 };
+                    return { id: gId, name: roomData.players[gId]?.displayName || '---', ...pair };
+                }).sort((a, b) => b.score - a.score);
+                
+                guesserScores.forEach((g, i) => {
+                    const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1) + '位'));
+                    const isMe = g.id === userProfile.userId;
+                    html += '<div style="background:' + (isMe ? '#e8e4ff' : '#F5F5F5') + '; border-radius:10px; padding:12px; margin-bottom:8px;">';
+                    html += '<div style="display:flex; align-items:center; margin-bottom:8px;">';
+                    html += '<span style="font-size:18px; margin-right:10px;">' + medal + '</span>';
+                    html += '<span style="flex:1; font-size:14px; color:#333; font-weight:' + (isMe ? 'bold' : 'normal') + ';">' + g.name + (isMe ? '（あなた）' : '') + '</span>';
+                    html += '<span style="font-size:16px; font-weight:bold; color:#6C5CE7;">' + g.score + '/10pt</span>';
+                    html += '</div>';
+                    
+                    // 答え合わせ
+                    html += multiBuildCompactTable(roomData.rankings[targetId], roomData.guesses[g.id]?.[targetId]);
+                    html += '</div>';
+                });
+            }
+            
+            document.getElementById('multiResultContent').innerHTML = html;
+        }
+        
+        // コンパクトな答え合わせテーブル
+        function multiBuildCompactTable(correctRanking, guessData) {
+            if (!correctRanking || !guessData) return '<p style="color:#999; font-size:12px;">データなし</p>';
+            let html = '<div style="font-size:12px;">';
+            for (let cRank = 1; cRank <= 5; cRank++) {
+                const item = correctRanking[cRank.toString()];
+                let gRank = 0;
+                for (let r = 1; r <= 5; r++) { if (guessData[r.toString()] === item) { gRank = r; break; } }
+                let icon = '×', bg = 'transparent', pt = 0;
+                if (gRank > 0) {
+                    const diff = Math.abs(gRank - cRank);
+                    if (diff === 0) { icon = '○'; bg = '#F0FFF4'; pt = 2; }
+                    else if (diff === 1) { icon = '△'; bg = '#FFF8F0'; pt = 1; }
+                }
+                html += '<div style="display:grid; grid-template-columns:30px 2fr 40px 25px 30px; gap:4px; padding:6px; border-radius:4px; background:' + bg + '; align-items:center;">';
+                html += '<div style="text-align:center; color:#666;">' + cRank + '位</div>';
+                html += '<div style="color:#333; word-break:break-word;">' + item + '</div>';
+                html += '<div style="text-align:center; color:#666;">' + (gRank > 0 ? gRank + '位' : '-') + '</div>';
+                html += '<div style="text-align:center;">' + icon + '</div>';
+                html += '<div style="text-align:center; color:' + (pt > 0 ? '#50C878' : '#999') + ';">' + pt + 'pt</div>';
+                html += '</div>';
+            }
+            html += '</div>';
+            return html;
+        }
+        
+        // ========================================
+        // multi：待機室へ戻る
+        // ========================================
+        
+        async function multiBackToRoom() {
+            if (!multiCurrentRoom || multiCurrentRoom.role !== 'host') return;
+            try {
+                const ref = database.ref('gameRooms/' + multiCurrentRoom.roomId);
+                await ref.update({
+                    status: 'waiting', theme: null, themeMode: null,
+                    rankings: null, guesses: null, results: null, finishedAt: null,
+                    lastActivityAt: Date.now()
+                });
+                // プレイヤーのstatusもリセット
+                const players = Object.keys(multiCurrentRoom.data.players || {});
+                const updates = {};
+                players.forEach(id => { updates['players/' + id + '/status'] = 'waiting'; });
+                await ref.update(updates);
+            } catch (error) { alert('❌ エラーが発生しました。'); }
         }
     </script>
 </body>
