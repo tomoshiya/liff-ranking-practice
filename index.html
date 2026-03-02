@@ -45,18 +45,26 @@
         
         <!-- メイン画面 -->
         <div id="mainScreen" class="screen">
-            <!-- ふたりであそぶ -->
+            <!-- 端末1つでランクエ -->
+            <div style="margin-bottom: 20px;">
+                <button onclick="showLocalSetup()" style="background: linear-gradient(135deg, #F97316, #FBBF24); font-size: 17px; padding: 18px 20px;">
+                    📱 端末1つでランクエ
+                </button>
+                <p style="color: #999; font-size: 11px; margin-top: 5px; text-align: center;">1台のスマホをまわして遊べます</p>
+            </div>
+            
+            <!-- ふたりでランクエ -->
             <div style="margin-bottom: 20px;">
                 <button onclick="showBetaRoleSelect()" style="background: linear-gradient(135deg, #11998e, #38ef7d); font-size: 17px; padding: 18px 20px;">
-                    🏠 ふたりであそぶ
+                    👫 ふたりでランクエ
                 </button>
                 <p style="color: #999; font-size: 11px; margin-top: 5px; text-align: center;">ふたり用のゲームモードです</p>
             </div>
             
-            <!-- みんなであそぶ -->
+            <!-- みんなでランクエ -->
             <div style="margin-bottom: 20px;">
                 <button onclick="showMultiRoleSelect()" style="background: linear-gradient(135deg, #6C5CE7, #a29bfe); font-size: 17px; padding: 18px 20px;">
-                    👥 みんなであそぶ
+                    👥 みんなでランクエ
                 </button>
                 <p style="color: #999; font-size: 11px; margin-top: 5px; text-align: center;">3人以上用のゲームモードです</p>
             </div>
@@ -1271,6 +1279,226 @@
             <button onclick="showScreen('betaRoleSelectScreen')" class="fixed-round-button fixed-round-button-home">
                 戻る
             </button>
+        </div>
+        
+        <!-- ========================================
+             local用：端末1つでランクエ
+             Firebase不使用・メモリ内で完結
+             ======================================== -->
+        
+        <!-- local用：プレイヤー設定画面 -->
+        <div id="localSetupScreen" class="screen">
+            <h2 style="color: #F97316; margin-bottom: 10px;">📱 端末1つでランクエ</h2>
+            <p style="color: #666; font-size: 13px; text-align: center; margin-bottom: 20px; line-height: 1.6;">
+                1台の端末をまわして遊びます。<br>参加するメンバーのニックネームを入力してください。
+            </p>
+            
+            <div style="background: #FFF7ED; border: 2px solid #F97316; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                <p style="color: #F97316; font-weight: bold; font-size: 14px; margin-bottom: 12px;">👥 プレイヤー（<span id="localPlayerCount">2</span>人）</p>
+                <div id="localPlayerFields">
+                    <div class="local-player-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="color: #F97316; font-weight: bold; font-size: 13px; min-width: 24px;">1.</span>
+                        <input type="text" class="local-player-input" placeholder="ニックネーム" maxlength="20" style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='#F97316'" onblur="this.style.borderColor='#e0e0e0'" />
+                    </div>
+                    <div class="local-player-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="color: #F97316; font-weight: bold; font-size: 13px; min-width: 24px;">2.</span>
+                        <input type="text" class="local-player-input" placeholder="ニックネーム" maxlength="20" style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='#F97316'" onblur="this.style.borderColor='#e0e0e0'" />
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <button onclick="localAddPlayerField()" id="localAddBtn" style="flex: 1; background: #FFF7ED; color: #F97316; border: 2px dashed #F97316; font-size: 14px; padding: 10px; border-radius: 8px; width: auto; margin: 0;">
+                        ＋ メンバーを追加
+                    </button>
+                    <button onclick="localRemovePlayerField()" id="localRemoveBtn" style="background: #fff; color: #999; border: 2px solid #ddd; font-size: 14px; padding: 10px; border-radius: 8px; width: auto; margin: 0; display: none;">
+                        － 削除
+                    </button>
+                </div>
+            </div>
+            
+            <button onclick="localStartGame()" style="
+                background: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
+                color: white; padding: 16px; width: 100%; border: none; border-radius: 12px;
+                font-size: 17px; font-weight: bold; cursor: pointer;
+                box-shadow: 0 4px 15px rgba(249,115,22,0.3); margin-bottom: 80px;
+            ">
+                🎮 ゲームを始める
+            </button>
+            <button onclick="showScreen('mainScreen')" class="fixed-round-button fixed-round-button-home">HOME</button>
+        </div>
+        
+        <!-- local用：テーマ設定画面 -->
+        <div id="localThemeScreen" class="screen">
+            <h2 style="color: #F97316; margin-bottom: 10px;">🎮 テーマ設定</h2>
+            <p style="color: #666; font-size: 13px; text-align: center; margin-bottom: 20px;">
+                みんなで相談してテーマを決めてください。
+            </p>
+            
+            <div style="background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                <p style="color: #4A90E2; font-weight: bold; font-size: 14px; margin-bottom: 10px; text-align: center;">テーマ設定</p>
+                <button id="localThemeModeApp" onclick="localSelectThemeMode('app')" style="
+                    background: white; color: #333; border: 2px solid #ddd; font-size: 15px; padding: 14px; margin-bottom: 8px; width: 100%; border-radius: 10px; transition: all 0.2s;">
+                    📋 アプリ内のテーマで遊ぶ
+                </button>
+                <button id="localThemeModeCustom" onclick="localSelectThemeMode('custom')" style="
+                    background: white; color: #333; border: 2px solid #ddd; font-size: 15px; padding: 14px; width: 100%; border-radius: 10px; transition: all 0.2s;">
+                    ✏️ オリジナルのテーマで遊ぶ
+                </button>
+            </div>
+            
+            <div id="localAppThemeArea" style="background: #fff; border: 2px solid #4A90E2; border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                <p style="color: #4A90E2; font-weight: bold; font-size: 14px; margin-bottom: 10px;">テーマ</p>
+                <div style="position: relative; display: flex; align-items: center; gap: 6px;">
+                    <div onclick="localToggleThemeList()" style="background: #F0F8FF; border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; cursor: pointer; display: flex; align-items: center; min-height: 24px; flex: 1;">
+                        <span id="localThemeArrow" style="color: #4A90E2; font-size: 12px; margin-right: 10px; flex-shrink: 0;">▼</span>
+                        <span id="localThemeText" style="color: #333; font-size: 15px; flex: 1;">好きな食べ物・料理TOP5</span>
+                    </div>
+                    <button onclick="localRandomizeTheme()" style="
+                        background: #4A90E2; border: none; color: white; width: 36px; height: 36px; border-radius: 8px;
+                        display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+                        box-shadow: 0 2px 8px rgba(74,144,226,0.3); font-size: 22px; line-height: 1;
+                    ">&#x21bb;</button>
+                    <div id="localThemeListDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 44px; z-index: 10; background: white; border: 2px solid #4A90E2; border-radius: 8px; margin-top: 4px; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></div>
+                </div>
+            </div>
+            
+            <div id="localCustomThemeArea" style="display: none; background: #fff; border: 2px solid #4A90E2; border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                <p style="color: #4A90E2; font-weight: bold; font-size: 14px; margin-bottom: 10px;">テーマ</p>
+                <input type="text" id="localCustomThemeInput" placeholder="例：わたしの好きな音楽TOP5" maxlength="50"
+                    style="width: 100%; padding: 15px; border: 2px solid #4A90E2; border-radius: 8px; font-size: 16px; box-sizing: border-box; outline: none;" />
+                <p style="color: #999; font-size: 12px; margin-top: 8px; text-align: right;"><span id="localCustomThemeCount">0</span> / 50文字</p>
+            </div>
+            
+            <button onclick="localStartInputPhase()" style="
+                background: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
+                color: white; padding: 18px; width: 100%; border: none; border-radius: 12px;
+                font-size: 18px; font-weight: bold; box-shadow: 0 4px 15px rgba(249,115,22,0.3);
+                cursor: pointer; margin-bottom: 80px;">
+                🚀 このテーマで始める
+            </button>
+            <button onclick="showScreen('localSetupScreen')" class="fixed-round-button fixed-round-button-home">戻る</button>
+        </div>
+        
+        <!-- local用：端末受け渡し画面 -->
+        <div id="localHandoffScreen" class="screen">
+            <div style="text-align: center; padding: 60px 20px;">
+                <p style="font-size: 56px; margin-bottom: 20px;" id="localHandoffIcon">📱</p>
+                <p style="color: #F97316; font-size: 22px; font-weight: bold; margin-bottom: 10px;">
+                    次は <span id="localHandoffName" style="color: #333;">---</span> さんの番です
+                </p>
+                <p style="color: #666; font-size: 14px; line-height: 1.8; margin-bottom: 40px;">
+                    端末を渡して<br><span id="localHandoffName2" style="font-weight: bold;">---</span> さんがボタンを押してください
+                </p>
+                <button id="localHandoffButton" onclick="localHandoffProceed()" style="
+                    background: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
+                    color: white; padding: 18px; width: 100%; border: none; border-radius: 12px;
+                    font-size: 18px; font-weight: bold; cursor: pointer;
+                    box-shadow: 0 4px 15px rgba(249,115,22,0.3);
+                ">
+                    ✏️ 回答を入力する
+                </button>
+            </div>
+        </div>
+        
+        <!-- local用：ランキング入力画面 -->
+        <div id="localInputScreen" class="screen">
+            <h2 style="color: #F97316; margin-bottom: 10px;">✏️ ランキング入力</h2>
+            <p style="color: #F97316; font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 15px;">
+                <span id="localInputPlayerName">---</span> さんの番
+            </p>
+            
+            <div class="theme-box" style="border-color: #F97316;">
+                <h2 style="color: #F97316;">📌 今回のテーマ</h2>
+                <p class="theme-text" id="localInputTheme">---</p>
+            </div>
+            
+            <div class="ranking-form" id="localRankingForm">
+                <div class="rank-item draggable-item" data-rank="1"><div class="rank-label">1位</div><input type="text" class="rank-input" placeholder="1位を入力（50文字まで）" maxlength="50"><span class="drag-handle">≡</span></div>
+                <div class="rank-item draggable-item" data-rank="2"><div class="rank-label">2位</div><input type="text" class="rank-input" placeholder="2位を入力（50文字まで）" maxlength="50"><span class="drag-handle">≡</span></div>
+                <div class="rank-item draggable-item" data-rank="3"><div class="rank-label">3位</div><input type="text" class="rank-input" placeholder="3位を入力（50文字まで）" maxlength="50"><span class="drag-handle">≡</span></div>
+                <div class="rank-item draggable-item" data-rank="4"><div class="rank-label">4位</div><input type="text" class="rank-input" placeholder="4位を入力（50文字まで）" maxlength="50"><span class="drag-handle">≡</span></div>
+                <div class="rank-item draggable-item" data-rank="5"><div class="rank-label">5位</div><input type="text" class="rank-input" placeholder="5位を入力（50文字まで）" maxlength="50"><span class="drag-handle">≡</span></div>
+            </div>
+            
+            <button onclick="localSubmitRanking()" style="
+                background: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
+                color: white; padding: 16px; width: 100%; border: none; border-radius: 12px;
+                font-size: 17px; font-weight: bold; cursor: pointer; margin-bottom: 80px;
+                box-shadow: 0 4px 15px rgba(249,115,22,0.3);
+            ">
+                💾 入力完了
+            </button>
+            <button onclick="showScreen('mainScreen')" class="fixed-round-button fixed-round-button-home">HOME</button>
+        </div>
+        
+        <!-- local用：予想画面 -->
+        <div id="localGuessScreen" class="screen">
+            <h2 style="color: #F97316; margin-bottom: 10px;">🤔 ランキングを予想</h2>
+            <p style="color: #F97316; font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 15px;">
+                <span id="localGuessPlayerName">---</span> さんの番
+            </p>
+            
+            <div class="theme-box" style="border-color: #F97316; margin-bottom: 15px;">
+                <h2 style="color: #F97316;">📌 テーマ</h2>
+                <p class="theme-text" id="localGuessTheme">---</p>
+            </div>
+            
+            <!-- 予想対象タブ -->
+            <div id="localGuessTabArea" style="display: flex; gap: 8px; overflow-x: auto; padding: 8px 2px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+            </div>
+            
+            <div style="background: #FFF7ED; border: 2px solid #F97316; border-radius: 10px; padding: 12px; margin-bottom: 15px;">
+                <p style="color: #666; font-size: 14px; line-height: 1.6; text-align: center;">
+                    ランキングを正しい順番に並べてください
+                </p>
+            </div>
+            
+            <div id="localGuessRankingArea" style="margin: 15px 0;">
+            </div>
+            
+            <button id="localSubmitGuessButton" onclick="localSubmitGuess()" style="
+                background: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
+                color: white; padding: 16px; width: 100%; border: none; border-radius: 12px;
+                font-size: 17px; font-weight: bold; cursor: pointer; margin-bottom: 10px;
+                box-shadow: 0 4px 15px rgba(249,115,22,0.3);
+            ">
+                📤 全員分の予想を送信
+            </button>
+            <div style="height: 70px;"></div>
+            <button onclick="showScreen('mainScreen')" class="fixed-round-button fixed-round-button-home">HOME</button>
+        </div>
+        
+        <!-- local用：結果画面 -->
+        <div id="localResultScreen" class="screen" style="padding-bottom: 40px;">
+            <h2 style="color: #F97316; margin-bottom: 15px;">🎉 結果発表</h2>
+            
+            <div id="localResultRanking" style="margin-bottom: 20px;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #F97316; font-size: 16px; margin-bottom: 10px; text-align: center;">🎯 ひとりずつの正解＆結果</h3>
+                <div id="localResultPersonTabs" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 15px;">
+                </div>
+                <div id="localResultPersonContent" style="margin-bottom: 15px;">
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <button onclick="localPlayAgain()" style="
+                    background: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
+                    color: white; padding: 16px; width: 100%; border: none; border-radius: 12px;
+                    font-size: 17px; font-weight: bold; cursor: pointer;
+                    box-shadow: 0 4px 15px rgba(249,115,22,0.3); margin-bottom: 10px;
+                ">
+                    🔄 もう一度遊ぶ
+                </button>
+                <button onclick="localBackToSetup()" style="
+                    background: #999; color: white; padding: 14px; width: 100%; border: none; border-radius: 12px;
+                    font-size: 15px; font-weight: bold; cursor: pointer;
+                ">
+                    👥 メンバーを変更する
+                </button>
+            </div>
+            <button onclick="showScreen('mainScreen')" class="fixed-round-button fixed-round-button-home">HOME</button>
         </div>
         
     </div>
@@ -4029,6 +4257,25 @@
             const multiContainer = document.getElementById('multiGameRankingForm');
             if (multiContainer) {
                 multiContainer.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' && event.target.classList.contains('rank-input')) {
+                        event.preventDefault();
+                        const currentItem = event.target.closest('.rank-item');
+                        if (!currentItem) return;
+                        const nextItem = currentItem.nextElementSibling;
+                        if (nextItem) {
+                            const nextInput = nextItem.querySelector('.rank-input');
+                            if (nextInput) nextInput.focus();
+                        } else {
+                            event.target.blur();
+                        }
+                    }
+                });
+            }
+            
+            // local用ゲーム入力（DOM順序ベース）
+            const localContainer = document.getElementById('localRankingForm');
+            if (localContainer) {
+                localContainer.addEventListener('keydown', function(event) {
                     if (event.key === 'Enter' && event.target.classList.contains('rank-input')) {
                         event.preventDefault();
                         const currentItem = event.target.closest('.rank-item');
@@ -6909,6 +7156,565 @@
                     }
                 } catch (e) { console.error('🤖 ダミー予想送信エラー:', e); }
             }, 2000 + Math.random() * 3000);
+        }
+        // ========================================
+        // local用：端末1つでランクエ（Firebase不使用）
+        // ========================================
+        
+        let localGameData = null;
+        let localSelectedThemeMode = 'app';
+        let localInputSortable = null;
+        let localGuessSortable = null;
+        let localGuessTargets = [];
+        let localCurrentGuessIndex = 0;
+        let localGuessDataTemp = {};
+        
+        // ========================================
+        // local：プレイヤー設定
+        // ========================================
+        
+        function showLocalSetup() {
+            showScreen('localSetupScreen');
+        }
+        
+        function localAddPlayerField() {
+            const container = document.getElementById('localPlayerFields');
+            const count = container.children.length;
+            if (count >= 8) { alert('最大8人までです。'); return; }
+            
+            const row = document.createElement('div');
+            row.className = 'local-player-row';
+            row.style.cssText = 'display: flex; align-items: center; gap: 8px; margin-bottom: 8px;';
+            row.innerHTML = '<span style="color: #F97316; font-weight: bold; font-size: 13px; min-width: 24px;">' + (count + 1) + '.</span>' +
+                '<input type="text" class="local-player-input" placeholder="ニックネーム" maxlength="20" style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;" onfocus="this.style.borderColor=\'#F97316\'" onblur="this.style.borderColor=\'#e0e0e0\'" />';
+            container.appendChild(row);
+            localUpdatePlayerCount();
+        }
+        
+        function localRemovePlayerField() {
+            const container = document.getElementById('localPlayerFields');
+            if (container.children.length <= 2) return;
+            container.removeChild(container.lastElementChild);
+            localUpdatePlayerCount();
+        }
+        
+        function localUpdatePlayerCount() {
+            const count = document.getElementById('localPlayerFields').children.length;
+            document.getElementById('localPlayerCount').textContent = count;
+            document.getElementById('localRemoveBtn').style.display = count > 2 ? 'block' : 'none';
+            document.getElementById('localAddBtn').style.display = count >= 8 ? 'none' : 'block';
+        }
+        
+        function localStartGame() {
+            const inputs = document.querySelectorAll('#localPlayerFields .local-player-input');
+            const players = [];
+            for (let i = 0; i < inputs.length; i++) {
+                const name = inputs[i].value.trim();
+                if (!name) { alert((i + 1) + '人目のニックネームを入力してください。'); inputs[i].focus(); return; }
+                players.push({ id: i, name: name });
+            }
+            
+            localGameData = {
+                players: players,
+                theme: '',
+                rankings: {},
+                guesses: {},
+                currentPhase: 'setup',
+                currentPlayerIndex: 0,
+                results: null
+            };
+            
+            // テーマ画面を初期化して表示
+            localSelectThemeMode('app');
+            localRandomizeTheme();
+            const ci = document.getElementById('localCustomThemeInput');
+            ci.value = '';
+            document.getElementById('localCustomThemeCount').textContent = '0';
+            ci.oninput = function() { document.getElementById('localCustomThemeCount').textContent = this.value.length; };
+            showScreen('localThemeScreen');
+        }
+        
+        // ========================================
+        // local：テーマ選択
+        // ========================================
+        
+        function localSelectThemeMode(mode) {
+            localSelectedThemeMode = mode;
+            const appBtn = document.getElementById('localThemeModeApp');
+            const cusBtn = document.getElementById('localThemeModeCustom');
+            const appArea = document.getElementById('localAppThemeArea');
+            const cusArea = document.getElementById('localCustomThemeArea');
+            if (mode === 'app') {
+                appBtn.style.background = '#4A90E2'; appBtn.style.color = 'white'; appBtn.style.borderColor = '#4A90E2';
+                cusBtn.style.background = 'white'; cusBtn.style.color = '#333'; cusBtn.style.borderColor = '#ddd';
+                appArea.style.display = 'block'; cusArea.style.display = 'none';
+            } else {
+                cusBtn.style.background = '#4A90E2'; cusBtn.style.color = 'white'; cusBtn.style.borderColor = '#4A90E2';
+                appBtn.style.background = 'white'; appBtn.style.color = '#333'; appBtn.style.borderColor = '#ddd';
+                appArea.style.display = 'none'; cusArea.style.display = 'block';
+            }
+        }
+        
+        function localRandomizeTheme() {
+            const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+            document.getElementById('localThemeText').textContent = theme;
+            document.getElementById('localThemeListDropdown').style.display = 'none';
+            document.getElementById('localThemeArrow').textContent = '▼';
+        }
+        
+        function localToggleThemeList() {
+            const dropdown = document.getElementById('localThemeListDropdown');
+            const arrow = document.getElementById('localThemeArrow');
+            if (dropdown.style.display === 'none') {
+                let html = '';
+                THEMES.forEach((theme) => {
+                    html += '<div onclick="localSelectThemeItem(\'' + theme.replace(/'/g, "\\'") + '\')" style="padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 14px; color: #333; transition: background 0.15s;" onmouseover="this.style.background=\'#FFF7ED\'" onmouseout="this.style.background=\'white\'">' + theme + '</div>';
+                });
+                dropdown.innerHTML = html;
+                dropdown.style.display = 'block';
+                arrow.textContent = '▲';
+            } else {
+                dropdown.style.display = 'none';
+                arrow.textContent = '▼';
+            }
+        }
+        
+        function localSelectThemeItem(theme) {
+            document.getElementById('localThemeText').textContent = theme;
+            document.getElementById('localThemeListDropdown').style.display = 'none';
+            document.getElementById('localThemeArrow').textContent = '▼';
+        }
+        
+        // ========================================
+        // local：回答フェーズ
+        // ========================================
+        
+        function localStartInputPhase() {
+            if (!localGameData) return;
+            let theme = '';
+            if (localSelectedThemeMode === 'app') {
+                theme = document.getElementById('localThemeText').textContent;
+            } else {
+                theme = document.getElementById('localCustomThemeInput').value.trim();
+                if (!theme || theme.length < 3) { alert('❌ テーマを3文字以上で入力してください。'); return; }
+            }
+            localGameData.theme = theme;
+            localGameData.currentPhase = 'input';
+            localGameData.currentPlayerIndex = 0;
+            localGameData.rankings = {};
+            localShowHandoff();
+        }
+        
+        function localShowHandoff() {
+            const gd = localGameData;
+            const player = gd.players[gd.currentPlayerIndex];
+            document.getElementById('localHandoffName').textContent = player.name;
+            document.getElementById('localHandoffName2').textContent = player.name;
+            
+            const btn = document.getElementById('localHandoffButton');
+            if (gd.currentPhase === 'input') {
+                document.getElementById('localHandoffIcon').textContent = '✏️';
+                btn.textContent = '✏️ 回答を入力する';
+            } else {
+                document.getElementById('localHandoffIcon').textContent = '🤔';
+                btn.textContent = '🤔 予想を入力する';
+            }
+            showScreen('localHandoffScreen');
+        }
+        
+        function localHandoffProceed() {
+            if (localGameData.currentPhase === 'input') {
+                localShowInputScreen();
+            } else {
+                localShowGuessScreen();
+            }
+        }
+        
+        function localShowInputScreen() {
+            const gd = localGameData;
+            const player = gd.players[gd.currentPlayerIndex];
+            document.getElementById('localInputPlayerName').textContent = player.name;
+            document.getElementById('localInputTheme').textContent = gd.theme;
+            
+            // フォームをリセット
+            const container = document.getElementById('localRankingForm');
+            const items = Array.from(container.children);
+            items.sort((a, b) => (parseInt(a.getAttribute('data-rank')) || 0) - (parseInt(b.getAttribute('data-rank')) || 0));
+            items.forEach(item => container.appendChild(item));
+            Array.from(container.children).forEach((item, i) => {
+                const input = item.querySelector('.rank-input');
+                if (input) { input.value = ''; input.disabled = false; input.style.background = ''; input.style.color = ''; }
+                const label = item.querySelector('.rank-label');
+                if (label) label.textContent = (i + 1) + '位';
+                const handle = item.querySelector('.drag-handle');
+                if (handle) handle.style.display = '';
+                item.setAttribute('data-rank', i + 1);
+            });
+            
+            showScreen('localInputScreen');
+            
+            if (localInputSortable) { localInputSortable.destroy(); localInputSortable = null; }
+            localInputSortable = new Sortable(container, {
+                animation: 150, delay: 50, delayOnTouchOnly: true, forceFallback: true, fallbackOnBody: true, swapThreshold: 0.65,
+                handle: '.drag-handle', ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen', dragClass: 'sortable-drag', fallbackClass: 'sortable-fallback',
+                onEnd: function() {
+                    Array.from(container.children).forEach((item, i) => {
+                        const label = item.querySelector('.rank-label');
+                        if (label) label.textContent = (i + 1) + '位';
+                    });
+                }
+            });
+        }
+        
+        function localSubmitRanking() {
+            if (!localGameData) return;
+            const container = document.getElementById('localRankingForm');
+            const rankingData = {};
+            for (let i = 0; i < container.children.length; i++) {
+                const inp = container.children[i].querySelector('.rank-input');
+                const val = inp ? inp.value.trim() : '';
+                if (!val) { alert((i + 1) + '位を入力してください！'); if (inp) inp.focus(); return; }
+                rankingData[(i + 1).toString()] = val;
+            }
+            
+            const playerId = localGameData.players[localGameData.currentPlayerIndex].id;
+            localGameData.rankings[playerId] = rankingData;
+            
+            // 次のプレイヤーへ
+            localGameData.currentPlayerIndex++;
+            if (localGameData.currentPlayerIndex < localGameData.players.length) {
+                localShowHandoff();
+            } else {
+                // 全員の回答完了 → 予想フェーズへ
+                localStartGuessPhase();
+            }
+        }
+        
+        // ========================================
+        // local：予想フェーズ
+        // ========================================
+        
+        function localStartGuessPhase() {
+            localGameData.currentPhase = 'guess';
+            localGameData.currentPlayerIndex = 0;
+            localGameData.guesses = {};
+            localShowHandoff();
+        }
+        
+        function localShowGuessScreen() {
+            const gd = localGameData;
+            const currentPlayer = gd.players[gd.currentPlayerIndex];
+            document.getElementById('localGuessPlayerName').textContent = currentPlayer.name;
+            document.getElementById('localGuessTheme').textContent = gd.theme;
+            
+            // 自分以外の全員が予想対象
+            localGuessTargets = gd.players.filter(p => p.id !== currentPlayer.id);
+            localCurrentGuessIndex = 0;
+            localGuessDataTemp = {};
+            
+            // 送信ボタンリセット
+            const submitBtn = document.getElementById('localSubmitGuessButton');
+            submitBtn.textContent = '📤 全員分の予想を送信';
+            submitBtn.disabled = false;
+            submitBtn.style.background = 'linear-gradient(135deg, #F97316 0%, #FBBF24 100%)';
+            submitBtn.style.opacity = '1';
+            
+            localBuildGuessTabs();
+            showScreen('localGuessScreen');
+            localShowGuessForTarget();
+        }
+        
+        function localBuildGuessTabs() {
+            const tabArea = document.getElementById('localGuessTabArea');
+            let html = '';
+            localGuessTargets.forEach((target, i) => {
+                const isDone = localGuessDataTemp[target.id] != null;
+                const isActive = i === localCurrentGuessIndex;
+                const bg = isActive ? '#F97316' : (isDone ? '#FFEDD5' : '#f0f0f0');
+                const color = isActive ? 'white' : (isDone ? '#F97316' : '#555');
+                const border = isActive ? '#F97316' : 'transparent';
+                html += '<button onclick="localSwitchGuessTarget(' + i + ')" style="flex-shrink:0; width:auto; margin:0; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:' + (isActive ? 'bold' : 'normal') + '; border:2px solid ' + border + '; background:' + bg + '; color:' + color + '; cursor:pointer; white-space:nowrap;">';
+                html += (isDone ? '✅ ' : '') + target.name;
+                html += '</button>';
+            });
+            tabArea.innerHTML = html;
+        }
+        
+        function localSwitchGuessTarget(index) {
+            localSaveCurrentGuessState();
+            localCurrentGuessIndex = index;
+            localShowGuessForTarget();
+        }
+        
+        function localSaveCurrentGuessState() {
+            const container = document.getElementById('localGuessRankingArea');
+            if (!container || container.children.length === 0) return;
+            const target = localGuessTargets[localCurrentGuessIndex];
+            if (!target) return;
+            
+            const items = Array.from(container.children).map(el => el.getAttribute('data-item'));
+            if (items.length === 5) {
+                const temp = {};
+                items.forEach((item, i) => { temp[(i + 1).toString()] = item; });
+                localGuessDataTemp[target.id] = temp;
+            }
+        }
+        
+        function localShowGuessForTarget() {
+            const target = localGuessTargets[localCurrentGuessIndex];
+            if (!target) return;
+            
+            localBuildGuessTabs();
+            
+            const targetRanking = localGameData.rankings[target.id];
+            if (!targetRanking) { document.getElementById('localGuessRankingArea').innerHTML = '<p style="color:#999; text-align:center;">データなし</p>'; return; }
+            
+            let items = [];
+            for (let i = 1; i <= 5; i++) items.push(targetRanking[i.toString()]);
+            
+            if (localGuessDataTemp[target.id]) {
+                const saved = localGuessDataTemp[target.id];
+                items = [];
+                for (let i = 1; i <= 5; i++) items.push(saved[i.toString()]);
+            } else {
+                for (let i = items.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [items[i], items[j]] = [items[j], items[i]];
+                }
+            }
+            
+            const container = document.getElementById('localGuessRankingArea');
+            container.innerHTML = '';
+            if (localGuessSortable) { localGuessSortable.destroy(); localGuessSortable = null; }
+            
+            items.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'draggable-item'; div.setAttribute('data-item', item);
+                div.style.cssText = '-webkit-user-select:none; user-select:none;';
+                const rank = document.createElement('span'); rank.className = 'rank-number'; rank.textContent = (index + 1) + '位';
+                const text = document.createElement('span'); text.textContent = item; text.style.cssText = 'color:#333; font-size:15px; flex:1; padding:0 10px;';
+                const handle = document.createElement('span'); handle.className = 'drag-handle'; handle.textContent = '≡';
+                div.appendChild(rank); div.appendChild(text); div.appendChild(handle);
+                container.appendChild(div);
+            });
+            
+            localGuessSortable = new Sortable(container, {
+                animation: 150, delay: 50, delayOnTouchOnly: true, forceFallback: true, fallbackOnBody: true, swapThreshold: 0.65,
+                handle: '.drag-handle', ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen', dragClass: 'sortable-drag', fallbackClass: 'sortable-fallback',
+                onChange: function() { localUpdateGuessRankNums(); },
+                onEnd: function() { localUpdateGuessRankNums(); }
+            });
+        }
+        
+        function localUpdateGuessRankNums() {
+            const container = document.getElementById('localGuessRankingArea');
+            if (!container) return;
+            Array.from(container.children).forEach((item, i) => {
+                const r = item.querySelector('.rank-number'); if (r) r.textContent = (i + 1) + '位';
+            });
+        }
+        
+        function localSubmitGuess() {
+            if (!localGameData) return;
+            localSaveCurrentGuessState();
+            
+            const allTargetsDone = localGuessTargets.every(t => localGuessDataTemp[t.id] != null);
+            if (!allTargetsDone) {
+                const missing = localGuessTargets.filter(t => !localGuessDataTemp[t.id]).map(t => t.name);
+                alert('まだ全員分の予想が完了していません。\n\n未完了: ' + missing.join('、'));
+                return;
+            }
+            
+            const currentPlayer = localGameData.players[localGameData.currentPlayerIndex];
+            localGameData.guesses[currentPlayer.id] = localGuessDataTemp;
+            
+            // 次のプレイヤーへ
+            localGameData.currentPlayerIndex++;
+            if (localGameData.currentPlayerIndex < localGameData.players.length) {
+                localGuessDataTemp = {};
+                localShowHandoff();
+            } else {
+                // 全員の予想完了 → 結果画面へ
+                localCalculateScores();
+                localShowResultScreen();
+            }
+        }
+        
+        // ========================================
+        // local：スコア計算
+        // ========================================
+        
+        function localCalculateScores() {
+            const gd = localGameData;
+            const rankings = gd.rankings;
+            const guesses = gd.guesses;
+            const players = gd.players;
+            
+            const playerResults = {};
+            players.forEach(p => {
+                playerResults[p.id] = { totalScore: 0, totalPerfect: 0, totalClose: 0, targetCount: 0 };
+            });
+            
+            // 各予想者について
+            players.forEach(guesser => {
+                const gData = guesses[guesser.id];
+                if (!gData) return;
+                
+                // 自分以外の全員に対して
+                players.forEach(target => {
+                    if (target.id === guesser.id) return;
+                    const correctRanking = rankings[target.id];
+                    const guessRanking = gData[target.id];
+                    if (!correctRanking || !guessRanking) return;
+                    
+                    playerResults[guesser.id].targetCount++;
+                    
+                    for (let cRank = 1; cRank <= 5; cRank++) {
+                        const item = correctRanking[cRank.toString()];
+                        let gRank = 0;
+                        for (let r = 1; r <= 5; r++) {
+                            if (guessRanking[r.toString()] === item) { gRank = r; break; }
+                        }
+                        if (gRank > 0) {
+                            const diff = Math.abs(gRank - cRank);
+                            if (diff === 0) { playerResults[guesser.id].totalScore += 2; playerResults[guesser.id].totalPerfect++; }
+                            else if (diff === 1) { playerResults[guesser.id].totalScore += 1; playerResults[guesser.id].totalClose++; }
+                        }
+                    }
+                });
+            });
+            
+            gd.results = { players: playerResults };
+        }
+        
+        // ========================================
+        // local：結果画面
+        // ========================================
+        
+        function localShowResultScreen() {
+            const gd = localGameData;
+            const results = gd.results || {};
+            const players = gd.players;
+            
+            const sorted = players.map(p => ({
+                ...p, ...(results.players[p.id] || { totalScore: 0, totalPerfect: 0, totalClose: 0, targetCount: 0 })
+            })).sort((a, b) => b.totalScore - a.totalScore);
+            
+            const maxPossible = sorted[0]?.targetCount ? sorted[0].targetCount * 10 : 10;
+            const avgScore = sorted.length > 0 ? (sorted.reduce((s, p) => s + p.totalScore, 0) / sorted.length) : 0;
+            
+            let rankHtml = '<div style="background:#FFF7ED; border-radius:12px; padding:20px;">';
+            rankHtml += '<h3 style="color:#F97316; font-size:16px; margin-bottom:15px; text-align:center;">🏆 みんなの理解力ランキング</h3>';
+            sorted.forEach((p, i) => {
+                const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1) + '位'));
+                rankHtml += '<div style="display:flex; align-items:center; padding:12px; background:white; border-radius:8px; margin-bottom:6px;">';
+                rankHtml += '<span style="font-size:20px; margin-right:12px; min-width:32px; text-align:center;">' + medal + '</span>';
+                rankHtml += '<span style="flex:1; font-size:14px; color:#333;">' + p.name + '</span>';
+                rankHtml += '<span style="font-size:18px; font-weight:bold; color:#F97316;">' + p.totalScore + '<span style="font-size:12px; color:#999;">/' + maxPossible + 'pt</span></span>';
+                rankHtml += '</div>';
+            });
+            rankHtml += '<p style="color:#999; font-size:12px; text-align:center; margin-top:12px;">みんなの平均 <span style="color:#F97316; font-size:16px; font-weight:bold;">' + avgScore.toFixed(1) + '</span>/' + maxPossible + 'pt</p>';
+            rankHtml += '</div>';
+            document.getElementById('localResultRanking').innerHTML = rankHtml;
+            
+            // ひとりずつのタブ
+            let tabHtml = '';
+            players.forEach((target, i) => {
+                const isFirst = i === 0;
+                tabHtml += '<button onclick="localShowPersonResult(' + target.id + ')" id="localPersonTab_' + target.id + '" style="';
+                tabHtml += 'width:auto; margin:0; padding:8px 16px; border-radius:8px; font-size:13px; cursor:pointer; ';
+                tabHtml += 'border:2px solid ' + (isFirst ? '#F97316' : 'transparent') + '; ';
+                tabHtml += 'background:' + (isFirst ? '#F97316' : '#f0f0f0') + '; ';
+                tabHtml += 'color:' + (isFirst ? 'white' : '#555') + '; ';
+                tabHtml += 'font-weight:' + (isFirst ? 'bold' : 'normal') + ';">';
+                tabHtml += target.name + '</button>';
+            });
+            document.getElementById('localResultPersonTabs').innerHTML = tabHtml;
+            
+            if (players.length > 0) localShowPersonResult(players[0].id);
+            
+            showScreen('localResultScreen');
+        }
+        
+        function localShowPersonResult(targetId) {
+            if (!localGameData) return;
+            const gd = localGameData;
+            const players = gd.players;
+            const target = players.find(p => p.id === targetId);
+            if (!target) return;
+            
+            // タブ切替
+            document.querySelectorAll('#localResultPersonTabs button').forEach(btn => {
+                btn.style.background = '#f0f0f0'; btn.style.color = '#555'; btn.style.borderColor = 'transparent'; btn.style.fontWeight = 'normal';
+            });
+            const activeBtn = document.getElementById('localPersonTab_' + targetId);
+            if (activeBtn) { activeBtn.style.background = '#F97316'; activeBtn.style.color = 'white'; activeBtn.style.borderColor = '#F97316'; activeBtn.style.fontWeight = 'bold'; }
+            
+            const correctRanking = gd.rankings[targetId];
+            if (!correctRanking) { document.getElementById('localResultPersonContent').innerHTML = '<p style="color:#999; text-align:center;">データなし</p>'; return; }
+            
+            const guessers = players.filter(p => p.id !== targetId);
+            
+            let html = '<div style="background:#F5F5F5; border-radius:12px; padding:15px;">';
+            html += '<p style="color:#F97316; font-weight:bold; font-size:14px; margin-bottom:12px; text-align:center;">' + target.name + 'さんの正解ランキング</p>';
+            
+            for (let rank = 1; rank <= 5; rank++) {
+                const item = correctRanking[rank.toString()];
+                html += '<div style="background:white; border-radius:8px; padding:12px; margin-bottom:8px;">';
+                html += '<div style="display:flex; align-items:center; margin-bottom:8px;">';
+                html += '<span style="background:#F97316; color:white; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:12px; margin-right:10px;">' + rank + '位</span>';
+                html += '<span style="color:#333; font-size:14px; font-weight:bold;">' + item + '</span>';
+                html += '</div>';
+                
+                html += '<div style="padding-left:8px;">';
+                guessers.forEach(g => {
+                    const guess = gd.guesses[g.id]?.[targetId];
+                    let gRank = 0;
+                    if (guess) { for (let r = 1; r <= 5; r++) { if (guess[r.toString()] === item) { gRank = r; break; } } }
+                    
+                    let icon = '×', color = '#999', pt = 0;
+                    if (gRank > 0) {
+                        const diff = Math.abs(gRank - rank);
+                        if (diff === 0) { icon = '○'; color = '#50C878'; pt = 2; }
+                        else if (diff === 1) { icon = '△'; color = '#FF9800'; pt = 1; }
+                    }
+                    
+                    html += '<div style="display:flex; align-items:center; font-size:12px; margin:3px 0; color:#666;">';
+                    html += '<span style="width:14px; text-align:center; color:' + color + '; font-weight:bold; margin-right:6px;">' + icon + '</span>';
+                    html += '<span style="flex:1;">' + g.name + '</span>';
+                    html += '<span style="color:' + color + '; margin-right:8px;">' + (gRank > 0 ? gRank + '位' : '-') + '</span>';
+                    html += '<span style="color:' + color + '; font-weight:bold; min-width:28px; text-align:right;">' + pt + 'pt</span>';
+                    html += '</div>';
+                });
+                html += '</div></div>';
+            }
+            
+            html += '</div>';
+            document.getElementById('localResultPersonContent').innerHTML = html;
+        }
+        
+        // ========================================
+        // local：もう一度遊ぶ / メンバー変更
+        // ========================================
+        
+        function localPlayAgain() {
+            if (!localGameData) { showScreen('localSetupScreen'); return; }
+            localGameData.rankings = {};
+            localGameData.guesses = {};
+            localGameData.results = null;
+            localGameData.currentPlayerIndex = 0;
+            
+            localSelectThemeMode('app');
+            localRandomizeTheme();
+            const ci = document.getElementById('localCustomThemeInput');
+            ci.value = '';
+            document.getElementById('localCustomThemeCount').textContent = '0';
+            showScreen('localThemeScreen');
+        }
+        
+        function localBackToSetup() {
+            localGameData = null;
+            showScreen('localSetupScreen');
         }
     </script>
 </body>

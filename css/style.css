@@ -477,6 +477,7 @@ button:focus {
 }
 
 /* 横スクロールタブのスクロールバー非表示 */
-#multiGuessTabArea::-webkit-scrollbar {
+#multiGuessTabArea::-webkit-scrollbar,
+#localGuessTabArea::-webkit-scrollbar {
     display: none;
 }
