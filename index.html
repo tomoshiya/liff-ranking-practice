@@ -30,7 +30,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎯 RankQuest (α版)</h1>
+        <h1>RankQuest (α版)</h1>
         <p class="subtitle">話題が広がる！仲が深まる！<br>ランクを当てるコミュニケーションゲーム</p>
         
         <!-- 読み込み中の表示 -->
@@ -45,18 +45,10 @@
         
         <!-- メイン画面 -->
         <div id="mainScreen" class="screen">
-            <!-- 端末1つでランクエ -->
-            <div style="margin-bottom: 20px;">
-                <button onclick="showLocalSetup()" style="background: linear-gradient(135deg, #F97316, #FBBF24); font-size: 17px; padding: 18px 20px;">
-                    📱 端末1つでランクエ
-                </button>
-                <p style="color: #999; font-size: 11px; margin-top: 5px; text-align: center;">1台のスマホをまわして遊べます</p>
-            </div>
-            
             <!-- ふたりでランクエ -->
             <div style="margin-bottom: 20px;">
                 <button onclick="showBetaRoleSelect()" style="background: linear-gradient(135deg, #11998e, #38ef7d); font-size: 17px; padding: 18px 20px;">
-                    👫 ふたりでランクエ
+                    ふたりでランクエ
                 </button>
                 <p style="color: #999; font-size: 11px; margin-top: 5px; text-align: center;">ふたり用のゲームモードです</p>
             </div>
@@ -64,9 +56,17 @@
             <!-- みんなでランクエ -->
             <div style="margin-bottom: 20px;">
                 <button onclick="showMultiRoleSelect()" style="background: linear-gradient(135deg, #6C5CE7, #a29bfe); font-size: 17px; padding: 18px 20px;">
-                    👥 みんなでランクエ
+                    みんなでランクエ
                 </button>
                 <p style="color: #999; font-size: 11px; margin-top: 5px; text-align: center;">3人以上用のゲームモードです</p>
+            </div>
+            
+            <!-- 端末1つでランクエ -->
+            <div style="margin-bottom: 20px;">
+                <button onclick="showLocalSetup()" style="background: linear-gradient(135deg, #F97316, #FBBF24); font-size: 17px; padding: 18px 20px;">
+                    端末1つでランクエ
+                </button>
+                <p style="color: #999; font-size: 11px; margin-top: 5px; text-align: center;">1台のスマホをまわして遊べます</p>
             </div>
             
             <!-- 開発用トグル -->
@@ -1386,7 +1386,7 @@
                     次は <span id="localHandoffName" style="color: #333;">---</span> さんの番です
                 </p>
                 <p style="color: #666; font-size: 14px; line-height: 1.8; margin-bottom: 40px;">
-                    端末を渡して<br><span id="localHandoffName2" style="font-weight: bold;">---</span> さんがボタンを押してください
+                    <span id="localHandoffName2" style="font-weight: bold;">---</span> さんが<br>以下のボタンを押してください
                 </p>
                 <button id="localHandoffButton" onclick="localHandoffProceed()" style="
                     background: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
@@ -1465,6 +1465,27 @@
             </button>
             <div style="height: 70px;"></div>
             <button onclick="showScreen('mainScreen')" class="fixed-round-button fixed-round-button-home">HOME</button>
+        </div>
+        
+        <!-- local用：結果発表前の待機画面 -->
+        <div id="localPreResultScreen" class="screen">
+            <div style="text-align: center; padding: 60px 20px;">
+                <p style="font-size: 56px; margin-bottom: 20px;">🎊</p>
+                <p style="color: #F97316; font-size: 20px; font-weight: bold; margin-bottom: 15px;">
+                    回答＆予想が出揃いました
+                </p>
+                <p style="color: #666; font-size: 14px; line-height: 1.8; margin-bottom: 40px;">
+                    ボタンを押すとゲーム結果を表示します
+                </p>
+                <button onclick="localShowResultScreen()" style="
+                    background: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
+                    color: white; padding: 18px; width: 100%; border: none; border-radius: 12px;
+                    font-size: 18px; font-weight: bold; cursor: pointer;
+                    box-shadow: 0 4px 15px rgba(249,115,22,0.3);
+                ">
+                    🎉 結果発表に進む
+                </button>
+            </div>
         </div>
         
         <!-- local用：結果画面 -->
@@ -7361,6 +7382,9 @@
                     Array.from(container.children).forEach((item, i) => {
                         const label = item.querySelector('.rank-label');
                         if (label) label.textContent = (i + 1) + '位';
+                        const input = item.querySelector('.rank-input');
+                        if (input) input.placeholder = (i + 1) + '位を入力（50文字まで）';
+                        item.setAttribute('data-rank', i + 1);
                     });
                 }
             });
@@ -7534,9 +7558,9 @@
                 localGuessDataTemp = {};
                 localShowHandoff();
             } else {
-                // 全員の予想完了 → 結果画面へ
+                // 全員の予想完了 → 結果待機画面へ
                 localCalculateScores();
-                localShowResultScreen();
+                showScreen('localPreResultScreen');
             }
         }
         
