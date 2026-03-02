@@ -1,6 +1,6 @@
 ---
 name: RankQuest Refactor and Room System
-overview: CSS分割リファクタリングを先に行い、その後「部屋ベースのゲーム開始フロー」を既存機能を温存したまま新規追加する。みんなであそぶモードは設計のみ先行し、実装は段階的に行う。
+overview: CSS分割リファクタリングを先に行い、その後「部屋ベースのゲーム開始フロー」を既存機能を温存したまま新規追加する。みんなであそぶモードは設計のみ先行し、実装は段階的に行う。α→β移行に向け、端末1つでまわすローカルモードを先行実装。
 todos:
   - id: css-split
     content: "Phase 1: CSSを css/style.css に分割（<style>タグ内容の移動 + <link>タグ追加）"
@@ -25,6 +25,12 @@ todos:
     status: completed
   - id: phase3-impl
     content: "Phase 3: みんなであそぶモードの実装（multi用全画面+JS+N-1予想+タブ結果+締め切り+待機室戻り）"
+    status: completed
+  - id: local-mode-impl
+    content: "Phase 4: 端末1つでランクエ（localモード）の実装（Firebase不使用・インメモリ・全画面+JS）"
+    status: completed
+  - id: local-mode-fixes
+    content: "Phase 4: localモードの細部修正（ドラッグ時placeholder、ボタン順序・絵文字、受け渡し文言、結果待機画面）"
     status: completed
 ---
 
@@ -214,6 +220,97 @@ flowchart LR
 
 ---
 
+## Phase 4: 端末1つでランクエ（localモード）
+
+### コンセプト
+
+Firebase不使用・1台のスマホをまわして遊ぶ「パス&プレイ」形式のゲームモード。  
+α版の延長線として、LINEアカウントを持たない人・端末を持ち合わせていない人にも体験を届けるための機能。
+
+### 画面遷移
+
+```
+HOME
+└─「端末1つでランクエ」
+      ↓
+[localSetupScreen] プレイヤー設定（2〜8人、ニックネーム入力）
+      ↓
+[localThemeScreen] テーマ設定（アプリ内 or オリジナル）
+      ↓
+【回答フェーズ（全員分ループ）】
+[localHandoffScreen] → [localInputScreen] ランキング入力
+      ↓
+【予想フェーズ（全員分ループ）】
+[localHandoffScreen] → [localGuessScreen] 予想入力（タブ切替）
+      ↓
+[localPreResultScreen] 結果待機画面（全員分出揃ったことを通知）
+      ↓
+[localResultScreen] 結果発表（スコアランキング + 個別タブ表示）
+```
+
+### データ構造（インメモリ）
+
+```js
+let localGameData = {
+    players: [{ id: 0, name: "りんべい" }, ...],  // 最大8人
+    theme: "最近ムカついたことTOP5",
+    rankings: { 0: { "1": "...", ... }, 1: { ... } },
+    guesses: { 0: { 1: { "1": "..." }, ... }, 1: { 0: { ... } } },
+    currentPhase: 'input',   // 'input' | 'guess'
+    currentPlayerIndex: 0,
+    results: null
+};
+```
+
+### 実装済み関数一覧（localプレフィックス）
+
+| 関数名 | 役割 |
+|---|---|
+| `showLocalSetup()` | プレイヤー設定画面を表示 |
+| `localAddPlayerField()` | ニックネーム欄を追加 |
+| `localRemovePlayerField()` | ニックネーム欄を削除 |
+| `localUpdatePlayerCount()` | 人数カウント更新 |
+| `localStartGame()` | 設定完了→テーマ画面へ |
+| `localSelectThemeMode()` | テーマモード切替 |
+| `localRandomizeTheme()` | ランダムテーマ選択 |
+| `localToggleThemeList()` | テーマリスト開閉 |
+| `localSelectThemeItem()` | テーマ個別選択 |
+| `localStartInputPhase()` | 回答フェーズ開始 |
+| `localShowHandoff()` | 受け渡し画面表示（フェーズ+次プレイヤー名で切替） |
+| `localHandoffProceed()` | 受け渡し確認後に入力/予想画面へ |
+| `localShowInputScreen()` | ランキング入力画面表示 |
+| `localSubmitRanking()` | 回答保存→次の人へ |
+| `localStartGuessPhase()` | 予想フェーズ開始 |
+| `localShowGuessScreen()` | 予想画面表示 |
+| `localBuildGuessTabs()` | 対象プレイヤーのタブ構築 |
+| `localSwitchGuessTarget()` | タブ切替 |
+| `localSaveCurrentGuessState()` | 現在の予想を一時保存 |
+| `localShowGuessForTarget()` | 対象の予想ランキング表示 |
+| `localUpdateGuessRankNums()` | 予想ランクの番号更新 |
+| `localSubmitGuess()` | 予想保存→次の人へ（全員完了で待機画面へ） |
+| `localCalculateScores()` | スコア計算（既存ロジック流用） |
+| `localShowResultScreen()` | 結果画面表示 |
+| `localShowPersonResult()` | 個別タブ結果表示 |
+| `localPlayAgain()` | もう一度遊ぶ（テーマ選択に戻る） |
+| `localBackToSetup()` | プレイヤー設定に戻る |
+
+### セキュリティ対応（2026年2月実施）
+
+- Firebase APIキーにHTTPリファラー制限を適用（GCP Console）
+- Gemini for Google Cloud APIを無効化（未使用APIの露出リスク排除）
+
+### HOME画面のボタン構成（現在）
+
+| 順序 | ボタン名 | 遷移先 | スタイル |
+|---|---|---|---|
+| 1 | ふたりでランクエ | `showBetaRoleSelect()` | 緑グラデーション |
+| 2 | みんなでランクエ | `showMultiRoleSelect()` | 紫グラデーション |
+| 3 | 端末1つでランクエ | `showLocalSetup()` | オレンジグラデーション |
+| - | 開発用（トグル） | `toggleHomeDevMenu()` | グレー |
+
+---
+
 ## 今回のセッションでの作業範囲
 
-Phase 1（CSS分割）を完了させ、Phase 2aのHTML画面追加に着手するのが現実的な目標。
+Phase 1（CSS分割）を完了させ、Phase 2aのHTML画面追加に着手するのが現実的な目標。  
+→ **実際にはPhase 1〜4まですべて完了。localモードの細部修正も完了（2026年2月）。**
