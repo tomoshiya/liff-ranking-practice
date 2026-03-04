@@ -1,36 +1,51 @@
 {
-  "CURRENT_RULES": "以下のルールをFirebase Consoleにコピーして使用してください",
-  "LAST_UPDATED": "2026-02-16",
-  "VERSION": "v2.1",
-  
+  "CURRENT_RULES": "以下のrulesセクションをFirebase Consoleにコピーして使用してください",
+  "LAST_UPDATED": "2026-03-04",
+  "VERSION": "v3.0",
+
   "rules": {
     "users": {
-      ".read": "auth != null",
+      "$lineUserId": {
+        ".read":  "auth != null && (!data.exists() || data.child('firebaseUid').val() == auth.uid)",
+        ".write": "auth != null && (!data.exists() || data.child('firebaseUid').val() == auth.uid)"
+      }
+    },
+    "gameRooms": {
+      ".read":  "auth != null",
       ".write": "auth != null"
     },
     "gameSessions": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "gameRooms": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "pairCodes": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "analytics": {
-      ".read": "auth != null",
+      ".read":  "auth != null",
       ".write": "auth != null"
     },
     "rankings": {
-      ".read": "auth != null",
+      ".read":  "auth != null",
+      ".write": "auth != null"
+    },
+    "pairCodes": {
+      ".read":  "auth != null",
+      ".write": "auth != null"
+    },
+    "analytics": {
+      ".read":  false,
       ".write": "auth != null"
     }
   },
-  
+
   "_CHANGE_HISTORY": [
+    {
+      "date": "2026-03-04",
+      "version": "v3.0",
+      "reason": "β公開前のSecurity Rules強化。FirebaseUIDとLINEユーザーIDの不一致問題を解決する方式を採用。",
+      "changes": [
+        "users: $lineUserId単位での自分のみ読み書き可能に変更（firebaseUidを橋渡しに使用）",
+        "analytics: 読み取り禁止（書き込みのみ許可）に変更",
+        "pictureUrlのFirebase保存を廃止（コード側で対応済み）",
+        "firebaseUidをusersレコードに保存する実装を追加（コード側で対応済み）"
+      ],
+      "security_level": "v2.xより大幅強化：usersノードは自分のデータのみアクセス可能",
+      "notes": "gameRoomsはゲーム参加に全員が読み書き必要なためauth!=nullを維持（データは終了後削除）"
+    },
     {
       "date": "2026-02-16",
       "version": "v2.1",
@@ -38,67 +53,51 @@
       "changes": [
         "gameRooms: 新規追加（β用：部屋作成・参加・リアルタイム監視に必要）"
       ],
-      "security_level": "v2.0と同等：認証済みユーザー全員に読み書き許可"
+      "security_level": "認証済みユーザー全員に読み書き許可（v2.0と同等）"
     },
     {
       "date": "2026-02-02",
       "version": "v2.0",
       "reason": "Firebase匿名認証とLINE userIdの不一致により、v1.0のルールが動作しなかった。シンプルな認証ベースのルールに変更。",
       "changes": [
-        "users: $userId レベルの厳密なチェックを削除 → 認証済みユーザー全員に読み書き許可",
-        "gameSessions/pairCodes: ノード全体への権限を追加（セッション作成・一覧取得に必要）",
-        "analytics: 新規追加（モニタリング機能用）",
-        "rankings: 新規追加（開発メニュー「ひとりであそぶ」用）"
+        "users: $userId レベルの厳密なチェックを削除 → 認証済みユーザー全員に読み書き許可"
       ],
-      "security_level": "α版テストに適したレベル：認証必須（LIFF経由のみ）、ただしテスター間でデータ閲覧は可能（理論上）",
-      "notes": "β版以降はCustom Token認証を実装し、より厳密なアクセス制御を行う予定"
-    },
-    {
-      "date": "2026-02-02",
-      "version": "v1.0",
-      "reason": "複雑なルールセットから未使用機能を削除し、必要最小限に簡素化する試み（結果：動作せず）",
-      "status": "DEPRECATED - 動作しないため使用不可",
-      "problem": "Firebase匿名認証で生成されるauth.uidとLINEのuserIdが不一致のため、$userId === auth.uidが常にfalseになる"
+      "security_level": "α版テストレベル：認証必須だがテスター間でデータ閲覧は可能"
     }
   ],
-  
-  "_PREVIOUS_RULES": {
-    "v1.0_DEPRECATED": {
-      "rules": {
-        "users": {
-          "$userId": {
-            ".read": "auth != null && ($userId === auth.uid || data.child('partnerId').val() === auth.uid)",
-            ".write": "auth != null && $userId === auth.uid"
-          }
-        },
-        "gameSessions": {
-          "$sessionId": {
-            ".read": "auth != null",
-            ".write": "auth != null"
-          }
-        },
-        "pairCodes": {
-          "$code": {
-            ".read": "auth != null",
-            ".write": "auth != null"
-          }
-        }
-      }
-    }
+
+  "_SECURITY_DESIGN": {
+    "why_v1.0_failed": {
+      "problem": "auth.uid（Firebase匿名認証UID）とLINE userId（DBキー）が別の値のため、auth.uid == $uidが常にfalseになった",
+      "solution": "usersレコードにfirebaseUidを保存し、data.child('firebaseUid').val() == auth.uidで照合する"
+    },
+    "users_node": {
+      "access": "自分のデータのみ読み書き可能",
+      "how": "firebaseUid（Firebase匿名認証UID）をレコードに保存し、Security Rulesで照合",
+      "new_user": "data.exists()がfalseの場合のみ初回作成を許可"
+    },
+    "gameRooms_node": {
+      "access": "認証済みユーザー全員が読み書き可能（auth != null）",
+      "reason": "部屋への参加・ゲーム進行に全員のアクセスが必要",
+      "mitigation": "ゲーム終了時にデータを削除することでリスクを低減"
+    },
+    "analytics_node": {
+      "access": "書き込みのみ（読み取り禁止）",
+      "reason": "アナリティクスデータはユーザーが読む必要がない"
+    },
+    "future_improvements": [
+      "gameRooms/rankings・guesses: 自分のデータのみ書き込み可能にする（要playersにfirebaseUid追加）",
+      "ニックネーム制導入後: displayNameをFirebaseから削除し、完全な仮名化",
+      "Cloud Functions導入後: 古いgameRoomsを自動削除するクリーンアップ処理"
+    ]
   },
-  
+
   "_USAGE_NOTES": {
     "how_to_apply": [
       "1. Firebase Console → Realtime Database → ルール タブを開く",
-      "2. このファイルの「rules」セクション（11-35行目）をコピー",
+      "2. このファイルの「rules」セクションのみをコピー（{から}まで）",
       "3. Firebase エディタに貼り付け",
       "4. 「公開」ボタンをクリック"
-    ],
-    "security_considerations": {
-      "current": "認証済みユーザー（LIFF経由のLINEログイン）のみアクセス可能",
-      "alpha_phase": "テスター数が少ないため、この簡易的なルールで十分",
-      "beta_phase": "Custom Token認証を実装し、より厳密なアクセス制御を行う",
-      "production": "Cloud Functionsによるサーバーサイド処理を追加"
-    }
+    ]
   }
 }

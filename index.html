@@ -1762,10 +1762,10 @@
                         // 既存ユーザー：情報を更新
                         currentUser = snapshot.val();
                         
-                        // 最終ログイン日時を更新
+                        // 最終ログイン日時・firebaseUidを更新（pictureUrlは保存しない）
                         userRef.update({
                             displayName: userProfile.displayName,
-                            pictureUrl: userProfile.pictureUrl || '',
+                            firebaseUid: firebase.auth().currentUser.uid,
                             lastLoginAt: new Date().toISOString()
                         });
                         
@@ -1777,12 +1777,12 @@
                         
                         console.log('✅ 既存ユーザー情報取得:', currentUser);
                     } else {
-                        // 新規ユーザー：ペアコードを生成して保存
+                        // 新規ユーザー：ペアコードを生成して保存（pictureUrlは保存しない）
                         const newPairCode = generatePairCode();
                         const newUser = {
                             userId: userId,
                             displayName: userProfile.displayName,
-                            pictureUrl: userProfile.pictureUrl || '',
+                            firebaseUid: firebase.auth().currentUser.uid,
                             pairCode: newPairCode,
                             partnerId: null,
                             createdAt: new Date().toISOString(),
