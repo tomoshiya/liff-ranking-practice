@@ -1,316 +1,293 @@
 ---
-name: RankQuest Refactor and Room System
-overview: CSS分割リファクタリングを先に行い、その後「部屋ベースのゲーム開始フロー」を既存機能を温存したまま新規追加する。みんなであそぶモードは設計のみ先行し、実装は段階的に行う。α→β移行に向け、端末1つでまわすローカルモードを先行実装。
+name: RankQuest 開発計画
+overview: |
+  α版（Phase 1〜4）は完了。β公開に向けてバックエンド基盤整備を優先し、
+  その後フロントエンドUX改善（ワイヤーフレームから）に取り組む方針。
+  開発環境（Netlify/develop）と本番環境（GitHub Pages/main）を分離済み。
 todos:
+  # ===== 完了済み =====
   - id: css-split
-    content: "Phase 1: CSSを css/style.css に分割（<style>タグ内容の移動 + <link>タグ追加）"
+    content: "Phase 1: CSS分割リファクタリング"
     status: completed
   - id: phase2a-html
-    content: "Phase 2a: 部屋選択・部屋作成待機・部屋参加の3つのHTML画面を追加"
+    content: "Phase 2a: 部屋選択・作成・参加のHTML画面追加"
     status: completed
   - id: phase2a-firebase
-    content: "Phase 2a: gameRoomsノードの作成・部屋番号生成・ゲスト参加のFirebaseロジック"
-    status: completed
-  - id: phase2a-home-button
-    content: "Phase 2a: HOME画面に「ふたりであそぶ（β用）」ボタンを追加"
+    content: "Phase 2a: gameRoomsノードのFirebaseロジック"
     status: completed
   - id: phase2b-game-flow
-    content: "Phase 2b: テーマ選択 → ランキング入力 → 予想のゲーム進行ロジック（新関数群）"
+    content: "Phase 2b: テーマ選択→入力→予想のゲーム進行ロジック"
     status: completed
   - id: phase2c-result
-    content: "Phase 2c: スコア計算・結果表示・もう一度遊ぶ機能"
-    status: completed
-  - id: phase3-design
-    content: "Phase 3: みんなであそぶモードの詳細設計（Phase 2完了後に着手）"
+    content: "Phase 2c: スコア計算・結果表示・再戦機能"
     status: completed
   - id: phase3-impl
-    content: "Phase 3: みんなであそぶモードの実装（multi用全画面+JS+N-1予想+タブ結果+締め切り+待機室戻り）"
+    content: "Phase 3: みんなでランクエ（multiモード）実装"
     status: completed
   - id: local-mode-impl
-    content: "Phase 4: 端末1つでランクエ（localモード）の実装（Firebase不使用・インメモリ・全画面+JS）"
+    content: "Phase 4: 端末1つでランクエ（localモード）実装"
     status: completed
   - id: local-mode-fixes
-    content: "Phase 4: localモードの細部修正（ドラッグ時placeholder、ボタン順序・絵文字、受け渡し文言、結果待機画面）"
+    content: "Phase 4: localモード細部修正"
     status: completed
+  - id: security-api-key
+    content: "セキュリティ: Firebase APIキーにHTTPリファラー制限・Gemini API無効化"
+    status: completed
+  - id: branch-management
+    content: "Phase 5a: ブランチ管理（develop/main分離）+ Netlify開発環境構築"
+    status: completed
+
+  # ===== β版バックエンド整備（進行中） =====
+  - id: firebase-security-rules
+    content: "Phase 5b: Firebase Security Rules強化（β公開前の安全確認）"
+    status: pending
+  - id: themes-firebase
+    content: "Phase 5c: テーマデータをFirebaseに移行（Consoleで管理可能に）"
+    status: pending
+  - id: local-storage-history
+    content: "Phase 5d: LocalStorageでゲーム履歴保存（プライバシー重視）"
+    status: pending
+  - id: gas-firebase-sync
+    content: "Phase 5e: Google Sheets→Firebase同期（テーマ管理の利便性向上）"
+    status: pending
+
+  # ===== β版フロントエンド改善（後回し） =====
+  - id: ux-wireframe
+    content: "Phase 6a: UIワイヤーフレーム設計（改善方針合意後に実装）"
+    status: pending
+  - id: input-multiline
+    content: "Phase 6b: 入力フォームのマルチライン対応"
+    status: pending
+  - id: theme-hints
+    content: "Phase 6c: テーマ入力時のヒント・候補表示"
+    status: pending
+  - id: score-partial
+    content: "Phase 6d: スコア部分点の仕組み（粒度改善）"
+    status: pending
+
+  # ===== 将来（β公開後） =====
+  - id: paid-theme-packs
+    content: "Phase 7a: 有料テーマパック・アクセス制御の実装"
+    status: pending
+  - id: payment-flow
+    content: "Phase 7b: 決済フロー実装（LINE Pay or Stripe）"
+    status: pending
+  - id: history-ui
+    content: "Phase 7c: ゲーム履歴閲覧画面"
+    status: pending
 ---
 
-# RankQuest: リファクタリング + 部屋ベース新機能の開発計画
+# RankQuest 開発計画
 
-## Phase 1: CSS分割リファクタリング
+## 全体方針（2026年3月時点）
 
-### やること
-
-- [index.html](c:\Users\rshio\Documents\liff-ranking-practice\index.html) の `<style>` タグ内（行28〜505、約478行）を `css/style.css` に抽出
-- `<head>` に `<link rel="stylesheet" href="./css/style.css">` を追加
-- `<style>...</style>` タグを削除
-
-### 注意点
-
-- **HTMLのインラインスタイル（`style="..."`）はそのまま残す**。今回は触らない
-- CSSの中身は一切変更しない（移動のみ）
-- GitHub Pagesでは相対パス `./css/style.css` で正常に読み込まれる
-
-### リスク評価: 低
-
-- ロジックに一切触れないため、機能的なバグは発生しない
-- 唯一のリスクはパスの誤りによるスタイル未適用だが、デプロイ前に確認可能
-
----
-
-## Phase 2: 部屋ベースのゲーム開始フロー（ふたりであそぶ β用）
-
-### コンセプト
-
-現在の「ペア設定 → ふたりであそぶ」フローとは独立に、新しい「部屋を立てる/参加する」フローを追加する。
-
-```mermaid
-flowchart TD
-    Home[HOME画面] --> BetaButton["ふたりであそぶ（β用）ボタン"]
-    BetaButton --> RoleSelect[ホスト or ゲスト選択]
-    RoleSelect -->|ホスト| CreateRoom[部屋を作成]
-    RoleSelect -->|ゲスト| JoinRoom[部屋番号を入力]
-    CreateRoom --> WaitingBeta["待機室（部屋番号表示・コピー可能）"]
-    JoinRoom --> WaitingBeta
-    WaitingBeta --> ThemeSelect["テーマモード選択（ホストのみ）"]
-    ThemeSelect --> GameInput[ランキング入力]
-    GameInput --> Guess[予想]
-    Guess --> Result[結果発表]
-```
-
-### 既存コードとの関係
-
-**絶対に触らないもの:**
-
-- 既存の「ふたりであそぶ」ボタンと関連ロジック全体
-- ペア設定関連の機能全体
-- 既存の `gameSessions` Firebaseノード
-
-**新規追加するもの:**
-
-- HOME画面に「ふたりであそぶ（β用）」ボタン
-- 新しいHTML画面（部屋選択・部屋作成・部屋参加）
-- 新しいFirebaseノード `gameRooms`
-- 新しいJS関数群（既存関数とは完全に分離）
-
-### 新しいFirebaseデータ構造
+### α版→β版への移行ロードマップ
 
 ```
-gameRooms/
-  "45821"/                    <-- 4-5桁の部屋番号がキー
-    roomId: "45821"
-    hostId: "LINE_USER_ID_1"
-    hostName: "たろう"
-    maxPlayers: 2             <-- ふたり用。将来 N に拡張
-    gameMode: "duo"           <-- "duo" | "multi"（将来）
-    status: "waiting"         <-- waiting | inputting | guessing | finished
-    theme: null               <-- ゲーム開始時に設定
-    themeMode: null            <-- "random" | "custom"
-    players/
-      "LINE_USER_ID_1"/
-        displayName: "たろう"
-        status: "waiting"
-      "LINE_USER_ID_2"/
-        displayName: "はなこ"
-        status: "waiting"
-    rankings/
-      "LINE_USER_ID_1": { "1": "...", "2": "...", ... }
-    guesses/
-      "LINE_USER_ID_1": { "1": "...", "2": "...", ... }
-    results/
-      ...
-    createdAt: "..."
-    lastActivityAt: ...
+【完了】Phase 1〜4: α版機能の実装
+    ↓
+【進行中】Phase 5: バックエンド基盤整備（β公開の前提条件）
+    ↓
+【予定】Phase 6: フロントエンドUX改善（ワイヤーフレームから設計）
+    ↓
+【将来】Phase 7: マネタイズ基盤（有料テーマパック・決済）
 ```
 
-### 部屋番号の生成ルール
+### β公開の方針
 
-- 4〜5桁のランダムな数字（例: `45821`）
-- Firebase上で重複チェック
-- 一定時間（例: 30分）経過した部屋は自動削除対象
-
-### 新規追加するHTML画面
-
-1. **部屋選択画面** (`betaRoleSelectScreen`)
-
-   - 「部屋を作る（ホスト）」ボタン
-   - 「部屋に入る（ゲスト）」ボタン
-   - HOMEボタン
-
-2. **部屋作成完了/待機画面** (`betaWaitingRoomScreen`)
-
-   - 部屋番号を大きく表示
-   - 「番号をコピー」ボタン
-   - ゲスト参加状況の表示
-   - HOMEボタン
-
-3. **部屋参加画面** (`betaJoinRoomScreen`)
-
-   - 部屋番号入力欄（数字4-5桁）
-   - 「参加する」ボタン
-   - HOMEボタン
-
-### ゲーム進行部分の方針
-
-テーマ選択・ランキング入力・予想・結果表示のロジックは、既存の関数群を**参考にしつつ新しい関数として実装**する。理由:
-
-- 既存コードに影響を与えない
-- 将来の「みんなであそぶ」拡張時にN人対応しやすい
-- `gameRooms` ノードを参照する新しいセッション管理が必要
-
-ただし、CSS・HTML構造（テーマ選択画面の見た目、ランキング入力フォーム等）は既存のものを流用・コピーして効率化する。
+- **公開形態**: 誰でもアクセス可能（URL知っている人）
+- **拡散方針**: SNSで大々的には広めない。バイラル（ユーザーがユーザーを呼ぶ）効果を検証
+- **公開タイミング**: Phase 5のバックエンド整備完了後
 
 ---
 
-## Phase 3: みんなであそぶモード（設計のみ）
+## 現在の環境構成
 
-Phase 2の部屋ベースシステムを自然に拡張する形で設計する。実装はPhase 2完了後に着手。
+### ブランチ戦略
 
-### ゲームロジック
-
-- 全員がランキングを入力
-- 全員が**他の全員のランキング**を予想（N人なら N-1人分）
-- 結果画面で「誰が誰のランキングを最も正確に予想できたか」を表示
-
-### 主な変更点（Phase 2からの差分）
-
-- `maxPlayers` を 3〜8 に拡張
-- 予想フェーズを N-1回繰り返すUI
-- 結果画面をN人対応
-- `gameMode: "multi"` で分岐
-
-### マネタイズとの関係
-
-- `gameMode` フィールドで `"duo"` と `"multi"` を明確に分離
-- 将来的にmultiモードのみ課金ゲートを設ける設計
-- Phase 2の時点で `gameMode` フィールドを含めておくことで、後から自然に拡張可能
-
----
-
-## ペア設定システムについての推奨
-
-**現時点では「残す」ことを推奨**する。理由:
-
-1. 既存のα版テスターが使っている機能であり、削除するとテスターに影響
-2. 部屋ベースの新フローが安定するまでは、既存フローが保険として機能
-3. 将来的に「お気に入りパートナー」「フレンド登録」などに進化させる可能性がある
-
-部屋ベースの新フローが十分にテストされ安定した段階で、以下のいずれかを判断:
-
-- ペア設定を廃止し、部屋ベースに完全移行
-- ペア設定を「フレンド機能」として残す（クイック招待など）
-
----
-
-## 実装順序の全体像
-
-```mermaid
-flowchart LR
-    P1["Phase 1\nCSS分割"] --> P2a["Phase 2a\n部屋の作成/参加UI"]
-    P2a --> P2b["Phase 2b\nゲーム進行ロジック"]
-    P2b --> P2c["Phase 2c\n結果表示+再戦"]
-    P2c --> Test["テスト・動作確認"]
-    Test --> P3["Phase 3\nみんなであそぶ"]
-```
-
-- **Phase 1**: 1セッションで完了（低リスク）
-- **Phase 2a**: 部屋の作成・参加・待機のUIとFirebase連携
-- **Phase 2b**: テーマ選択 → ランキング入力 → 予想のゲーム進行
-- **Phase 2c**: スコア計算・結果表示・もう一度遊ぶ
-- **Phase 3**: Phase 2完了後に着手（大規模）
-
----
-
-## Phase 4: 端末1つでランクエ（localモード）
-
-### コンセプト
-
-Firebase不使用・1台のスマホをまわして遊ぶ「パス&プレイ」形式のゲームモード。  
-α版の延長線として、LINEアカウントを持たない人・端末を持ち合わせていない人にも体験を届けるための機能。
-
-### 画面遷移
-
-```
-HOME
-└─「端末1つでランクエ」
-      ↓
-[localSetupScreen] プレイヤー設定（2〜8人、ニックネーム入力）
-      ↓
-[localThemeScreen] テーマ設定（アプリ内 or オリジナル）
-      ↓
-【回答フェーズ（全員分ループ）】
-[localHandoffScreen] → [localInputScreen] ランキング入力
-      ↓
-【予想フェーズ（全員分ループ）】
-[localHandoffScreen] → [localGuessScreen] 予想入力（タブ切替）
-      ↓
-[localPreResultScreen] 結果待機画面（全員分出揃ったことを通知）
-      ↓
-[localResultScreen] 結果発表（スコアランキング + 個別タブ表示）
-```
-
-### データ構造（インメモリ）
-
-```js
-let localGameData = {
-    players: [{ id: 0, name: "りんべい" }, ...],  // 最大8人
-    theme: "最近ムカついたことTOP5",
-    rankings: { 0: { "1": "...", ... }, 1: { ... } },
-    guesses: { 0: { 1: { "1": "..." }, ... }, 1: { 0: { ... } } },
-    currentPhase: 'input',   // 'input' | 'guess'
-    currentPlayerIndex: 0,
-    results: null
-};
-```
-
-### 実装済み関数一覧（localプレフィックス）
-
-| 関数名 | 役割 |
-|---|---|
-| `showLocalSetup()` | プレイヤー設定画面を表示 |
-| `localAddPlayerField()` | ニックネーム欄を追加 |
-| `localRemovePlayerField()` | ニックネーム欄を削除 |
-| `localUpdatePlayerCount()` | 人数カウント更新 |
-| `localStartGame()` | 設定完了→テーマ画面へ |
-| `localSelectThemeMode()` | テーマモード切替 |
-| `localRandomizeTheme()` | ランダムテーマ選択 |
-| `localToggleThemeList()` | テーマリスト開閉 |
-| `localSelectThemeItem()` | テーマ個別選択 |
-| `localStartInputPhase()` | 回答フェーズ開始 |
-| `localShowHandoff()` | 受け渡し画面表示（フェーズ+次プレイヤー名で切替） |
-| `localHandoffProceed()` | 受け渡し確認後に入力/予想画面へ |
-| `localShowInputScreen()` | ランキング入力画面表示 |
-| `localSubmitRanking()` | 回答保存→次の人へ |
-| `localStartGuessPhase()` | 予想フェーズ開始 |
-| `localShowGuessScreen()` | 予想画面表示 |
-| `localBuildGuessTabs()` | 対象プレイヤーのタブ構築 |
-| `localSwitchGuessTarget()` | タブ切替 |
-| `localSaveCurrentGuessState()` | 現在の予想を一時保存 |
-| `localShowGuessForTarget()` | 対象の予想ランキング表示 |
-| `localUpdateGuessRankNums()` | 予想ランクの番号更新 |
-| `localSubmitGuess()` | 予想保存→次の人へ（全員完了で待機画面へ） |
-| `localCalculateScores()` | スコア計算（既存ロジック流用） |
-| `localShowResultScreen()` | 結果画面表示 |
-| `localShowPersonResult()` | 個別タブ結果表示 |
-| `localPlayAgain()` | もう一度遊ぶ（テーマ選択に戻る） |
-| `localBackToSetup()` | プレイヤー設定に戻る |
-
-### セキュリティ対応（2026年2月実施）
-
-- Firebase APIキーにHTTPリファラー制限を適用（GCP Console）
-- Gemini for Google Cloud APIを無効化（未使用APIの露出リスク排除）
-
-### HOME画面のボタン構成（現在）
-
-| 順序 | ボタン名 | 遷移先 | スタイル |
+| ブランチ | 役割 | デプロイ先 | LIFF |
 |---|---|---|---|
-| 1 | ふたりでランクエ | `showBetaRoleSelect()` | 緑グラデーション |
-| 2 | みんなでランクエ | `showMultiRoleSelect()` | 紫グラデーション |
-| 3 | 端末1つでランクエ | `showLocalSetup()` | オレンジグラデーション |
-| - | 開発用（トグル） | `toggleHomeDevMenu()` | グレー |
+| `main` | 本番リリース | GitHub Pages | RankQuest（α版）`2008911809-CBLKsbT1` |
+| `develop` | 開発・テスト用 | Netlify | RankQuest Dev `2008911809-43mMnuKh` |
+
+### 開発フロー
+
+```
+developブランチで開発
+    ↓ git push → Netlifyが自動デプロイ（1〜2分）
+    ↓ https://liff.line.me/2008911809-43mMnuKh でスマホテスト
+    ↓ 問題なければ main にマージ（PR推奨）
+    ↓ GitHub Pages に反映（本番）
+```
+
+### URL一覧
+
+| 環境 | URL |
+|---|---|
+| 本番アプリ | `https://tomoshiya.github.io/liff-ranking-practice/` |
+| 本番LIFF | `https://liff.line.me/2008911809-CBLKsbT1` |
+| 開発アプリ | `https://dashing-granita-b6aef3.netlify.app/` |
+| 開発LIFF | `https://liff.line.me/2008911809-43mMnuKh` |
 
 ---
 
-## 今回のセッションでの作業範囲
+## Phase 5: β版バックエンド整備
 
-Phase 1（CSS分割）を完了させ、Phase 2aのHTML画面追加に着手するのが現実的な目標。  
-→ **実際にはPhase 1〜4まですべて完了。localモードの細部修正も完了（2026年2月）。**
+### 5a: ブランチ管理 ✅ 完了（2026年3月4日）
+
+- `develop`ブランチ作成・GitHubにプッシュ
+- Netlifyと連携（developブランチの自動デプロイ）
+- LINE DevelopersにRankQuest Dev用LIFFアプリを登録
+- ホスト名によるLIFF ID自動切り替えを実装
+
+### 5b: Firebase Security Rules強化
+
+**目的**: β公開に向けて不正アクセス・データ改ざんを防ぐ
+
+現状の課題：
+- ルールが `auth != null`（認証済みなら何でもできる）で緩すぎる
+- 他ユーザーのデータを書き換えられる可能性がある
+
+強化方針：
+```javascript
+// 例：自分のデータしか書けないように
+"users": {
+  "$uid": {
+    ".read": "auth != null && auth.uid == $uid",
+    ".write": "auth != null && auth.uid == $uid"
+  }
+},
+"gameRooms": {
+  "$roomId": {
+    // ホストのみ部屋の状態を変更できる
+    ".write": "auth != null && (
+      !data.exists() ||
+      data.child('hostId').val() == auth.uid
+    )"
+  }
+}
+```
+
+### 5c: テーマデータのFirebase移行
+
+**目的**: コード変更・コミットなしでテーマを追加・変更できるようにする
+
+**データ構造**:
+```
+themes/
+  packs/
+    basic/            ← 無料（認証済み全員）
+      001: { text: "最近ハマっていること", category: "日常" }
+      002: { text: "ストレス発散法TOP5", category: "日常" }
+    gokon/            ← 将来の有料パック
+      101: { text: "理想のデートプランTOP5", category: "恋愛" }
+  packMeta/           ← パック一覧（誰でも読める）
+    basic:  { name: "基本テーマ", price: 0, count: 20 }
+    gokon:  { name: "合コン用パック", price: 380, count: 20 }
+```
+
+**移行後の管理方法（段階的）**:
+- **近い将来**: Firebase Consoleから直接編集（コード不要）
+- **将来**: Google Sheets → GAS → Firebase同期（スプシで直感的に管理）
+
+### 5d: LocalStorageでゲーム履歴保存
+
+**目的**: ユーザーが過去の結果を振り返れるようにする（プライバシー重視）
+
+**方針**:
+- Firebaseには保存しない（端末内のみ）
+- 保存するデータ: 日時・テーマ・参加者・スコア
+- 容量制限を考慮して最新N件のみ保持
+
+### 5e: Google Sheets → Firebase同期（テーマ管理）
+
+**目的**: 非エンジニアでもテーマ追加・編集ができる仕組み
+
+**構成**:
+```
+Googleスプレッドシート（テーマ一覧を編集）
+    ↓ Google Apps Script（GAS）が自動でFirebaseに書き込み
+Firebase DB（アプリの本番データ・Security Rulesで保護）
+    ↓
+RankQuestアプリ（認証済みユーザーが取得）
+```
+
+---
+
+## Phase 6: フロントエンドUX改善
+
+**方針**: ワイヤーフレームから設計し、合意してから実装する
+
+### 改善候補（トライアルユーザーフィードバックより）
+
+| フィードバック | 対応案 | 優先度 |
+|---|---|---|
+| ゼロから入力が難しい | テーマ入力時にヒント・例文を表示 | 高 |
+| 長いテキストが入力しづらい | 入力フォームをtextareaに変更 | 中 |
+| スコアの粒度が厳しい | 部分点の仕組みを導入 | 中 |
+| グループプレイの開始が難しい | 「みんなでランクエ」の入口UX改善 | 中 |
+
+---
+
+## Phase 7: マネタイズ基盤（β公開後）
+
+### テーマパックのビジネスモデル
+
+| モデル | 内容 |
+|---|---|
+| 無料 | 基本テーマ（〜20種）が使い放題 |
+| サブスク | 全テーマ使い放題（月額制・有効期限フラグで管理） |
+| 買い切り | 特定パックのみ購入（パックIDフラグで管理） |
+
+### ユーザー×購入情報のデータ構造
+
+```
+users/
+  LINE_USER_ID/
+    purchases/
+      plan: "subscription"     // "free" | "subscription"
+      planExpiry: 1780000000   // サブスク有効期限（Unixtime）
+      packs/
+        gokon: true            // 買い切りパック購入済み
+        family: true
+```
+
+### アクセス制御（Firebase Security Rules）
+
+```javascript
+"themes/packs/gokon": {
+  ".read": "auth != null && (
+    root.child('users').child(auth.uid).child('purchases/plan').val() == 'subscription'
+    || root.child('users').child(auth.uid).child('purchases/packs/gokon').val() == true
+  )"
+}
+```
+
+### 決済フロー（将来）
+
+- **暫定**: Firebase Consoleで手動フラグON（β期間中のテスト用）
+- **正式**: LINE Pay または Stripe を導入
+
+---
+
+## 実装済み機能一覧（α版）
+
+### ゲームモード
+
+| モード | 概要 | 状態 |
+|---|---|---|
+| ふたりでランクエ（betaモード） | 2人がそれぞれの端末でFirebase経由でプレイ | ✅ |
+| みんなでランクエ（multiモード） | 3人以上がそれぞれの端末でFirebase経由でプレイ | ✅ |
+| 端末1つでランクエ（localモード） | 1台をまわして遊ぶパス&プレイ（Firebase不使用） | ✅ |
+
+### 技術スタック
+
+| 項目 | 内容 |
+|---|---|
+| フロントエンド | Vanilla HTML / CSS / JavaScript |
+| スタイル | `css/style.css` に分離済み |
+| ドラッグ&ドロップ | SortableJS |
+| バックエンド | Firebase Realtime Database + Anonymous Auth |
+| 本番ホスティング | GitHub Pages（mainブランチ） |
+| 開発ホスティング | Netlify（developブランチ・自動デプロイ） |
+| LIFF | LINE Front-end Framework |
