@@ -1570,7 +1570,9 @@
         // ========================================
         // グローバル変数
         // ========================================
-        const LIFF_ID = '2008911809-CBLKsbT1';
+        const LIFF_ID = window.location.hostname.includes('netlify.app')
+            ? '2008911809-43mMnuKh'   // 開発環境 (Netlify)
+            : '2008911809-CBLKsbT1';  // 本番環境 (GitHub Pages)
         let currentTheme = '';
         let userProfile = null;
         let currentUser = null; // Firebase上のユーザー情報（フェーズ4で追加）
