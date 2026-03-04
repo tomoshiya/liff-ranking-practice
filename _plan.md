@@ -37,10 +37,11 @@ todos:
     content: "Phase 5a: ブランチ管理（develop/main分離）+ Netlify開発環境構築"
     status: completed
 
-  # ===== β版バックエンド整備（進行中） =====
   - id: firebase-security-rules
-    content: "Phase 5b: Firebase Security Rules強化（β公開前の安全確認）"
-    status: pending
+    content: "Phase 5b: Firebase Security Rules v3.0適用（users自分のみ・analytics書き込みのみ・pictureUrl廃止・firebaseUid導入）"
+    status: completed
+
+  # ===== β版バックエンド整備（進行中） =====
   - id: themes-firebase
     content: "Phase 5c: テーマデータをFirebaseに移行（Consoleで管理可能に）"
     status: pending
@@ -140,33 +141,32 @@ developブランチで開発
 - LINE DevelopersにRankQuest Dev用LIFFアプリを登録
 - ホスト名によるLIFF ID自動切り替えを実装
 
-### 5b: Firebase Security Rules強化
+### 5b: Firebase Security Rules強化 ✅ 完了（2026年3月4日）
 
-**目的**: β公開に向けて不正アクセス・データ改ざんを防ぐ
+**実施内容（v3.0）**:
 
-現状の課題：
-- ルールが `auth != null`（認証済みなら何でもできる）で緩すぎる
-- 他ユーザーのデータを書き換えられる可能性がある
+| ノード | 変更前 | 変更後 |
+|---|---|---|
+| `users` | auth != null（全員読み書き） | 自分のデータのみ（firebaseUid照合） |
+| `analytics` | auth != null（全員読み書き） | 書き込みのみ（読み取り禁止） |
+| `gameRooms` | auth != null | auth != null（変更なし・ゲームに必要） |
 
-強化方針：
-```javascript
-// 例：自分のデータしか書けないように
-"users": {
-  "$uid": {
-    ".read": "auth != null && auth.uid == $uid",
-    ".write": "auth != null && auth.uid == $uid"
-  }
-},
-"gameRooms": {
-  "$roomId": {
-    // ホストのみ部屋の状態を変更できる
-    ".write": "auth != null && (
-      !data.exists() ||
-      data.child('hostId').val() == auth.uid
-    )"
-  }
-}
-```
+**解決した技術的問題**:
+- Firebase匿名認証UID（auth.uid）とLINE UserID（DBキー）が別物のため、従来の`auth.uid == $uid`ルールが機能しなかった
+- 解決策：`users`レコードに`firebaseUid`（Firebase匿名認証UID）を保存し、`data.child('firebaseUid').val() == auth.uid`で照合
+
+**併せて実施したコード変更**:
+- `pictureUrl`をFirebaseに保存しない設計に変更（個人情報削減）
+- `firebaseUid`を`users`レコードに保存する処理を追加
+
+**既知の影響**:
+- 旧モード（開発用・ペア設定）が他ユーザーのusersデータを読む処理で失敗するようになった
+- beta/multi/localモードへの影響はなし（gameRoomsノードを使用しており、usersノードを参照しない）
+- 旧モードは廃止予定のため修正しない方針（意図的）
+
+**次のステップ（v3.1）**:
+- `gameRooms`の参加者のみ読み書き可能にする
+- `players`にも`firebaseUid`を保存し、Security Rulesで照合する設計に変更
 
 ### 5c: テーマデータのFirebase移行
 
