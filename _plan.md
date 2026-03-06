@@ -45,6 +45,9 @@ todos:
   - id: themes-firebase
     content: "Phase 5c: テーマデータをFirebaseに移行（Consoleで管理可能に）"
     status: completed
+  - id: firebase-rules-bugfix
+    content: "Phase 5b補足: Security Rules v3.4 - gameRoomsのvalidateルール削除（ランキング送信エラー修正）"
+    status: completed
   - id: local-storage-history
     content: "Phase 5d: LocalStorageでゲーム履歴保存（プライバシー重視）"
     status: pending
@@ -214,6 +217,23 @@ developブランチで開発
 **次のステップ（v3.1）**:
 - `gameRooms`の参加者のみ読み書き可能にする
 - `players`にも`firebaseUid`を保存し、Security Rulesで照合する設計に変更
+
+### 5b補足: Security Rules バグ修正 ✅ 完了（2026年3月6日）
+
+**発生した問題**：
+- v3.1で追加した `gameRooms/rankings/$uid` の `.validate` ルールが原因でランキング送信が PERMISSION_DENIED に
+- 原因①：ダミーユーザーは `users/` にレコードがないため `.validate` が常に false
+- 原因②：LINE WebView は Firebase Anonymous Auth の UID をセッション間でリセットする可能性があり、DB に保存した `firebaseUid` と一致しない
+
+**対応（v3.4）**：
+- `gameRooms` の `.validate` ルールを削除、`auth != null` のみに戻す
+- `users` の `.write` ルールは v3.3 のまま維持（`firebaseUid` が null の場合も書き込み許可）
+
+**今後の方針**：
+- より細かいアクセス制御は Phase 7 以降で再設計
+- 本格的な認証統合は LINE IDトークン → Firebase Custom Token 方式（Cloud Functions 必要・有料）
+
+---
 
 ### 5c: テーマデータのFirebase移行 ✅ 完了（2026年3月6日）
 
