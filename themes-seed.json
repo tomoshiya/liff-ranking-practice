@@ -1,0 +1,46 @@
+{
+  "packs": {
+    "basic": {
+      "name": "基本テーマ",
+      "price": 0,
+      "isFree": true
+    }
+  },
+  "weekly": {
+    "themeId": "001",
+    "startDate": "2026-03-06",
+    "endDate": "2026-03-15",
+    "message": "今週のピックアップ！"
+  },
+  "items": {
+    "001": { "text": "最近、嬉しかったことTOP5",         "pack": "basic", "tags": { "エモーション": true, "友だち": true, "夫婦": true, "家族": true }, "order": 1,  "isActive": true },
+    "002": { "text": "最近、楽しかったことTOP5",         "pack": "basic", "tags": { "エモーション": true, "友だち": true, "夫婦": true, "家族": true }, "order": 2,  "isActive": true },
+    "003": { "text": "最近、感謝を感じたことTOP5",       "pack": "basic", "tags": { "エモーション": true, "友だち": true, "夫婦": true, "家族": true }, "order": 3,  "isActive": true },
+    "004": { "text": "最近、ハマっていることTOP5",       "pack": "basic", "tags": { "エモーション": true, "初対面": true, "友だち": true               }, "order": 4,  "isActive": true },
+    "005": { "text": "最近、悲しかったことTOP5",         "pack": "basic", "tags": { "エモーション": true, "友だち": true, "夫婦": true                  }, "order": 5,  "isActive": true },
+    "006": { "text": "最近、ムカついたことTOP5",         "pack": "basic", "tags": { "エモーション": true, "友だち": true                               }, "order": 6,  "isActive": true },
+    "007": { "text": "最近、不安なことTOP5",             "pack": "basic", "tags": { "エモーション": true, "友だち": true, "夫婦": true                  }, "order": 7,  "isActive": true },
+    "008": { "text": "最近、感動したことTOP5",           "pack": "basic", "tags": { "エモーション": true, "友だち": true, "夫婦": true, "家族": true }, "order": 8,  "isActive": true },
+    "009": { "text": "この1年で、買ってよかったものTOP5", "pack": "basic", "tags": { "ふりかえり": true, "初対面": true, "友だち": true                  }, "order": 9,  "isActive": true },
+    "010": { "text": "この1年で、行ってよかったお店TOP5", "pack": "basic", "tags": { "ふりかえり": true, "初対面": true, "友だち": true                  }, "order": 10, "isActive": true },
+    "011": { "text": "好きな食べ物・料理TOP5",           "pack": "basic", "tags": { "好み": true, "初対面": true, "友だち": true, "家族": true         }, "order": 11, "isActive": true },
+    "012": { "text": "嫌い・苦手な食べ物・料理TOP5",     "pack": "basic", "tags": { "好み": true, "初対面": true, "友だち": true                       }, "order": 12, "isActive": true },
+    "013": { "text": "好きな飲食店TOP5",                 "pack": "basic", "tags": { "好み": true, "初対面": true, "友だち": true                       }, "order": 13, "isActive": true },
+    "014": { "text": "好きな映画TOP5",                   "pack": "basic", "tags": { "好み": true, "初対面": true, "友だち": true                       }, "order": 14, "isActive": true },
+    "015": { "text": "好きな漫画・アニメTOP5",           "pack": "basic", "tags": { "好み": true, "初対面": true, "友だち": true                       }, "order": 15, "isActive": true },
+    "016": { "text": "好きなゲームTOP5",                 "pack": "basic", "tags": { "好み": true, "初対面": true, "友だち": true                       }, "order": 16, "isActive": true },
+    "017": { "text": "好きな歌手TOP5",                   "pack": "basic", "tags": { "好み": true, "初対面": true, "友だち": true                       }, "order": 17, "isActive": true },
+    "018": { "text": "好きな曲・歌TOP5",                 "pack": "basic", "tags": { "好み": true, "初対面": true, "友だち": true                       }, "order": 18, "isActive": true },
+    "019": { "text": "好きな地域・エリアTOP5",           "pack": "basic", "tags": { "好み": true, "初対面": true, "友だち": true                       }, "order": 19, "isActive": true },
+    "020": { "text": "好きな本・書籍TOP5",               "pack": "basic", "tags": { "好み": true, "初対面": true, "友だち": true                       }, "order": 20, "isActive": true },
+    "021": { "text": "好きな言葉・名言TOP5",             "pack": "basic", "tags": { "好み": true, "初対面": true, "友だち": true                       }, "order": 21, "isActive": true },
+    "022": { "text": "好きな休日の過ごし方TOP5",         "pack": "basic", "tags": { "好み": true, "初対面": true, "友だち": true, "夫婦": true         }, "order": 22, "isActive": true },
+    "023": { "text": "尊敬している人TOP5",               "pack": "basic", "tags": { "好み": true, "友だち": true                                       }, "order": 23, "isActive": true },
+    "024": { "text": "何でも叶うなら実現したいことTOP5", "pack": "basic", "tags": { "問いかけ": true, "初対面": true, "友だち": true                    }, "order": 24, "isActive": true },
+    "025": { "text": "何でも買えるならほしいものTOP5",   "pack": "basic", "tags": { "問いかけ": true, "初対面": true, "友だち": true                    }, "order": 25, "isActive": true },
+    "026": { "text": "誰にでも会えるなら会いたい人TOP5", "pack": "basic", "tags": { "問いかけ": true, "初対面": true, "友だち": true                    }, "order": 26, "isActive": true },
+    "027": { "text": "無人島に行くなら持っていく物TOP5", "pack": "basic", "tags": { "問いかけ": true, "初対面": true, "友だち": true                    }, "order": 27, "isActive": true },
+    "028": { "text": "手に入れたいチカラ・超能力TOP5",   "pack": "basic", "tags": { "問いかけ": true, "初対面": true, "友だち": true                    }, "order": 28, "isActive": true },
+    "029": { "text": "何でも叶うなら住みたい場所TOP5",   "pack": "basic", "tags": { "問いかけ": true, "初対面": true, "友だち": true                    }, "order": 29, "isActive": true }
+  }
+}

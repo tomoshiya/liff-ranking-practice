@@ -1526,51 +1526,34 @@
 
     <script>
         // ========================================
-        // テーマデータ（29個）
+        // テーマデータ（Firebaseから動的に取得）
         // ========================================
-        const THEMES = [
-            // エモーション系（8個）
-            '最近、嬉しかったことTOP5',
-            '最近、楽しかったことTOP5',
-            '最近、感謝を感じたことTOP5',
-            '最近、ハマっていることTOP5',
-            '最近、悲しかったことTOP5',
-            '最近、ムカついたことTOP5',
-            '最近、不安なことTOP5',
-            '最近、感動したことTOP5',
-            
-            // ふりかえり系（2個）
-            'この1年で、買ってよかったものTOP5',
-            'この1年で、行ってよかったお店TOP5',
-            
-            // 好き・嫌い系（13個）
-            '好きな食べ物・料理TOP5',
-            '嫌い・苦手な食べ物・料理TOP5',
-            '好きな飲食店TOP5',
-            '好きな映画TOP5',
-            '好きな漫画・アニメTOP5',
-            '好きなゲームTOP5',
-            '好きな歌手TOP5',
-            '好きな曲・歌TOP5',
-            '好きな地域・エリアTOP5',
-            '好きな本・書籍TOP5',
-            '好きな言葉・名言TOP5',
-            '好きな休日の過ごし方TOP5',
-            '尊敬している人TOP5',
-            
-            // if・問いかけ系（6個）
-            '何でも叶うなら実現したいことTOP5',
-            '何でも買えるならほしいものTOP5',
-            '誰にでも会えるなら会いたい人TOP5',
-            '無人島に行くなら持っていく物TOP5',
-            '手に入れたいチカラ・超能力TOP5',
-            '何でも叶うなら住みたい場所TOP5'
-        ];
+        let themes = [];  // Firebase themes/items から取得後にセット
+
+        async function loadThemes() {
+            try {
+                const snapshot = await database.ref('themes/items')
+                    .orderByChild('order').once('value');
+                themes = [];
+                snapshot.forEach(child => {
+                    const item = child.val();
+                    if (item.isActive) {
+                        themes.push(item.text);
+                    }
+                });
+                console.log('テーマ ' + themes.length + '件を読み込みました');
+            } catch (error) {
+                console.error('テーマ読み込みエラー:', error);
+                themes = [];
+            }
+        }
         
         // ========================================
         // グローバル変数
         // ========================================
-        const LIFF_ID = '2008911809-CBLKsbT1';
+        const LIFF_ID = window.location.hostname.includes('netlify.app')
+            ? '2008911809-43mMnuKh'   // 開発環境 (Netlify)
+            : '2008911809-CBLKsbT1';  // 本番環境 (GitHub Pages)
         let currentTheme = '';
         let userProfile = null;
         let currentUser = null; // Firebase上のユーザー情報（フェーズ4で追加）
@@ -1583,6 +1566,9 @@
         let currentReviewRanking = null;  // 現在振り返り中のランキング
         let reviewCorrectAnswer = null;   // 正解データ
         
+        // ウィークリーテーマ深リンク用（Phase 5c）
+        let deepLinkThemeId = null;  // URLパラメータ ?themeId=xxx で渡されたテーマID
+
         // SortableJSインスタンス（ふたりであそぶ用）
         let gameSortableInstance = null;  // 予想画面用
         let gameInputSortableInstance = null;  // 回答入力用
@@ -1700,6 +1686,9 @@
                     
                     // ユーザー情報をFirebaseに保存・取得（フェーズ4で追加）
                     initializeUser();
+
+                    // テーマデータをFirebaseから取得（Phase 5c）
+                    loadThemes();
                     
                     // URLパラメータをチェック（招待URL処理）
                     checkUrlParameters();
@@ -1760,10 +1749,10 @@
                         // 既存ユーザー：情報を更新
                         currentUser = snapshot.val();
                         
-                        // 最終ログイン日時を更新
+                        // 最終ログイン日時・firebaseUidを更新（pictureUrlは保存しない）
                         userRef.update({
                             displayName: userProfile.displayName,
-                            pictureUrl: userProfile.pictureUrl || '',
+                            firebaseUid: firebase.auth().currentUser.uid,
                             lastLoginAt: new Date().toISOString()
                         });
                         
@@ -1775,12 +1764,12 @@
                         
                         console.log('✅ 既存ユーザー情報取得:', currentUser);
                     } else {
-                        // 新規ユーザー：ペアコードを生成して保存
+                        // 新規ユーザー：ペアコードを生成して保存（pictureUrlは保存しない）
                         const newPairCode = generatePairCode();
                         const newUser = {
                             userId: userId,
                             displayName: userProfile.displayName,
-                            pictureUrl: userProfile.pictureUrl || '',
+                            firebaseUid: firebase.auth().currentUser.uid,
                             pairCode: newPairCode,
                             partnerId: null,
                             createdAt: new Date().toISOString(),
@@ -2397,7 +2386,7 @@
             let themeMode = selectedThemeMode || 'random';
             
             if (themeMode === 'random') {
-                theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+                theme = themes[Math.floor(Math.random() * themes.length)];
             } else if (themeMode === 'custom') {
                 theme = customThemeText;
             }
@@ -2639,7 +2628,7 @@
             
             if (themeMode === 'random') {
                 // ランダムモード：プリセットテーマから選択
-                theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+                theme = themes[Math.floor(Math.random() * themes.length)];
             } else if (themeMode === 'custom') {
                 // カスタムモード：ユーザー入力テーマ
                 theme = customThemeText;
@@ -4448,6 +4437,15 @@
                 handlePairCodeInvite(pairCode);
                 return;
             }
+
+            // ウィークリーテーマ深リンクの場合（Phase 5c）
+            const themeId = urlParams.get('themeId');
+            if (themeId) {
+                console.log('テーマ深リンクを検出:', themeId);
+                deepLinkThemeId = themeId;
+                // ソロ入力モードの画面はPhase 6で実装予定
+                return;
+            }
         }
         
         // セッション招待を処理
@@ -4655,7 +4653,7 @@
         // ========================================
         function startRanking() {
             // ランダムにテーマを選ぶ
-            currentTheme = THEMES[Math.floor(Math.random() * THEMES.length)];
+            currentTheme = themes[Math.floor(Math.random() * themes.length)];
             document.getElementById('currentTheme').textContent = currentTheme;
             
             // 入力欄をクリア
@@ -5274,6 +5272,7 @@
                 
                 roomData.players[userProfile.userId] = {
                     displayName: userProfile.displayName,
+                    firebaseUid: firebase.auth().currentUser.uid,
                     status: 'waiting'
                 };
                 
@@ -5372,6 +5371,7 @@
                     const updates = {};
                     updates['players/' + userProfile.userId] = {
                         displayName: userProfile.displayName,
+                        firebaseUid: firebase.auth().currentUser.uid,
                         status: 'waiting'
                     };
                     updates['lastActivityAt'] = Date.now();
@@ -5591,7 +5591,7 @@
         }
         
         function betaRandomizeTheme() {
-            const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+            const theme = themes[Math.floor(Math.random() * themes.length)];
             document.getElementById('betaThemeText').textContent = theme;
             // リストが開いていたら閉じる
             document.getElementById('betaThemeListDropdown').style.display = 'none';
@@ -5605,7 +5605,7 @@
             if (dropdown.style.display === 'none') {
                 // リストを生成して表示
                 let html = '';
-                THEMES.forEach((theme) => {
+                themes.forEach((theme) => {
                     html += '<div onclick="betaSelectThemeFromList(\'' + theme.replace(/'/g, "\\'") + '\')" style="padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; color: #333; transition: background 0.1s;" onmouseover="this.style.background=\'#F0F8FF\'" onmouseout="this.style.background=\'white\'">';
                     html += theme;
                     html += '</div>';
@@ -6207,7 +6207,7 @@
                     theme: null, themeMode: null, players: {},
                     createdAt: new Date().toISOString(), lastActivityAt: Date.now()
                 };
-                roomData.players[userProfile.userId] = { displayName: userProfile.displayName, status: 'waiting' };
+                roomData.players[userProfile.userId] = { displayName: userProfile.displayName, firebaseUid: firebase.auth().currentUser.uid, status: 'waiting' };
                 await roomsRef.child(roomId).set(roomData);
                 
                 multiCurrentRoom = { roomId, role: 'host', data: roomData };
@@ -6258,7 +6258,7 @@
                 if (!alreadyJoined && playerCount >= roomData.maxPlayers) { alert('❌ この部屋は満員です。'); joinBtn.disabled = false; joinBtn.textContent = '✨ 参加する'; return; }
                 
                 if (!alreadyJoined) {
-                    await roomRef.update({ ['players/' + userProfile.userId]: { displayName: userProfile.displayName, status: 'waiting' }, lastActivityAt: Date.now() });
+                    await roomRef.update({ ['players/' + userProfile.userId]: { displayName: userProfile.displayName, firebaseUid: firebase.auth().currentUser.uid, status: 'waiting' }, lastActivityAt: Date.now() });
                 }
                 
                 multiCurrentRoom = { roomId, role: 'guest', data: roomData };
@@ -6320,7 +6320,7 @@
                     alert('回答の締め切りに間に合わなかったため、ゲームから退出しました。\n\n次のゲーム開始まで待機室でお待ちください。');
                     // プレイヤーとして再追加して待機状態に
                     database.ref('gameRooms/' + multiCurrentRoom.roomId + '/players/' + userProfile.userId).set({
-                        displayName: userProfile.displayName || 'ゲスト', joinedAt: Date.now(), status: 'waiting'
+                        displayName: userProfile.displayName || 'ゲスト', firebaseUid: firebase.auth().currentUser.uid, joinedAt: Date.now(), status: 'waiting'
                     });
                     document.getElementById('multiRoomNumber').textContent = roomId;
                     showScreen('multiWaitingRoomScreen');
@@ -6437,7 +6437,7 @@
         }
         
         function multiRandomizeTheme() {
-            document.getElementById('multiThemeText').textContent = THEMES[Math.floor(Math.random() * THEMES.length)];
+            document.getElementById('multiThemeText').textContent = themes[Math.floor(Math.random() * themes.length)];
             document.getElementById('multiThemeListDropdown').style.display = 'none';
             document.getElementById('multiThemeArrow').textContent = '▼';
         }
@@ -6447,7 +6447,7 @@
             const arrow = document.getElementById('multiThemeArrow');
             if (dd.style.display === 'none') {
                 let html = '';
-                THEMES.forEach(t => {
+                themes.forEach(t => {
                     html += '<div onclick="multiSelectThemeItem(\'' + t.replace(/'/g, "\\'") + '\')" style="padding:12px 15px; cursor:pointer; border-bottom:1px solid #eee; font-size:14px; color:#333;" onmouseover="this.style.background=\'#F0F8FF\'" onmouseout="this.style.background=\'white\'">' + t + '</div>';
                 });
                 dd.innerHTML = html; dd.style.display = 'block'; arrow.textContent = '▲';
@@ -7277,7 +7277,7 @@
         }
         
         function localRandomizeTheme() {
-            const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+            const theme = themes[Math.floor(Math.random() * themes.length)];
             document.getElementById('localThemeText').textContent = theme;
             document.getElementById('localThemeListDropdown').style.display = 'none';
             document.getElementById('localThemeArrow').textContent = '▼';
@@ -7288,7 +7288,7 @@
             const arrow = document.getElementById('localThemeArrow');
             if (dropdown.style.display === 'none') {
                 let html = '';
-                THEMES.forEach((theme) => {
+                themes.forEach((theme) => {
                     html += '<div onclick="localSelectThemeItem(\'' + theme.replace(/'/g, "\\'") + '\')" style="padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 14px; color: #333; transition: background 0.15s;" onmouseover="this.style.background=\'#FFF7ED\'" onmouseout="this.style.background=\'white\'">' + theme + '</div>';
                 });
                 dropdown.innerHTML = html;
