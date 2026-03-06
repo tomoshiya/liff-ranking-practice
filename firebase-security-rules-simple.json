@@ -1,7 +1,7 @@
 {
   "CURRENT_RULES": "以下のrulesセクションをFirebase Consoleにコピーして使用してください",
-  "LAST_UPDATED": "2026-03-04",
-  "VERSION": "v3.0",
+  "LAST_UPDATED": "2026-03-06",
+  "VERSION": "v3.1",
 
   "rules": {
     "users": {
@@ -12,7 +12,19 @@
     },
     "gameRooms": {
       ".read":  "auth != null",
-      ".write": "auth != null"
+      ".write": "auth != null",
+      "$roomId": {
+        "rankings": {
+          "$uid": {
+            ".validate": "root.child('users').child($uid).child('firebaseUid').val() == auth.uid"
+          }
+        },
+        "guesses": {
+          "$uid": {
+            ".validate": "root.child('users').child($uid).child('firebaseUid').val() == auth.uid"
+          }
+        }
+      }
     },
     "gameSessions": {
       ".read":  "auth != null",
@@ -33,6 +45,18 @@
   },
 
   "_CHANGE_HISTORY": [
+    {
+      "date": "2026-03-06",
+      "version": "v3.1",
+      "reason": "gameRoomsのrankings・guessesを自分のデータのみ書き込み可能にする（.validateで実現）",
+      "changes": [
+        "gameRooms/$roomId/rankings/$uid: .validate追加（firebaseUid照合・自分のランキングのみ書き込み可）",
+        "gameRooms/$roomId/guesses/$uid: .validate追加（firebaseUid照合・自分の予想のみ書き込み可）",
+        "beta/multiモードのplayers追加時にfirebaseUidを保存するよう変更（5箇所）"
+      ],
+      "security_level": "v3.0より強化：rankingsとguessesの書き込みが自分のデータのみに制限",
+      "notes": ".validateはFirebaseで書き込み権限と別に検証できる仕組み。親がauth!=nullでも子レベルで書き込み内容を制限可能。削除操作（null書き込み）には適用されないため部屋削除は引き続き正常動作する"
+    },
     {
       "date": "2026-03-04",
       "version": "v3.0",

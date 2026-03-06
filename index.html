@@ -5276,6 +5276,7 @@
                 
                 roomData.players[userProfile.userId] = {
                     displayName: userProfile.displayName,
+                    firebaseUid: firebase.auth().currentUser.uid,
                     status: 'waiting'
                 };
                 
@@ -5374,6 +5375,7 @@
                     const updates = {};
                     updates['players/' + userProfile.userId] = {
                         displayName: userProfile.displayName,
+                        firebaseUid: firebase.auth().currentUser.uid,
                         status: 'waiting'
                     };
                     updates['lastActivityAt'] = Date.now();
@@ -6209,7 +6211,7 @@
                     theme: null, themeMode: null, players: {},
                     createdAt: new Date().toISOString(), lastActivityAt: Date.now()
                 };
-                roomData.players[userProfile.userId] = { displayName: userProfile.displayName, status: 'waiting' };
+                roomData.players[userProfile.userId] = { displayName: userProfile.displayName, firebaseUid: firebase.auth().currentUser.uid, status: 'waiting' };
                 await roomsRef.child(roomId).set(roomData);
                 
                 multiCurrentRoom = { roomId, role: 'host', data: roomData };
@@ -6260,7 +6262,7 @@
                 if (!alreadyJoined && playerCount >= roomData.maxPlayers) { alert('❌ この部屋は満員です。'); joinBtn.disabled = false; joinBtn.textContent = '✨ 参加する'; return; }
                 
                 if (!alreadyJoined) {
-                    await roomRef.update({ ['players/' + userProfile.userId]: { displayName: userProfile.displayName, status: 'waiting' }, lastActivityAt: Date.now() });
+                    await roomRef.update({ ['players/' + userProfile.userId]: { displayName: userProfile.displayName, firebaseUid: firebase.auth().currentUser.uid, status: 'waiting' }, lastActivityAt: Date.now() });
                 }
                 
                 multiCurrentRoom = { roomId, role: 'guest', data: roomData };
@@ -6322,7 +6324,7 @@
                     alert('回答の締め切りに間に合わなかったため、ゲームから退出しました。\n\n次のゲーム開始まで待機室でお待ちください。');
                     // プレイヤーとして再追加して待機状態に
                     database.ref('gameRooms/' + multiCurrentRoom.roomId + '/players/' + userProfile.userId).set({
-                        displayName: userProfile.displayName || 'ゲスト', joinedAt: Date.now(), status: 'waiting'
+                        displayName: userProfile.displayName || 'ゲスト', firebaseUid: firebase.auth().currentUser.uid, joinedAt: Date.now(), status: 'waiting'
                     });
                     document.getElementById('multiRoomNumber').textContent = roomId;
                     showScreen('multiWaitingRoomScreen');
