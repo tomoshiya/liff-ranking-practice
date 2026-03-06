@@ -1,30 +1,18 @@
 {
   "CURRENT_RULES": "以下のrulesセクションをFirebase Consoleにコピーして使用してください",
   "LAST_UPDATED": "2026-03-06",
-  "VERSION": "v3.2",
+  "VERSION": "v3.4",
 
   "rules": {
     "users": {
       "$lineUserId": {
         ".read":  "auth != null && (!data.exists() || data.child('firebaseUid').val() == auth.uid)",
-        ".write": "auth != null && (!data.exists() || data.child('firebaseUid').val() == auth.uid)"
+        ".write": "auth != null && (!data.exists() || data.child('firebaseUid').val() == null || data.child('firebaseUid').val() == auth.uid)"
       }
     },
     "gameRooms": {
       ".read":  "auth != null",
-      ".write": "auth != null",
-      "$roomId": {
-        "rankings": {
-          "$uid": {
-            ".validate": "root.child('users').child($uid).child('firebaseUid').val() == auth.uid"
-          }
-        },
-        "guesses": {
-          "$uid": {
-            ".validate": "root.child('users').child($uid).child('firebaseUid').val() == auth.uid"
-          }
-        }
-      }
+      ".write": "auth != null"
     },
     "gameSessions": {
       ".read":  "auth != null",
@@ -50,6 +38,28 @@
   },
 
   "_CHANGE_HISTORY": [
+    {
+      "date": "2026-03-06",
+      "version": "v3.4",
+      "reason": "バグ修正：gameRoomsの.validateルールを削除。ダミーユーザーはusersレコードがないため常にvalidation失敗する問題、またLINE WebViewではFirebase匿名認証UIDがセッション間で変わる可能性があり.validateが機能しない問題が判明。auth!=nullで十分な保護を提供。",
+      "changes": [
+        "gameRooms/$roomId/rankings/$uid: .validateルールを削除",
+        "gameRooms/$roomId/guesses/$uid: .validateルールを削除",
+        "gameRooms: auth!=nullのみに戻す（v3.0相当）"
+      ],
+      "security_level": "認証済みユーザーのみアクセス可能（v3.0以前と同等）。より細かいアクセス制御はPhase 7以降で再設計予定。"
+    },
+    {
+      "date": "2026-03-06",
+      "version": "v3.3",
+      "reason": "バグ修正：既存ユーザーがfirebaseUidを持っていない場合にusersへの書き込みがブロックされ、ランキング送信がPERMISSION_DENIEDになる問題を修正",
+      "changes": [
+        "users/$lineUserId .write: firebaseUidがnull（未設定）の既存ユーザーも書き込み可能に変更（firebaseUid移行のため）",
+        "変更前: data.child('firebaseUid').val() == auth.uid",
+        "変更後: data.child('firebaseUid').val() == null || data.child('firebaseUid').val() == auth.uid"
+      ],
+      "security_level": "firebaseUid未設定ユーザーは誰でも上書き可能（移行期間中の許容）。一度firebaseUidが書き込まれれば自分のみに制限される。"
+    },
     {
       "date": "2026-03-06",
       "version": "v3.2",
