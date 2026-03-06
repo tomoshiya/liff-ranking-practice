@@ -44,7 +44,7 @@ todos:
   # ===== β版バックエンド整備（進行中） =====
   - id: themes-firebase
     content: "Phase 5c: テーマデータをFirebaseに移行（Consoleで管理可能に）"
-    status: pending
+    status: completed
   - id: local-storage-history
     content: "Phase 5d: LocalStorageでゲーム履歴保存（プライバシー重視）"
     status: pending
@@ -215,27 +215,28 @@ developブランチで開発
 - `gameRooms`の参加者のみ読み書き可能にする
 - `players`にも`firebaseUid`を保存し、Security Rulesで照合する設計に変更
 
-### 5c: テーマデータのFirebase移行
+### 5c: テーマデータのFirebase移行 ✅ 完了（2026年3月6日）
 
-**目的**: コード変更・コミットなしでテーマを追加・変更できるようにする
+**実施内容**:
+- 29テーマを `themes/items/` に移行（`themes-seed.json` でインポート）
+- `themes/packs/basic` にパックメタデータを追加
+- `themes/weekly` にウィークリーテーマ構造を追加
+- `THEMES` ハードコード定数を削除、`loadThemes()` による動的取得に変更
+- `deepLinkThemeId` 変数と `checkUrlParameters()` に `?themeId=` 処理を追加（ソロ入力UIはPhase 6）
+- Firebase Security Rules v3.2 で `themes/` ノードのアクセス制御を追加
 
-**データ構造**:
+**テーマの構造**:
 ```
 themes/
-  packs/
-    basic/            ← 無料（認証済み全員）
-      001: { text: "最近ハマっていること", category: "日常" }
-      002: { text: "ストレス発散法TOP5", category: "日常" }
-    gokon/            ← 将来の有料パック
-      101: { text: "理想のデートプランTOP5", category: "恋愛" }
-  packMeta/           ← パック一覧（誰でも読める）
-    basic:  { name: "基本テーマ", price: 0, count: 20 }
-    gokon:  { name: "合コン用パック", price: 380, count: 20 }
+  packs/basic:  { name, price: 0, isFree: true }
+  weekly:       { themeId, startDate, endDate, message }
+  items/001〜029: { text, pack, tags: {シーン: true}, order, isActive }
 ```
 
-**移行後の管理方法（段階的）**:
-- **近い将来**: Firebase Consoleから直接編集（コード不要）
-- **将来**: Google Sheets → GAS → Firebase同期（スプシで直感的に管理）
+**運用方法**:
+- テーマ追加・変更：Firebase Consoleから直接編集（コード不要）
+- `isActive: false` にすれば即時非公開
+- ウィークリーテーマ：`themes/weekly.themeId` を更新するだけ
 
 ### 5d: LocalStorageでゲーム履歴保存
 
