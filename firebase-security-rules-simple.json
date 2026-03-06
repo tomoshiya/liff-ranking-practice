@@ -1,7 +1,7 @@
 {
   "CURRENT_RULES": "以下のrulesセクションをFirebase Consoleにコピーして使用してください",
   "LAST_UPDATED": "2026-03-06",
-  "VERSION": "v3.1",
+  "VERSION": "v3.2",
 
   "rules": {
     "users": {
@@ -41,10 +41,26 @@
     "analytics": {
       ".read":  false,
       ".write": "auth != null"
+    },
+    "themes": {
+      "packs":  { ".read": true,           ".write": false },
+      "items":  { ".read": "auth != null", ".write": false },
+      "weekly": { ".read": "auth != null", ".write": false }
     }
   },
 
   "_CHANGE_HISTORY": [
+    {
+      "date": "2026-03-06",
+      "version": "v3.2",
+      "reason": "テーマデータをFirebaseに移行（Phase 5c）。themesノードを追加し、コード変更なしでテーマ管理が可能に。",
+      "changes": [
+        "themes/packs: 未認証でも読み取り可能（将来の課金案内用）、書き込み禁止",
+        "themes/items: 認証済みユーザーのみ読み取り可能、書き込み禁止（Consoleのみ管理）",
+        "themes/weekly: 認証済みユーザーのみ読み取り可能、書き込み禁止（Consoleのみ管理）"
+      ],
+      "security_level": "themes/はクライアントからの書き込み不可。ConsoleまたはAdmin SDKのみ管理可能。"
+    },
     {
       "date": "2026-03-06",
       "version": "v3.1",

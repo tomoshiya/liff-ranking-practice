@@ -1526,46 +1526,27 @@
 
     <script>
         // ========================================
-        // テーマデータ（29個）
+        // テーマデータ（Firebaseから動的に取得）
         // ========================================
-        const THEMES = [
-            // エモーション系（8個）
-            '最近、嬉しかったことTOP5',
-            '最近、楽しかったことTOP5',
-            '最近、感謝を感じたことTOP5',
-            '最近、ハマっていることTOP5',
-            '最近、悲しかったことTOP5',
-            '最近、ムカついたことTOP5',
-            '最近、不安なことTOP5',
-            '最近、感動したことTOP5',
-            
-            // ふりかえり系（2個）
-            'この1年で、買ってよかったものTOP5',
-            'この1年で、行ってよかったお店TOP5',
-            
-            // 好き・嫌い系（13個）
-            '好きな食べ物・料理TOP5',
-            '嫌い・苦手な食べ物・料理TOP5',
-            '好きな飲食店TOP5',
-            '好きな映画TOP5',
-            '好きな漫画・アニメTOP5',
-            '好きなゲームTOP5',
-            '好きな歌手TOP5',
-            '好きな曲・歌TOP5',
-            '好きな地域・エリアTOP5',
-            '好きな本・書籍TOP5',
-            '好きな言葉・名言TOP5',
-            '好きな休日の過ごし方TOP5',
-            '尊敬している人TOP5',
-            
-            // if・問いかけ系（6個）
-            '何でも叶うなら実現したいことTOP5',
-            '何でも買えるならほしいものTOP5',
-            '誰にでも会えるなら会いたい人TOP5',
-            '無人島に行くなら持っていく物TOP5',
-            '手に入れたいチカラ・超能力TOP5',
-            '何でも叶うなら住みたい場所TOP5'
-        ];
+        let themes = [];  // Firebase themes/items から取得後にセット
+
+        async function loadThemes() {
+            try {
+                const snapshot = await database.ref('themes/items')
+                    .orderByChild('order').once('value');
+                themes = [];
+                snapshot.forEach(child => {
+                    const item = child.val();
+                    if (item.isActive) {
+                        themes.push(item.text);
+                    }
+                });
+                console.log('テーマ ' + themes.length + '件を読み込みました');
+            } catch (error) {
+                console.error('テーマ読み込みエラー:', error);
+                themes = [];
+            }
+        }
         
         // ========================================
         // グローバル変数
@@ -1585,6 +1566,9 @@
         let currentReviewRanking = null;  // 現在振り返り中のランキング
         let reviewCorrectAnswer = null;   // 正解データ
         
+        // ウィークリーテーマ深リンク用（Phase 5c）
+        let deepLinkThemeId = null;  // URLパラメータ ?themeId=xxx で渡されたテーマID
+
         // SortableJSインスタンス（ふたりであそぶ用）
         let gameSortableInstance = null;  // 予想画面用
         let gameInputSortableInstance = null;  // 回答入力用
@@ -1702,6 +1686,9 @@
                     
                     // ユーザー情報をFirebaseに保存・取得（フェーズ4で追加）
                     initializeUser();
+
+                    // テーマデータをFirebaseから取得（Phase 5c）
+                    loadThemes();
                     
                     // URLパラメータをチェック（招待URL処理）
                     checkUrlParameters();
@@ -2399,7 +2386,7 @@
             let themeMode = selectedThemeMode || 'random';
             
             if (themeMode === 'random') {
-                theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+                theme = themes[Math.floor(Math.random() * themes.length)];
             } else if (themeMode === 'custom') {
                 theme = customThemeText;
             }
@@ -2641,7 +2628,7 @@
             
             if (themeMode === 'random') {
                 // ランダムモード：プリセットテーマから選択
-                theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+                theme = themes[Math.floor(Math.random() * themes.length)];
             } else if (themeMode === 'custom') {
                 // カスタムモード：ユーザー入力テーマ
                 theme = customThemeText;
@@ -4450,6 +4437,15 @@
                 handlePairCodeInvite(pairCode);
                 return;
             }
+
+            // ウィークリーテーマ深リンクの場合（Phase 5c）
+            const themeId = urlParams.get('themeId');
+            if (themeId) {
+                console.log('テーマ深リンクを検出:', themeId);
+                deepLinkThemeId = themeId;
+                // ソロ入力モードの画面はPhase 6で実装予定
+                return;
+            }
         }
         
         // セッション招待を処理
@@ -4657,7 +4653,7 @@
         // ========================================
         function startRanking() {
             // ランダムにテーマを選ぶ
-            currentTheme = THEMES[Math.floor(Math.random() * THEMES.length)];
+            currentTheme = themes[Math.floor(Math.random() * themes.length)];
             document.getElementById('currentTheme').textContent = currentTheme;
             
             // 入力欄をクリア
@@ -5595,7 +5591,7 @@
         }
         
         function betaRandomizeTheme() {
-            const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+            const theme = themes[Math.floor(Math.random() * themes.length)];
             document.getElementById('betaThemeText').textContent = theme;
             // リストが開いていたら閉じる
             document.getElementById('betaThemeListDropdown').style.display = 'none';
@@ -5609,7 +5605,7 @@
             if (dropdown.style.display === 'none') {
                 // リストを生成して表示
                 let html = '';
-                THEMES.forEach((theme) => {
+                themes.forEach((theme) => {
                     html += '<div onclick="betaSelectThemeFromList(\'' + theme.replace(/'/g, "\\'") + '\')" style="padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; color: #333; transition: background 0.1s;" onmouseover="this.style.background=\'#F0F8FF\'" onmouseout="this.style.background=\'white\'">';
                     html += theme;
                     html += '</div>';
@@ -6441,7 +6437,7 @@
         }
         
         function multiRandomizeTheme() {
-            document.getElementById('multiThemeText').textContent = THEMES[Math.floor(Math.random() * THEMES.length)];
+            document.getElementById('multiThemeText').textContent = themes[Math.floor(Math.random() * themes.length)];
             document.getElementById('multiThemeListDropdown').style.display = 'none';
             document.getElementById('multiThemeArrow').textContent = '▼';
         }
@@ -6451,7 +6447,7 @@
             const arrow = document.getElementById('multiThemeArrow');
             if (dd.style.display === 'none') {
                 let html = '';
-                THEMES.forEach(t => {
+                themes.forEach(t => {
                     html += '<div onclick="multiSelectThemeItem(\'' + t.replace(/'/g, "\\'") + '\')" style="padding:12px 15px; cursor:pointer; border-bottom:1px solid #eee; font-size:14px; color:#333;" onmouseover="this.style.background=\'#F0F8FF\'" onmouseout="this.style.background=\'white\'">' + t + '</div>';
                 });
                 dd.innerHTML = html; dd.style.display = 'block'; arrow.textContent = '▲';
@@ -7281,7 +7277,7 @@
         }
         
         function localRandomizeTheme() {
-            const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+            const theme = themes[Math.floor(Math.random() * themes.length)];
             document.getElementById('localThemeText').textContent = theme;
             document.getElementById('localThemeListDropdown').style.display = 'none';
             document.getElementById('localThemeArrow').textContent = '▼';
@@ -7292,7 +7288,7 @@
             const arrow = document.getElementById('localThemeArrow');
             if (dropdown.style.display === 'none') {
                 let html = '';
-                THEMES.forEach((theme) => {
+                themes.forEach((theme) => {
                     html += '<div onclick="localSelectThemeItem(\'' + theme.replace(/'/g, "\\'") + '\')" style="padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 14px; color: #333; transition: background 0.15s;" onmouseover="this.style.background=\'#FFF7ED\'" onmouseout="this.style.background=\'white\'">' + theme + '</div>';
                 });
                 dropdown.innerHTML = html;
