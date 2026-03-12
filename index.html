@@ -3581,8 +3581,10 @@
                 const myGuess = guesses[playerId];            // 予想
                 
                 let score = 0;           // 合計スコア
-                let perfectCount = 0;    // 完全一致の数
+                let perfectCount = 0;    // 完全一致の数（±0）
                 let closeCount = 0;      // ±1の数
+                let closeCount2 = 0;     // ±2の数
+                let closeCount3 = 0;     // ±3の数
                 
                 // 各予想位置について、正解での順位を探して比較
                 for (let guessRank = 1; guessRank <= 5; guessRank++) {
@@ -3597,25 +3599,31 @@
                         }
                     }
                     
-                    // 順位の差を計算
+                    // 順位の差を計算（10,6,3,1,0 スコアリング）
                     if (correctRank > 0) {
                         const diff = Math.abs(guessRank - correctRank);
                         if (diff === 0) {
-                            // 完全一致
-                            score += 2;
+                            score += 10;
                             perfectCount++;
                         } else if (diff === 1) {
-                            // ±1（おしい）
-                            score += 1;
+                            score += 6;
                             closeCount++;
+                        } else if (diff === 2) {
+                            score += 3;
+                            closeCount2++;
+                        } else if (diff === 3) {
+                            score += 1;
+                            closeCount3++;
                         }
                     }
                 }
                 
                 results[playerId] = {
-                    score: score,               // 最大10点
-                    perfectCount: perfectCount, // 完全一致数
-                    closeCount: closeCount      // ±1の数
+                    score: score,               // 最大50点
+                    perfectCount: perfectCount, // 完全一致数（±0）
+                    closeCount: closeCount,     // ±1の数
+                    closeCount2: closeCount2,   // ±2の数
+                    closeCount3: closeCount3    // ±3の数
                 };
             });
             
@@ -3675,17 +3683,21 @@
             // 自分のスコア
             html += '<div>';
             html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">あなた</p>';
-            html += '<p style="color: #FF6B9D; font-size: 32px; font-weight: bold;">' + myScore.score + '<span style="font-size: 16px; color: #999;"> / 10</span><span style="font-size: 13px; color: #999;">pt</span></p>';
-            html += '<p style="color: #999; font-size: 12px;">あたり！（2pt）×' + (myScore.perfectCount || 0) + '個</p>';
-            html += '<p style="color: #999; font-size: 12px;">おしい！（1pt）×' + (myScore.closeCount || 0) + '個</p>';
+            html += '<p style="color: #FF6B9D; font-size: 32px; font-weight: bold;">' + myScore.score + '<span style="font-size: 16px; color: #999;"> / 50</span><span style="font-size: 13px; color: #999;">pt</span></p>';
+            html += '<p style="color: #999; font-size: 12px;">あたり！（10pt）×' + (myScore.perfectCount || 0) + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">おしい！（6pt）×' + (myScore.closeCount || 0) + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">かすり！（3pt）×' + (myScore.closeCount2 || 0) + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">ちかい！（1pt）×' + (myScore.closeCount3 || 0) + '個</p>';
             html += '</div>';
             
             // ペア相手のスコア
             html += '<div>';
             html += '<p style="color: #666; font-size: 13px; margin-bottom: 5px;">お相手</p>';
-            html += '<p style="color: #4A90E2; font-size: 32px; font-weight: bold;">' + partnerScore.score + '<span style="font-size: 16px; color: #999;"> / 10</span><span style="font-size: 13px; color: #999;">pt</span></p>';
-            html += '<p style="color: #999; font-size: 12px;">あたり！（2pt）×' + (partnerScore.perfectCount || 0) + '個</p>';
-            html += '<p style="color: #999; font-size: 12px;">おしい！（1pt）×' + (partnerScore.closeCount || 0) + '個</p>';
+            html += '<p style="color: #4A90E2; font-size: 32px; font-weight: bold;">' + partnerScore.score + '<span style="font-size: 16px; color: #999;"> / 50</span><span style="font-size: 13px; color: #999;">pt</span></p>';
+            html += '<p style="color: #999; font-size: 12px;">あたり！（10pt）×' + (partnerScore.perfectCount || 0) + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">おしい！（6pt）×' + (partnerScore.closeCount || 0) + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">かすり！（3pt）×' + (partnerScore.closeCount2 || 0) + '個</p>';
+            html += '<p style="color: #999; font-size: 12px;">ちかい！（1pt）×' + (partnerScore.closeCount3 || 0) + '個</p>';
             html += '</div>';
             
             html += '</div>';
@@ -3693,23 +3705,23 @@
             
             // 協力型：合計スコア表示
             const totalScore = myScore.score + partnerScore.score;
-            const maxScore = 20;
+            const maxScore = 100;
             let cooperativeEmoji = '';
             let cooperativeMessage = '';
             
-            if (totalScore === 20) {
+            if (totalScore === 100) {
                 cooperativeEmoji = '🎉';
                 cooperativeMessage = 'パーフェクト！完璧なコンビネーション！';
-            } else if (totalScore >= 18) {
+            } else if (totalScore >= 90) {
                 cooperativeEmoji = '😊';
                 cooperativeMessage = '素晴らしい！ほぼ完璧！';
-            } else if (totalScore >= 15) {
+            } else if (totalScore >= 75) {
                 cooperativeEmoji = '👍';
                 cooperativeMessage = 'いい感じ！お互いをよく知ってる！';
-            } else if (totalScore >= 12) {
+            } else if (totalScore >= 60) {
                 cooperativeEmoji = '🤔';
                 cooperativeMessage = 'まだまだ伸びしろあり！';
-            } else if (totalScore >= 8) {
+            } else if (totalScore >= 40) {
                 cooperativeEmoji = '💪';
                 cooperativeMessage = '次は頑張ろう！';
             } else {
@@ -6976,8 +6988,10 @@
                     let icon = '×', color = '#999', pt = 0;
                     if (gRank > 0) {
                         const diff = Math.abs(gRank - rank);
-                        if (diff === 0) { icon = '○'; color = '#50C878'; pt = 2; }
-                        else if (diff === 1) { icon = '△'; color = '#FF9800'; pt = 1; }
+                        if (diff === 0) { icon = '○'; color = '#50C878'; pt = 10; }
+                        else if (diff === 1) { icon = '△'; color = '#FF9800'; pt = 6; }
+                        else if (diff === 2) { icon = '▽'; color = '#FFB74D'; pt = 3; }
+                        else if (diff === 3) { icon = '▼'; color = '#BDBDBD'; pt = 1; }
                     }
                     
                     html += '<div style="display:flex; align-items:center; font-size:12px; margin:3px 0; color:#666;">';
@@ -7601,8 +7615,10 @@
                         }
                         if (gRank > 0) {
                             const diff = Math.abs(gRank - cRank);
-                            if (diff === 0) { playerResults[guesser.id].totalScore += 2; playerResults[guesser.id].totalPerfect++; }
-                            else if (diff === 1) { playerResults[guesser.id].totalScore += 1; playerResults[guesser.id].totalClose++; }
+                            if (diff === 0) { playerResults[guesser.id].totalScore += 10; playerResults[guesser.id].totalPerfect++; }
+                            else if (diff === 1) { playerResults[guesser.id].totalScore += 6; playerResults[guesser.id].totalClose++; }
+                            else if (diff === 2) { playerResults[guesser.id].totalScore += 3; }
+                            else if (diff === 3) { playerResults[guesser.id].totalScore += 1; }
                         }
                     }
                 });
@@ -7624,7 +7640,7 @@
                 ...p, ...(results.players[p.id] || { totalScore: 0, totalPerfect: 0, totalClose: 0, targetCount: 0 })
             })).sort((a, b) => b.totalScore - a.totalScore);
             
-            const maxPossible = sorted[0]?.targetCount ? sorted[0].targetCount * 10 : 10;
+            const maxPossible = sorted[0]?.targetCount ? sorted[0].targetCount * 50 : 50;
             const avgScore = sorted.length > 0 ? (sorted.reduce((s, p) => s + p.totalScore, 0) / sorted.length) : 0;
             
             let rankHtml = '<div style="background:#FFF7ED; border-radius:12px; padding:20px;">';
@@ -7699,8 +7715,10 @@
                     let icon = '×', color = '#999', pt = 0;
                     if (gRank > 0) {
                         const diff = Math.abs(gRank - rank);
-                        if (diff === 0) { icon = '○'; color = '#50C878'; pt = 2; }
-                        else if (diff === 1) { icon = '△'; color = '#FF9800'; pt = 1; }
+                        if (diff === 0) { icon = '○'; color = '#50C878'; pt = 10; }
+                        else if (diff === 1) { icon = '△'; color = '#FF9800'; pt = 6; }
+                        else if (diff === 2) { icon = '▽'; color = '#FFB74D'; pt = 3; }
+                        else if (diff === 3) { icon = '▼'; color = '#BDBDBD'; pt = 1; }
                     }
                     
                     html += '<div style="display:flex; align-items:center; font-size:12px; margin:3px 0; color:#666;">';
