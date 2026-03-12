@@ -49,25 +49,27 @@ todos:
     content: "Phase 5b補足: Security Rules v3.4 - gameRoomsのvalidateルール削除（ランキング送信エラー修正）"
     status: completed
   - id: local-storage-history
-    content: "Phase 5d: LocalStorageでゲーム履歴保存（プライバシー重視）"
+    content: "Phase 5d: LocalStorageでゲーム履歴保存（設計確定・実装はβリビルド時）"
     status: pending
   - id: gas-firebase-sync
     content: "Phase 5e: Google Sheets→Firebase同期（テーマ管理の利便性向上）"
     status: pending
 
+  # ===== β版リビルド（優先） =====
+  - id: beta-rebuild-design
+    content: "Phase 6-Rebuild: β版ファイル構成設計（HTML/CSS/JS分割）"
+    status: pending
+  - id: beta-rebuild-impl
+    content: "Phase 6-Rebuild: β版フロントエンド実装（ワイヤーフレームベース）"
+    status: pending
+
   # ===== β版フロントエンド改善（後回し） =====
   - id: ux-wireframe
-    content: "Phase 6a: UIワイヤーフレーム設計（改善方針合意後に実装）"
-    status: pending
-  - id: input-multiline
-    content: "Phase 6b: 入力フォームのマルチライン対応"
-    status: pending
-  - id: theme-hints
-    content: "Phase 6c: テーマ入力時のヒント・候補表示"
-    status: pending
+    content: "Phase 6a: UIワイヤーフレーム設計（全11画面確定済み）"
+    status: completed
   - id: score-partial
-    content: "Phase 6d: スコア部分点の仕組み（粒度改善）"
-    status: pending
+    content: "Phase 6d: スコア部分点の仕組み → 新スコアリング(10,6,3,1,0)で確定"
+    status: completed
 
   # ===== 将来（β公開後） =====
   - id: paid-theme-packs
@@ -258,14 +260,59 @@ themes/
 - `isActive: false` にすれば即時非公開
 - ウィークリーテーマ：`themes/weekly.themeId` を更新するだけ
 
-### 5d: LocalStorageでゲーム履歴保存
+### 5d: LocalStorageでゲーム履歴保存（設計確定）
 
-**目的**: ユーザーが過去の結果を振り返れるようにする（プライバシー重視）
+**目的**: ゲーム振り返り・WEEKLYモード活用・将来の再エンゲージメント設計の土台
 
-**方針**:
-- Firebaseには保存しない（端末内のみ）
-- 保存するデータ: 日時・テーマ・参加者・スコア
-- 容量制限を考慮して最新N件のみ保持
+**LocalStorageキー構成**:
+
+| キー名 | 内容 | 上限 |
+|--------|------|------|
+| `rankq_history` | ゲーム全履歴（全員のTOP5含む） | 最大50件 |
+| `rankq_soloHistory` | WEEKLYモード用ソロ入力履歴 | 最大50件 |
+| `currentSession` | ゲーム中断時の復元用一時データ | 1件のみ |
+
+**`rankq_history` 1件のデータ構造**:
+```json
+{
+  "id": "uuid",
+  "playedAt": "2026-03-12T10:00:00",
+  "themeId": "001",
+  "themeText": "最近、嬉しかったことTOP5",
+  "mode": "pair | multi | local",
+  "players": [
+    { "lineUserId": "U...", "displayName": "太郎" }
+  ],
+  "myLineUserId": "U...",
+  "myScore": 32,
+  "maxScore": 50,
+  "totalScore": 68,
+  "totalMaxScore": 100,
+  "answers": {
+    "U太郎": { "1": "家族", "2": "旅行", "3": "...", "4": "...", "5": "..." },
+    "U花子": { "1": "仕事", "2": "趣味", "3": "...", "4": "...", "5": "..." }
+  }
+}
+```
+
+**設計方針**:
+- 他者のTOP5も保存する（ゲームで共有された情報として、LocalStorage端末内保存はリスク低）
+- β版では「記録として残す」まで実装。将来の再アプローチ機能（通知等）は正式版対応
+- Firebase移行を想定した構造で設計しておく
+
+**データ保存方式の選択肢まとめ**:
+| 方式 | 用途 | 揮発性 |
+|------|------|--------|
+| JavaScriptメモリ（変数） | ゲーム中の一時状態管理 | ページ閉じると消える |
+| SessionStorage | タブセッション中のみ保持 | タブ閉じると消える |
+| **LocalStorage** | **β版の履歴・設定保存** | **端末に永続保存** |
+| IndexedDB | 大量データ・複雑クエリ | 端末に永続保存 |
+| Firebase | 正式版の全履歴保存・通知連携 | サーバー永続保存 |
+
+**セッション復元（currentSession）について**:
+- 現状の課題：ゲーム中にブラウザを閉じると状態がリセットされHOMEに戻る
+- 解決策：ゲームの進行状態（部屋ID・フェーズ・入力内容等）をLocalStorageに随時保存し、再アクセス時に復元
+- β版リビルド時に実装予定
 
 ### 5e: Google Sheets → Firebase同期（テーマ管理）
 
@@ -282,18 +329,73 @@ RankQuestアプリ（認証済みユーザーが取得）
 
 ---
 
-## Phase 6: フロントエンドUX改善
+## Phase 6: β版リビルド
 
-**方針**: ワイヤーフレームから設計し、合意してから実装する
+**方針**: 既存の7700行超モノリシックコードを廃棄し、ワイヤーフレームベースで新規構築する
 
-### 改善候補（トライアルユーザーフィードバックより）
+### リビルドの背景
 
-| フィードバック | 対応案 | 優先度 |
-|---|---|---|
-| ゼロから入力が難しい | テーマ入力時にヒント・例文を表示 | 高 |
-| 長いテキストが入力しづらい | 入力フォームをtextareaに変更 | 中 |
-| スコアの粒度が厳しい | 部分点の仕組みを導入 | 中 |
-| グループプレイの開始が難しい | 「みんなでランクエ」の入口UX改善 | 中 |
+- 現行コード（`index.html`）は7700行超のHTML/CSS/JS混在で保守性が低い
+- UIフル刷新・LocalStorage設計・新スコアリング等を一括実装するため、継ぎ足しより新規構築が効率的
+- LINEのWebViewキャッシュ問題もファイル分割により軽減できる
+
+### 新ファイル構成（予定）
+
+```
+index.html          ← HTML構造のみ（β版）
+css/
+  style.css         ← 全スタイル
+js/
+  firebase.js       ← Firebase初期化・認証（既存から移植）
+  themes.js         ← テーマ取得（既存から移植）
+  game-pair.js      ← ふたりモードのロジック
+  game-multi.js     ← みんなモードのロジック
+  game-local.js     ← ローカルモードのロジック
+  storage.js        ← LocalStorage管理（新規）
+  ui.js             ← 画面切替・共通UI
+  app.js            ← エントリーポイント
+```
+
+### ブランチ戦略（リビルド時）
+
+```
+main      → α版（本番）。触らない
+develop   → α版の保守用に残す
+beta      ← β版リビルドブランチ（新規作成）
+```
+
+### ゲームモード（β版）
+
+β版で実装する3モード（旧αモードは廃棄）：
+| モード | 概要 |
+|--------|------|
+| ふたりであそぶ | Firebase gameRooms使用 |
+| みんなであそぶ | Firebase gameRooms使用 |
+| 1台であそぶ | ローカル処理のみ |
+
+### 確定済みスコアリング（2026年3月）
+
+| 距離 | ラベル | 得点 |
+|------|--------|:----:|
+| ±0 | あたり | 10pt |
+| ±1 | おしい | 6pt |
+| ±2 | かすり | 3pt |
+| ±3 | ちかい | 1pt |
+| ±4 | はずれ | 0pt |
+
+- **1人満点：50pt**（5問 × 10pt）
+- **ペア合計：100pt**（パーセント換算が直感的）
+- **みんなモードのみ**：当てた率 / 当てられた率を追加表示
+
+### 既存コードから移植するもの
+
+| 内容 | 対応 |
+|------|------|
+| Firebase初期化・認証 | コピー移植 |
+| LIFF初期化・ユーザー取得 | コピー移植 |
+| `loadThemes()`関数 | コピー移植 |
+| スコア計算ロジック | 新スコアリングで再実装 |
+| HTMLデザイン | ワイヤーフレームから新規作成 |
 
 ---
 
