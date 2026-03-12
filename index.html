@@ -3764,7 +3764,7 @@
                             }
                         }
                         
-                        // 順位の差を計算
+                        // 順位の差を計算（10,6,3,1,0 スコアリング）
                         let icon = '';
                         let bgColor = 'transparent';
                         let pointEarned = 0;
@@ -3773,10 +3773,17 @@
                             if (diff === 0) {
                                 icon = '○';
                                 bgColor = '#F0FFF4';
-                                pointEarned = 2;
+                                pointEarned = 10;
                             } else if (diff === 1) {
                                 icon = '△';
                                 bgColor = '#FFF8F0';
+                                pointEarned = 6;
+                            } else if (diff === 2) {
+                                icon = '▽';
+                                bgColor = '#FFFDE7';
+                                pointEarned = 3;
+                            } else if (diff === 3) {
+                                icon = '▼';
                                 pointEarned = 1;
                             } else {
                                 icon = '×';
@@ -3825,7 +3832,7 @@
                             }
                         }
                         
-                        // 順位の差を計算
+                        // 順位の差を計算（10,6,3,1,0 スコアリング）
                         let icon = '';
                         let bgColor = 'transparent';
                         let pointEarned = 0;
@@ -3834,10 +3841,17 @@
                             if (diff === 0) {
                                 icon = '○';
                                 bgColor = '#F0FFF4';
-                                pointEarned = 2;
+                                pointEarned = 10;
                             } else if (diff === 1) {
                                 icon = '△';
                                 bgColor = '#FFF8F0';
+                                pointEarned = 6;
+                            } else if (diff === 2) {
+                                icon = '▽';
+                                bgColor = '#FFFDE7';
+                                pointEarned = 3;
+                            } else if (diff === 3) {
+                                icon = '▼';
                                 pointEarned = 1;
                             } else {
                                 icon = '×';
