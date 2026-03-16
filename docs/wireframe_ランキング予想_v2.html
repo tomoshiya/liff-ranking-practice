@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>RankQuest β — ランキング予想 v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Sans:ital,wght@0,700;0,900;1,900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F4F0;--surface:#FFFFFF;--surface-2:#ECEAE4;--border:#E0DDD5;--text-primary:#18171A;--text-secondary:#6B6860;--text-muted:#A8A49C;--hero:#1E1C2E}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#DDDBD4;display:flex;justify-content:center;min-height:100vh;padding:28px 16px 48px;font-family:'Noto Sans JP',sans-serif}
+.phone{width:390px;background:var(--bg);border-radius:44px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,0.22),0 0 0 1px rgba(0,0,0,0.06);display:flex;flex-direction:column}
+.status-bar{background:var(--hero);padding:14px 28px 8px;display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:rgba(255,255,255,0.5)}
+
+/* HERO */
+.hero{background:var(--hero);padding:8px 20px 20px;position:relative;overflow:hidden}
+.hb{position:absolute;border-radius:50%;background:rgba(255,255,255,0.04);pointer-events:none}
+.hb.b1{width:200px;height:200px;top:-70px;right:-50px}
+.hb.b2{width:110px;height:110px;bottom:-40px;left:-10px}
+
+/* ステップ */
+.steps{display:flex;align-items:center;margin-bottom:14px}
+.step{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);white-space:nowrap}
+.step.active{color:rgba(255,255,255,0.9)}
+.step.done{color:rgba(255,255,255,0.45)}
+.step-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2);flex-shrink:0}
+.step.active .step-dot{background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,0.15)}
+.step.done .step-dot{background:rgba(255,255,255,0.4)}
+.step-line{flex:1;height:1px;background:rgba(255,255,255,0.12);margin:0 6px;min-width:14px}
+.step-line.done{background:rgba(255,255,255,0.3)}
+
+.hero-title{font-size:20px;font-weight:900;color:#fff;letter-spacing:-0.02em;margin-bottom:4px}
+.hero-desc{font-size:11px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:16px}
+
+/* テーマカード */
+.theme-card-wrap{display:flex;justify-content:center;margin-bottom:14px}
+.theme-card{position:relative;width:75%;padding-bottom:calc(75% * 0.5625);border-radius:12px;overflow:hidden;background:#2C3E50;box-shadow:0 6px 24px rgba(0,0,0,0.4),0 0 0 1px rgba(255,255,255,0.08)}
+.theme-card .wa{position:absolute;inset:0;background:#fff;clip-path:polygon(22% 0%,100% 0%,100% 100%,14.5% 100%)}
+.theme-card .pl{position:absolute;bottom:0;left:0;width:16%;top:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:10%;z-index:10}
+.theme-card .pl span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:clamp(5px,1.8vw,7px);font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.45)}
+.theme-card .tt{position:absolute;top:50%;right:0;width:82%;transform:translateY(-50%);padding:0 8% 0 2%;font-size:clamp(11px,3.2vw,15px);font-weight:700;color:#1A1917;line-height:1.45;letter-spacing:-0.01em;z-index:10}
+
+/* 進捗アコーディオン */
+.progress-accordion{background:rgba(255,255,255,0.07);border-radius:8px;overflow:hidden;cursor:pointer;transition:background 0.15s}
+.progress-accordion:hover{background:rgba(255,255,255,0.1)}
+.progress-summary{display:flex;align-items:center;gap:8px;padding:8px 10px}
+.progress-summary-text{flex:1;font-size:11px;font-weight:700;color:rgba(255,255,255,0.7)}
+.progress-chevron{font-size:8px;color:rgba(255,255,255,0.35);transition:transform 0.2s}
+.progress-accordion.open .progress-chevron{transform:rotate(180deg)}
+.progress-detail{display:none;padding:4px 10px 10px;border-top:1px solid rgba(255,255,255,0.08)}
+.progress-accordion.open .progress-detail{display:block}
+.participants{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}
+.participant{display:flex;align-items:center;gap:5px}
+.p-check{width:13px;height:13px;flex-shrink:0;border:1.5px solid rgba(255,255,255,0.25);border-radius:3px;position:relative;transition:background 0.2s,border-color 0.2s}
+.p-check::after{content:'';position:absolute;top:1px;left:3px;width:5px;height:7px;border-right:2px solid var(--hero);border-bottom:2px solid var(--hero);transform:rotate(45deg) scale(0);transform-origin:center;transition:transform 0.18s cubic-bezier(0.34,1.4,0.64,1)}
+.participant.done .p-check{background:rgba(255,255,255,0.88);border-color:rgba(255,255,255,0.88)}
+.participant.done .p-check::after{transform:rotate(45deg) scale(1)}
+.participant.me .p-check{border-color:rgba(255,255,255,0.5)}
+.participant.me.done .p-check{background:#fff;border-color:#fff}
+.p-name{font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);transition:color 0.2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.participant.done .p-name{color:rgba(255,255,255,0.85)}
+.participant.me .p-name{color:rgba(255,255,255,0.6)}
+.participant.me.done .p-name{color:#fff}
+
+/* SCROLL */
+.scroll-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.scroll-content::-webkit-scrollbar{display:none}
+
+/* 人物タブ */
+.player-tabs-wrap{padding:14px 20px 0}
+.player-tabs-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:8px}
+.player-tabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;margin-bottom:2px}
+.player-tabs::-webkit-scrollbar{display:none}
+.ptab{flex-shrink:0;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:11px;font-weight:700;color:var(--text-secondary);cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.ptab.active{background:var(--text-primary);border-color:var(--text-primary);color:#fff}
+.ptab.visited{border-color:var(--text-primary);color:var(--text-primary)}
+.ptab.visited.active{background:var(--text-primary);color:#fff}
+
+/* 並べ替えエリア */
+.sort-area{padding:12px 20px 0}
+.sort-list{display:flex;flex-direction:column;gap:6px}
+.sort-item{display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:11px 10px 11px 12px;cursor:grab;transition:box-shadow 0.15s,transform 0.15s,border-color 0.15s;user-select:none}
+.sort-item:active{cursor:grabbing}
+.sort-item.dragging{box-shadow:0 8px 24px rgba(0,0,0,0.15);transform:scale(1.02);border-color:var(--text-primary);z-index:10;position:relative}
+.sort-rank{width:34px;height:34px;border-radius:8px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface-2);transition:background 0.15s}
+.sort-rank-num{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:900;font-style:italic;color:var(--text-primary);line-height:1}
+.sort-rank-unit{font-size:7px;font-weight:800;color:var(--text-muted);letter-spacing:0.04em;line-height:1}
+.sort-answer{flex:1;font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.4;min-width:0}
+.sort-handle{display:flex;flex-direction:column;gap:3px;padding:4px 2px 4px 8px;flex-shrink:0}
+.sort-handle span{display:block;width:16px;height:2px;background:var(--border);border-radius:1px}
+
+/* フッター */
+.footer-area{padding:16px 20px 100px}
+
+/* 前後ナビ */
+.nav-btns{display:flex;gap:8px;margin-bottom:14px}
+.btn-nav{flex:1;padding:11px;border:1.5px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;font-family:'Noto Sans JP',sans-serif;background:var(--surface);color:var(--text-secondary);cursor:pointer;transition:all 0.15s}
+.btn-nav:disabled{opacity:0.3;cursor:not-allowed}
+.btn-nav:not(:disabled):hover{border-color:var(--text-primary);color:var(--text-primary)}
+
+/* ドット（現在位置） */
+.position-dots{display:flex;justify-content:center;align-items:center;gap:5px;margin-bottom:14px}
+.pdot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all 0.2s;flex-shrink:0}
+.pdot.visited{background:var(--text-muted)}
+.pdot.active{width:18px;border-radius:3px;background:var(--text-primary)}
+
+/* 送信ボタン */
+.btn-submit{width:100%;padding:15px;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'Noto Sans JP',sans-serif;background:var(--text-primary);color:#fff;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.18);transition:transform 0.15s,opacity 0.15s;display:block}
+.btn-submit:disabled{opacity:0.3;cursor:not-allowed;box-shadow:none;transform:none}
+.btn-submit:not(:disabled):hover{transform:translateY(-1px)}
+
+/* 送信済みバナー */
+.sent-banner{display:none;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;align-items:center;gap:10px;margin-top:10px}
+.sent-banner.active{display:flex}
+.sent-icon{font-size:18px;flex-shrink:0}
+.sent-text-wrap{flex:1}
+.sent-title{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:2px}
+.sent-desc{font-size:11px;color:var(--text-muted);line-height:1.4}
+
+/* ？ボタン */
+.help-btn{position:fixed;bottom:108px;right:calc(50% - 195px + 16px);width:38px;height:38px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:var(--text-secondary);cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.1);font-family:'DM Sans',sans-serif;z-index:100}
+
+/* ボトムシート */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.bottom-sheet{width:390px;background:var(--surface);border-radius:24px 24px 0 0;padding:20px 24px 48px;max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.34,1.1,0.64,1)}
+.overlay.open .bottom-sheet{transform:translateY(0)}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 20px}
+.sheet-title{font-size:16px;font-weight:900;color:var(--text-primary);margin-bottom:16px}
+.rule-item{display:flex;gap:12px;margin-bottom:16px}
+.rule-num-badge{width:24px;height:24px;border-radius:50%;background:var(--text-primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:900;font-style:italic;color:#fff}
+.rule-title{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:3px}
+.rule-desc{font-size:11px;color:var(--text-secondary);line-height:1.6}
+.score-box{background:var(--surface-2);border-radius:10px;padding:12px 14px;margin-top:4px}
+.score-box-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:8px}
+.score-row-mini{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text-secondary)}
+.score-row-mini:last-child{border-bottom:none}
+.score-row-mini span:last-child{font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary)}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar"><span>9:41</span><div style="display:flex;gap:5px">📶🔋</div></div>
+
+  <div class="hero">
+    <div class="hb b1"></div><div class="hb b2"></div>
+    <div class="steps">
+      <div class="step done"><div class="step-dot"></div><span>テーマ選択</span></div>
+      <div class="step-line done"></div>
+      <div class="step done"><div class="step-dot"></div><span>入力</span></div>
+      <div class="step-line done"></div>
+      <div class="step active"><div class="step-dot"></div><span>予想</span></div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-dot"></div><span>結果発表</span></div>
+    </div>
+    <div class="hero-title">ランキングを予想</div>
+    <div class="hero-desc">他の人のランキングがバラバラに表示されています。<br>正しい順番を予想して並び替えてください。<br>全員分の予想が終わったら送信しましょう。</div>
+    <div class="theme-card-wrap">
+      <div class="theme-card">
+        <div class="wa"></div>
+        <div class="pl"><span>Basic</span></div>
+        <div class="tt">この1年で買ってよかったものTOP5</div>
+      </div>
+    </div>
+    <div class="progress-accordion" id="progressAccordion" onclick="toggleProgress()">
+      <div class="progress-summary">
+        <div class="progress-summary-text" id="progressText">8 / 10人が送信完了</div>
+        <div class="progress-chevron">▼</div>
+      </div>
+      <div class="progress-detail">
+        <div class="participants" id="participants"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-content">
+    <div class="player-tabs-wrap">
+      <div class="player-tabs-label">予想する人を選ぶ</div>
+      <div class="player-tabs" id="playerTabs"></div>
+    </div>
+
+    <div class="sort-area">
+      <div class="sort-list" id="sortList"></div>
+    </div>
+
+    <div class="footer-area">
+      <!-- 前後ナビ -->
+      <div class="nav-btns">
+        <button class="btn-nav" id="btnPrev" onclick="goPrev()">← 前の人へ</button>
+        <button class="btn-nav" id="btnNext" onclick="goNext()">次の人へ →</button>
+      </div>
+
+      <!-- ドット -->
+      <div class="position-dots" id="positionDots"></div>
+
+      <!-- 送信ボタン -->
+      <button class="btn-submit" id="submitBtn" disabled onclick="handleAllSubmit()">
+        全員分の予想を送信する
+      </button>
+      <div class="sent-banner" id="sentBanner">
+        <div class="sent-icon">✅</div>
+        <div class="sent-text-wrap">
+          <div class="sent-title">予想を送信しました！</div>
+          <div class="sent-desc">結果発表を待っています</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="help-btn" onclick="openSheet()">?</div>
+
+<div class="overlay" id="overlay" onclick="closeSheet(event)">
+  <div class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">遊び方</div>
+    <div class="rule-item"><div class="rule-num-badge">1</div><div><div class="rule-title">テーマに対して自分のTOP5を入力</div><div class="rule-desc">正直に入力するほど、後の結果発表が盛り上がります。最大50文字まで。</div></div></div>
+    <div class="rule-item"><div class="rule-num-badge">2</div><div><div class="rule-title">全員のランキングを予想して並べ替え</div><div class="rule-desc">他の参加者のランキングをドラッグ&ドロップで並べ替えて予想します。</div></div></div>
+    <div class="rule-item"><div class="rule-num-badge">3</div><div><div class="rule-title">結果発表！ズレを楽しもう</div><div class="rule-desc">正解に近いほど高得点。でも本当の楽しさはズレから生まれる会話にあります。</div></div></div>
+    <div class="score-box">
+      <div class="score-box-label">スコア</div>
+      <div class="score-row-mini"><span>ぴったり正解</span><span>+2pt</span></div>
+      <div class="score-row-mini"><span>おしい（±1位）</span><span>+1pt</span></div>
+      <div class="score-row-mini"><span>はずれ</span><span>+0pt</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PLAYERS = [
+  {id:'hanako',name:'はなこ'},{id:'sakura',name:'さくら'},{id:'taro',name:'たろう'},
+  {id:'yuki',name:'ゆき'},{id:'riku',name:'りく'},{id:'mina',name:'みな'},
+  {id:'daiki',name:'だいき'},{id:'ai',name:'あい'},{id:'sota',name:'そうた'},
+];
+const ANSWERS = {
+  hanako:['マッサージガン','アロマディフューザー','電動歯ブラシ','加湿器','シルクのまくらカバー'],
+  sakura:['ホットクック','バルミューダのトースター','コードレス掃除機','ハンドブレンダー','電気圧力鍋'],
+  taro:  ['メカニカルキーボード','ゲーミングチェア','外付けモニター','ヘッドセット','マウスパッド'],
+  yuki:  ['ランニングシューズ','プロテインシェイカー','ストレッチポール','スポーツサングラス','トレーニンググローブ'],
+  riku:  ['カメラ(Sony α7C)','三脚','外付けSSD','レンズフィルター','カメラバッグ'],
+  mina:  ['ネイルキット','ヘアオイル','フェイスローラー','コスメポーチ','日焼け止めスプレー'],
+  daiki: ['アウトドアチェア','焚き火台','メスティン','ヘッドライト','保冷バッグ'],
+  ai:    ['ヨガマット','アロマキャンドル','ハンドクリーム','ピラティスウェア','ストレッチバンド'],
+  sota:  ['スニーカー','ワイヤレスイヤホン','財布','リュック','サングラス'],
+};
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+const currentOrder = {};
+PLAYERS.forEach(p=>{currentOrder[p.id]=shuffle(ANSWERS[p.id])});
+const visited = {};
+PLAYERS.forEach(p=>{visited[p.id]=false});
+
+let currentIdx = 0;
+
+const PARTICIPANTS=[
+  {name:'けんじ',done:true,me:true},{name:'はなこ',done:true,me:false},
+  {name:'さくら',done:true,me:false},{name:'たろう',done:true,me:false},
+  {name:'ゆき',done:true,me:false},{name:'りく',done:false,me:false},
+  {name:'みな',done:true,me:false},{name:'だいき',done:true,me:false},
+  {name:'あい',done:true,me:false},{name:'そうた',done:false,me:false},
+];
+
+function ordinal(n){return n===1?'1st':n===2?'2nd':n===3?'3rd':`${n}th`}
+
+function buildParticipants(){
+  const wrap=document.getElementById('participants');
+  wrap.innerHTML='';
+  PARTICIPANTS.forEach(p=>{
+    const el=document.createElement('div');
+    el.className='participant'+(p.done?' done':'')+(p.me?' me':'');
+    el.innerHTML=`<div class="p-check"></div><div class="p-name">${p.me?'あなた':p.name}</div>`;
+    wrap.appendChild(el);
+  });
+}
+function toggleProgress(){document.getElementById('progressAccordion').classList.toggle('open')}
+
+function buildTabs(){
+  const wrap=document.getElementById('playerTabs');
+  wrap.innerHTML='';
+  PLAYERS.forEach((p,i)=>{
+    const btn=document.createElement('div');
+    btn.className='ptab'+(i===currentIdx?' active':'')+(visited[p.id]&&i!==currentIdx?' visited':'');
+    btn.id=`tab-${p.id}`;
+    btn.textContent=p.name;
+    btn.onclick=()=>switchTo(i);
+    wrap.appendChild(btn);
+  });
+  // アクティブタブをスクロール位置に合わせる
+  const activeTab=document.getElementById(`tab-${PLAYERS[currentIdx].id}`);
+  if(activeTab) activeTab.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+}
+
+function buildDots(){
+  const wrap=document.getElementById('positionDots');
+  wrap.innerHTML='';
+  PLAYERS.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='pdot'+(i===currentIdx?' active':visited[PLAYERS[i].id]?' visited':'');
+    wrap.appendChild(d);
+  });
+}
+
+function renderSortList(){
+  const pid=PLAYERS[currentIdx].id;
+  const list=document.getElementById('sortList');
+  list.innerHTML='';
+  currentOrder[pid].forEach((ans,i)=>{
+    const el=document.createElement('div');
+    el.className='sort-item';
+    el.draggable=true;
+    el.dataset.index=i;
+    const num=ordinal(i+1).replace(/[a-z]+/g,'');
+    const unit=ordinal(i+1).replace(/[0-9]+/g,'');
+    el.innerHTML=`
+      <div class="sort-rank">
+        <div class="sort-rank-num">${num}</div>
+        <div class="sort-rank-unit">${unit}</div>
+      </div>
+      <div class="sort-answer">${ans}</div>
+      <div class="sort-handle"><span></span><span></span><span></span></div>`;
+    list.appendChild(el);
+  });
+  initDrag();
+}
+
+let dragSrc=null;
+function initDrag(){
+  const items=document.querySelectorAll('.sort-item');
+  items.forEach(item=>{
+    item.addEventListener('dragstart',e=>{dragSrc=item;item.classList.add('dragging');e.dataTransfer.effectAllowed='move'});
+    item.addEventListener('dragend',()=>{item.classList.remove('dragging');dragSrc=null;updateRankBadges()});
+    item.addEventListener('dragover',e=>{
+      e.preventDefault();
+      if(dragSrc&&dragSrc!==item){
+        const items=[...item.parentNode.children];
+        const si=items.indexOf(dragSrc),ti=items.indexOf(item);
+        if(si<ti) item.parentNode.insertBefore(dragSrc,item.nextSibling);
+        else item.parentNode.insertBefore(dragSrc,item);
+      }
+    });
+  });
+}
+function updateRankBadges(){
+  const pid=PLAYERS[currentIdx].id;
+  const newOrder=[];
+  document.querySelectorAll('.sort-item').forEach((item,i)=>{
+    const num=ordinal(i+1).replace(/[a-z]+/g,'');
+    const unit=ordinal(i+1).replace(/[0-9]+/g,'');
+    item.querySelector('.sort-rank-num').textContent=num;
+    item.querySelector('.sort-rank-unit').textContent=unit;
+    newOrder.push(item.querySelector('.sort-answer').textContent);
+  });
+  currentOrder[pid]=newOrder;
+}
+
+function switchTo(idx){
+  currentIdx=idx;
+  visited[PLAYERS[idx].id]=true;
+  buildTabs();
+  buildDots();
+  renderSortList();
+  updateNavBtns();
+  updateSubmitBtn();
+}
+
+function goPrev(){if(currentIdx>0) switchTo(currentIdx-1)}
+function goNext(){if(currentIdx<PLAYERS.length-1) switchTo(currentIdx+1)}
+
+function updateNavBtns(){
+  document.getElementById('btnPrev').disabled=currentIdx===0;
+  document.getElementById('btnNext').disabled=currentIdx===PLAYERS.length-1;
+}
+function updateSubmitBtn(){
+  const allVisited=PLAYERS.every(p=>visited[p.id]);
+  document.getElementById('submitBtn').disabled=!allVisited;
+}
+
+function handleAllSubmit(){
+  document.getElementById('submitBtn').style.display='none';
+  document.getElementById('sentBanner').classList.add('active');
+}
+
+function openSheet(){document.getElementById('overlay').classList.add('open')}
+function closeSheet(e){if(e.target===document.getElementById('overlay')) document.getElementById('overlay').classList.remove('open')}
+
+// 初期化（最初の人を訪問済みに）
+visited[PLAYERS[0].id]=true;
+buildParticipants();
+buildTabs();
+buildDots();
+renderSortList();
+updateNavBtns();
+updateSubmitBtn();
+</script>
+</body>
+</html>

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>RankQuest β — テーマ選択 v4</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F5F4F0;
+  --surface: #FFFFFF;
+  --surface-2: #ECEAE4;
+  --border: #E0DDD5;
+  --text-primary: #18171A;
+  --text-secondary: #6B6860;
+  --text-muted: #A8A49C;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  background: #DDDBD4;
+  display: flex; justify-content: center;
+  min-height: 100vh; padding: 28px 16px 48px;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+/* ===== PHONE ===== */
+.phone {
+  width: 390px; min-height: 844px;
+  background: var(--bg);
+  border-radius: 44px; overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06);
+  display: flex; flex-direction: column; position: relative;
+}
+.status-bar {
+  padding: 14px 28px 8px;
+  display: flex; justify-content: space-between;
+  font-size: 12px; font-weight: 600;
+}
+.nav-bar {
+  padding: 4px 20px 14px;
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.nav-back {
+  width: 34px; height: 34px; border: none;
+  background: var(--surface-2); border-radius: 50%;
+  font-size: 15px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-title { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+.nav-step  { margin-left: auto; font-size: 11px; color: var(--text-muted); font-weight: 600; }
+
+.content {
+  flex: 1; overflow-y: auto; padding: 0 0 120px;
+  -webkit-overflow-scrolling: touch;
+}
+.content::-webkit-scrollbar { display: none; }
+
+/* ===== MODE TOGGLE ===== */
+.mode-toggle {
+  margin: 0 20px 16px;
+  display: flex; background: var(--surface-2);
+  border-radius: 12px; padding: 3px; gap: 2px;
+}
+.mode-btn {
+  flex: 1; padding: 9px 0; border: none; border-radius: 9px;
+  font-size: 13px; font-weight: 700;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer; transition: all 0.18s;
+  color: var(--text-muted); background: transparent;
+}
+.mode-btn.active {
+  background: var(--surface); color: var(--text-primary);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* ===== PACK TABS（絵文字なし・丸ポチなし）===== */
+.pack-tabs-wrap { padding: 0 20px; margin-bottom: 10px; }
+.pack-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.pack-tabs::-webkit-scrollbar { display: none; }
+.pack-tab {
+  flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
+  border: 1.5px solid var(--border); background: var(--surface);
+  font-size: 12px; font-weight: 700; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.pack-tab.active {
+  background: var(--tab-bg); border-color: var(--tab-bg); color: #fff;
+}
+.pack-tab .lock { font-size: 9px; opacity: 0.55; margin-left: 3px; }
+
+/* ===== PACK DESC ===== */
+.pack-desc {
+  margin: 0 20px 4px; border-radius: 12px;
+  padding: 11px 14px; display: flex; align-items: center; gap: 11px;
+  transition: background 0.25s;
+}
+.pack-desc-name {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.07em;
+  text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 2px;
+}
+.pack-desc-copy { font-size: 11.5px; color: rgba(255,255,255,0.82); line-height: 1.45; }
+.pack-desc-badge {
+  margin-left: auto; flex-shrink: 0;
+  font-size: 10px; font-weight: 700;
+  padding: 3px 8px; border-radius: 5px;
+  background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.75);
+}
+
+/* ===== CARDS + INDICATOR ===== */
+.cards-wrap { position: relative; margin-bottom: 4px; }
+
+.cards-scroll {
+  overflow-x: auto; padding: 10px 20px 8px;
+  display: flex; gap: 12px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+}
+.cards-scroll::-webkit-scrollbar { display: none; }
+
+/* ===== THEME CARD ===== */
+.t-card {
+  position: relative; width: 220px; height: 126px;
+  border-radius: 14px; overflow: hidden;
+  cursor: pointer; flex-shrink: 0;
+  scroll-snap-align: start;
+  background: var(--pc);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+  transition: transform 0.22s cubic-bezier(0.34,1.4,0.64,1), box-shadow 0.22s;
+}
+.t-card:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 10px 28px rgba(0,0,0,0.16); }
+
+.basic  { --pc: #2C3E50; }
+.love   { --pc: #8B3A52; }
+.secret { --pc: #3A2D6B; }
+.work   { --pc: #1C3D2E; }
+.custom { --pc: #3D3830; }
+
+.t-card .wa {
+  position: absolute; inset: 0; background: #fff;
+  clip-path: polygon(63px 0%, 100% 0%, 100% 100%, 41px 100%);
+}
+.t-card .pl {
+  position: absolute; bottom: 0; left: 0; width: 46px; top: 0;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 10px; z-index: 10;
+}
+.t-card .pl span {
+  writing-mode: vertical-rl; transform: rotate(180deg);
+  font-size: 7px; font-weight: 800;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: rgba(255,255,255,0.42); line-height: 1;
+}
+.t-card .tt {
+  position: absolute; top: 50%; right: 0;
+  width: calc(100% - 56px); transform: translateY(-50%);
+  padding: 0 14px 0 6px;
+  font-size: 12px; font-weight: 700; color: #1A1917;
+  line-height: 1.5; letter-spacing: -0.01em; z-index: 10;
+}
+.t-card .tt.sm { font-size: 11px; }
+.t-card .icon-slot {
+  position: absolute; top: 9px; left: 0; width: 46px;
+  display: flex; justify-content: center; z-index: 10;
+}
+.t-card .icon-circle {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(255,255,255,0.16);
+  border: 1.5px solid rgba(255,255,255,0.28);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #fff; font-weight: 700;
+  opacity: 0; transform: scale(0.3);
+  transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.t-card.selected .icon-circle { opacity: 1; transform: scale(1); }
+.t-card.selected::after {
+  content: ''; position: absolute; inset: 0;
+  border-radius: 14px; border: 2.5px solid var(--pc);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35);
+  pointer-events: none; z-index: 20;
+}
+.t-card .lk {
+  position: absolute; inset: 0; border-radius: 14px;
+  background: rgba(18,16,14,0.5);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px; z-index: 30;
+}
+.t-card .lk .li { font-size: 18px; }
+.t-card .lk .lt { font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 700; }
+
+/* ===== スクロール位置インジケーター ===== */
+.scroll-indicator {
+  display: flex; align-items: center;
+  padding: 4px 20px 6px; gap: 10px;
+}
+.scroll-counter {
+  font-size: 11px; font-weight: 700; color: var(--text-muted);
+  font-variant-numeric: tabular-nums; letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+.scroll-bar-wrap {
+  flex: 1; height: 3px;
+  background: var(--surface-2); border-radius: 2px; overflow: hidden;
+}
+.scroll-bar-fill {
+  height: 100%; border-radius: 2px;
+  background: #2C3E50;
+  transition: width 0.2s ease;
+}
+
+/* ===== INFO PANEL ===== */
+.info-panel {
+  margin: 8px 20px 0;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 12px 14px; min-height: 84px;
+}
+.info-label {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 5px;
+}
+.info-theme { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 7px; line-height: 1.4; }
+.info-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.itag {
+  font-size: 10px; font-weight: 700; padding: 2px 7px;
+  border-radius: 4px; background: var(--surface-2); color: var(--text-secondary);
+}
+.info-hint {
+  font-size: 11.5px; color: var(--text-secondary); line-height: 1.55;
+  padding: 8px 10px; border-radius: 7px; background: var(--surface-2);
+  border-left: 2.5px solid var(--hint-color, var(--border));
+}
+.hint-lbl {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 3px;
+}
+
+/* ===== ORIGINAL INPUT MODE ===== */
+#origSection { padding: 0 20px; }
+
+/* カード型入力UI */
+.orig-card-wrap {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+}
+.orig-card-preview {
+  position: relative; width: 220px; height: 126px;
+  border-radius: 14px; overflow: hidden; flex-shrink: 0;
+  background: #3D3830;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.14);
+  transition: box-shadow 0.2s;
+}
+.orig-card-preview .wa {
+  position: absolute; inset: 0; background: #FAFAF8;
+  clip-path: polygon(63px 0%, 100% 0%, 100% 100%, 41px 100%);
+}
+.orig-card-preview .pl {
+  position: absolute; bottom: 0; left: 0; width: 46px; top: 0;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 10px; z-index: 10;
+}
+.orig-card-preview .pl span {
+  writing-mode: vertical-rl; transform: rotate(180deg);
+  font-size: 7px; font-weight: 800;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: rgba(255,255,255,0.38); line-height: 1;
+}
+/* カード内の入力エリア */
+.orig-card-preview .card-input-zone {
+  position: absolute; top: 50%; right: 0;
+  width: calc(100% - 56px); transform: translateY(-50%);
+  padding: 0 12px 0 6px; z-index: 10;
+}
+.orig-card-preview .card-input {
+  width: 100%; border: none; outline: none;
+  background: transparent;
+  font-size: 12px; font-weight: 700;
+  color: #1A1917; line-height: 1.5;
+  font-family: 'Noto Sans JP', sans-serif;
+  letter-spacing: -0.01em;
+  resize: none; overflow: hidden;
+  caret-color: #3D3830;
+}
+.orig-card-preview .card-input::placeholder { color: #C0BDB8; font-weight: 500; }
+.orig-card-preview .char-count {
+  position: absolute; bottom: 7px; right: 9px;
+  font-size: 8px; font-weight: 700; color: rgba(0,0,0,0.25);
+  z-index: 10;
+}
+.orig-card-preview .card-cursor {
+  display: inline-block; width: 1.5px; height: 13px;
+  background: #3D3830; margin-left: 1px;
+  animation: blink 1s step-end infinite; vertical-align: middle;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* カード右の説明 */
+.orig-tip {
+  font-size: 11px; color: var(--text-secondary); line-height: 1.6;
+}
+.orig-tip strong { color: var(--text-primary); font-weight: 700; }
+
+/* 文字数バー */
+.char-bar-wrap {
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.char-bar-bg {
+  flex: 1; height: 3px; background: var(--surface-2);
+  border-radius: 2px; overflow: hidden;
+}
+.char-bar-fill {
+  height: 100%; border-radius: 2px; background: #3D3830;
+  width: 0%; transition: width 0.15s; max-width: 100%;
+}
+.char-bar-lbl {
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  font-variant-numeric: tabular-nums; flex-shrink: 0; min-width: 36px; text-align: right;
+}
+.char-bar-lbl.warn { color: #D97706; }
+.char-bar-lbl.over { color: #DC2626; }
+
+/* ===== BOTTOM CTA ===== */
+.bottom-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 14px 20px 32px;
+  background: linear-gradient(to top, var(--bg) 60%, transparent);
+}
+.cta {
+  width: 100%; padding: 15px; border: none;
+  border-radius: 12px; font-size: 15px; font-weight: 700;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer; transition: all 0.2s; letter-spacing: -0.01em;
+}
+.cta.on  { background: #18171A; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.cta.on:hover { transform: translateY(-1px); }
+.cta.off { background: var(--surface-2); color: var(--text-muted); cursor: default; }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div class="status-bar">
+    <span>9:41</span><div style="display:flex;gap:5px;font-size:12px">📶🔋</div>
+  </div>
+
+  <div class="nav-bar">
+    <button class="nav-back">←</button>
+    <span class="nav-title">テーマを選ぶ</span>
+    <span class="nav-step">1 / 3</span>
+  </div>
+
+  <div class="content">
+
+    <!-- Mode toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" onclick="setMode('pack')">パックから選ぶ</button>
+      <button class="mode-btn" onclick="setMode('orig')">自分で作る</button>
+    </div>
+
+    <!-- ===== PACK MODE ===== -->
+    <div id="packSection">
+
+      <!-- Pack tabs（絵文字なし・丸ポチなし） -->
+      <div class="pack-tabs-wrap">
+        <div class="pack-tabs" id="packTabs">
+          <div class="pack-tab active" data-pack="basic" style="--tab-bg:#2C3E50" onclick="switchPack(this)">ベーシック</div>
+          <div class="pack-tab" data-pack="love"   style="--tab-bg:#8B3A52" onclick="switchPack(this)">ラブ <span class="lock">🔒</span></div>
+          <div class="pack-tab" data-pack="secret" style="--tab-bg:#3A2D6B" onclick="switchPack(this)">シークレット <span class="lock">🔒</span></div>
+          <div class="pack-tab" data-pack="work"   style="--tab-bg:#1C3D2E" onclick="switchPack(this)">ワーク <span class="lock">🔒</span></div>
+        </div>
+      </div>
+
+      <!-- Pack desc -->
+      <div class="pack-desc" id="packDesc" style="background:#2C3E50">
+        <div>
+          <div class="pack-desc-name" id="pdName">ベーシックパック</div>
+          <div class="pack-desc-copy" id="pdCopy">誰とでも盛り上がれる定番テーマ集。どんな関係性・シーンにも。</div>
+        </div>
+        <div class="pack-desc-badge" id="pdBadge">無料</div>
+      </div>
+
+      <!-- Cards -->
+      <div class="cards-wrap">
+        <div class="cards-scroll" id="cardsScroll" onscroll="updateIndicator()">
+          <div class="t-card basic selected" data-idx="0" onclick="selectCard(this)">
+            <div class="wa"></div>
+            <div class="icon-slot"><div class="icon-circle">✓</div></div>
+            <div class="pl"><span>Basic</span></div>
+            <div class="tt">この1年で買ってよかったものTOP5</div>
+          </div>
+          <div class="t-card basic" data-idx="1" onclick="selectCard(this)">
+            <div class="wa"></div>
+            <div class="icon-slot"><div class="icon-circle">✓</div></div>
+            <div class="pl"><span>Basic</span></div>
+            <div class="tt">死ぬ前に食べたい料理TOP5</div>
+          </div>
+          <div class="t-card basic" data-idx="2" onclick="selectCard(this)">
+            <div class="wa"></div>
+            <div class="icon-slot"><div class="icon-circle">✓</div></div>
+            <div class="pl"><span>Basic</span></div>
+            <div class="tt">もう一度行きたい場所TOP5</div>
+          </div>
+          <div class="t-card basic" data-idx="3" onclick="selectCard(this)">
+            <div class="wa"></div>
+            <div class="icon-slot"><div class="icon-circle">✓</div></div>
+            <div class="pl"><span>Basic</span></div>
+            <div class="tt">一緒にいたい人物TOP3</div>
+          </div>
+          <div class="t-card basic" data-idx="4" onclick="selectCard(this)">
+            <div class="wa"></div>
+            <div class="icon-slot"><div class="icon-circle">✓</div></div>
+            <div class="pl"><span>Basic</span></div>
+            <div class="tt sm">人生のターニングポイントTOP3</div>
+          </div>
+          <!-- ロックプレビュー -->
+          <div class="t-card love" onclick="showLockModal()">
+            <div class="wa"></div>
+            <div class="pl"><span>Love</span></div>
+            <div class="tt">一緒にやってみたいことTOP5</div>
+            <div class="lk"><div class="li">🔒</div><div class="lt">Love · ¥300</div></div>
+          </div>
+          <div class="t-card love" onclick="showLockModal()">
+            <div class="wa"></div>
+            <div class="pl"><span>Love</span></div>
+            <div class="tt">好きなところTOP5</div>
+            <div class="lk"><div class="li">🔒</div><div class="lt">Love · ¥300</div></div>
+          </div>
+        </div><!-- /cards-scroll -->
+      </div>
+
+      <!-- スクロール位置インジケーター -->
+      <div class="scroll-indicator" id="scrollIndicator">
+        <span class="scroll-counter" id="scrollCounter">1 / 5</span>
+        <div class="scroll-bar-wrap">
+          <div class="scroll-bar-fill" id="scrollBarFill" style="width:20%;--indicator-color:#2C3E50;background:#2C3E50"></div>
+        </div>
+      </div>
+
+      <!-- Info panel -->
+      <div class="info-panel" id="infoPanel">
+        <div class="info-label">選択中のテーマ</div>
+        <div class="info-theme" id="infoTheme">この1年で買ってよかったものTOP5</div>
+        <div class="info-tags" id="infoTags">
+          <span class="itag">ライフスタイル</span>
+          <span class="itag">全員向け</span>
+          <span class="itag">初回おすすめ</span>
+        </div>
+        <div class="info-hint" id="infoHint" style="--hint-color:#2C3E50">
+          <div class="hint-lbl">このテーマのヒント</div>
+          どんな基準で選んだ？意外な回答が出やすいテーマ。例: Kindleペーパーホワイト、スタンディングデスク…
+        </div>
+      </div>
+
+    </div><!-- /packSection -->
+
+    <!-- ===== ORIGINAL MODE ===== -->
+    <div id="origSection" style="display:none">
+
+      <div class="orig-card-wrap">
+        <!-- カード形プレビュー（直接入力） -->
+        <div class="orig-card-preview" id="origCardPreview">
+          <div class="wa"></div>
+          <div class="pl"><span>Original</span></div>
+          <div class="card-input-zone">
+            <textarea class="card-input" id="cardInput" rows="3"
+              placeholder="テーマを入力&#10;例: 好きな映画TOP3"
+              maxlength="50"
+              oninput="onCardInput(this)"
+              onkeydown="return event.key !== 'Enter'"
+            ></textarea>
+          </div>
+          <div class="char-count" id="charCountOverlay">0/50</div>
+        </div>
+        <div class="orig-tip">
+          カードに直接<strong>テーマを入力</strong>してみよう。<br><br>
+          「〇〇TOP△」の形にすると答えやすくなります。<br><br>
+          <span style="color:var(--text-muted);font-size:10px">最大 50文字</span>
+        </div>
+      </div>
+
+      <!-- 文字数バー -->
+      <div class="char-bar-wrap">
+        <div class="char-bar-bg"><div class="char-bar-fill" id="charBarFill"></div></div>
+        <span class="char-bar-lbl" id="charBarLbl">0 / 50</span>
+      </div>
+
+    </div>
+
+  </div><!-- /content -->
+
+  <div class="bottom-bar">
+    <button class="cta on" id="ctaBtn">このテーマでスタート →</button>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+const themes = [
+  { name:'この1年で買ってよかったものTOP5', tags:['ライフスタイル','全員向け','初回おすすめ'], hint:'どんな基準で選んだ？意外な回答が出やすいテーマ。例: Kindleペーパーホワイト、スタンディングデスク…', color:'#2C3E50' },
+  { name:'死ぬ前に食べたい料理TOP5',        tags:['グルメ','全員向け'],                       hint:'特別な思い出の食べ物も出てきがち。例: お母さんの手料理、行きつけの寿司屋のおまかせ…',  color:'#2C3E50' },
+  { name:'もう一度行きたい場所TOP5',         tags:['旅行','全員向け'],                         hint:'旅先だけでなく地元・幼少期の場所も出てくることが多い。例: 台湾の夜市、祖父母の家…', color:'#2C3E50' },
+  { name:'一緒にいたい人物TOP3',             tags:['人間関係','全員向け'],                     hint:'実在の人物・架空のキャラ・歴史上の人物なんでもOK。理由を聞くと盛り上がる。', color:'#2C3E50' },
+  { name:'人生のターニングポイントTOP3',      tags:['人生','深掘り向け'],                       hint:'「その出来事がなければ今どうなってた？」を聞くと会話が弾む。', color:'#2C3E50' },
+];
+
+const packs = {
+  basic:  { bg:'#2C3E50', name:'ベーシックパック', copy:'誰とでも盛り上がれる定番テーマ集。どんな関係性・シーンにも。', badge:'無料' },
+  love:   { bg:'#8B3A52', name:'ラブパック',       copy:'愛情表現やふたりの価値観をテーマにしたカップル・夫婦向けパック。', badge:'¥300' },
+  secret: { bg:'#3A2D6B', name:'シークレットパック', copy:'普段は話せない深い話。仲の良いグループやパートナーと。', badge:'¥300' },
+  work:   { bg:'#1C3D2E', name:'ワークパック',      copy:'キャリアや価値観を話し合うチームビルディング向けパック。', badge:'¥300' },
+};
+
+let currentMode = 'pack';
+const CARD_W = 220 + 12; // card width + gap
+
+function selectCard(el) {
+  document.querySelectorAll('.t-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const idx = parseInt(el.dataset.idx);
+  const t = themes[idx];
+  if (!t) return;
+  document.getElementById('infoTheme').textContent = t.name;
+  document.getElementById('infoTags').innerHTML = t.tags.map(tg => `<span class="itag">${tg}</span>`).join('');
+  const hint = document.getElementById('infoHint');
+  hint.style.setProperty('--hint-color', t.color);
+  hint.innerHTML = `<div class="hint-lbl">このテーマのヒント</div>${t.hint}`;
+}
+
+function showLockModal() { alert('💳 パック購入モーダル（β版以降実装）'); }
+
+function switchPack(tab) {
+  document.querySelectorAll('.pack-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  const p = packs[tab.dataset.pack];
+  document.getElementById('packDesc').style.background = p.bg;
+  document.getElementById('pdName').textContent = p.name;
+  document.getElementById('pdCopy').textContent = p.copy;
+  document.getElementById('pdBadge').textContent = p.badge;
+  document.getElementById('scrollBarFill').style.background = p.bg;
+}
+
+function updateIndicator() {
+  const scr = document.getElementById('cardsScroll');
+  const totalCards = themes.length; // 無料カード数
+  const scrollLeft = scr.scrollLeft;
+  const maxScroll = scr.scrollWidth - scr.clientWidth;
+  const ratio = maxScroll > 0 ? scrollLeft / maxScroll : 0;
+  const current = Math.min(Math.round(ratio * (totalCards - 1)) + 1, totalCards);
+  document.getElementById('scrollCounter').textContent = `${current} / ${totalCards}`;
+  const fillPct = (current / totalCards) * 100;
+  document.getElementById('scrollBarFill').style.width = fillPct + '%';
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&mode==='pack')||(i===1&&mode==='orig')));
+  document.getElementById('packSection').style.display = mode === 'pack' ? 'block' : 'none';
+  document.getElementById('origSection').style.display = mode === 'orig' ? 'block' : 'none';
+  if (mode === 'orig') {
+    // 「自分で作る」切替時にカード入力欄へ自動フォーカス → 最初の一歩で戸惑わない
+    setTimeout(() => document.getElementById('cardInput').focus(), 50);
+  }
+}
+
+function onCardInput(ta) {
+  const val = ta.value;
+  const len = val.length;
+  const pct = (len / 50) * 100;
+  document.getElementById('charBarFill').style.width = Math.min(pct, 100) + '%';
+  const lbl = document.getElementById('charBarLbl');
+  lbl.textContent = `${len} / 50`;
+  lbl.className = 'char-bar-lbl' + (len >= 50 ? ' over' : len >= 40 ? ' warn' : '');
+  document.getElementById('charCountOverlay').textContent = `${len}/50`;
+  // カードのタイトルをリアルタイム更新（入力がある場合のみ影響）
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+</script>
+</body>
+</html>

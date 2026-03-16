@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>RankQuest β — トップ v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Sans:ital,opsz,wght@0,9..40,700;0,9..40,900;1,9..40,900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F5F4F0; --surface:#FFFFFF; --surface-2:#ECEAE4;
+  --border:#E0DDD5; --text-primary:#18171A;
+  --text-secondary:#6B6860; --text-muted:#A8A49C;
+  --hero:#1E1C2E;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#DDDBD4;display:flex;justify-content:center;min-height:100vh;padding:28px 16px 48px;font-family:'Noto Sans JP',sans-serif}
+.phone{width:390px;background:var(--bg);border-radius:44px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,0.22),0 0 0 1px rgba(0,0,0,0.06);display:flex;flex-direction:column}
+
+/* ステータスバー */
+.status-bar{background:var(--hero);padding:14px 28px 8px;display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:rgba(255,255,255,0.5)}
+
+/* ===== ヒーロー ===== */
+.hero{
+  background:var(--hero);
+  padding:16px 24px 28px;
+  position:relative;overflow:hidden;flex-shrink:0;
+}
+.hb{position:absolute;border-radius:50%;pointer-events:none}
+.hb.b1{width:220px;height:220px;top:-80px;right:-60px;background:rgba(255,255,255,0.03)}
+.hb.b2{width:100px;height:100px;bottom:-40px;left:-20px;background:rgba(255,255,255,0.04)}
+
+/* ロゴエリア */
+.logo-area{position:relative;z-index:10}
+.logo-sub{
+  font-size:10px;color:rgba(255,255,255,0.35);
+  margin-bottom:6px;letter-spacing:0.06em;
+}
+.logo-row{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.logo-main{
+  font-family:'DM Sans',sans-serif;
+  font-size:44px;font-weight:900;font-style:italic;
+  color:#fff;letter-spacing:-0.03em;line-height:1;
+}
+.logo-beta{
+  font-family:'DM Sans',sans-serif;
+  font-size:11px;font-weight:700;
+  color:rgba(255,255,255,0.4);
+  letter-spacing:0.1em;text-transform:uppercase;
+  border:1.5px solid rgba(255,255,255,0.2);
+  padding:2px 7px;border-radius:5px;
+  margin-bottom:4px;
+}
+.logo-catch{
+  font-size:12px;font-weight:700;
+  color:rgba(255,255,255,0.45);
+  line-height:1.5;
+}
+
+/* ===== モードエリア ===== */
+.modes-area{
+  flex:1;background:var(--bg);
+  padding:20px 20px 24px;
+  display:flex;flex-direction:column;
+}
+
+.modes-label{
+  font-size:9px;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.1em;color:var(--text-muted);
+  margin-bottom:10px;
+}
+
+/* モードカード */
+.mode-cards{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
+
+.mode-card{
+  display:flex;align-items:center;gap:14px;
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:13px;padding:13px 14px;
+  cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s,transform 0.12s;
+  position:relative;overflow:hidden;
+}
+.mode-card:hover{
+  border-color:var(--text-primary);
+  box-shadow:0 4px 16px rgba(0,0,0,0.09);
+  transform:translateY(-1px);
+}
+.mode-card.primary{
+  background:var(--hero);border-color:var(--hero);
+}
+.mode-card.primary:hover{
+  box-shadow:0 4px 20px rgba(30,28,46,0.32);
+}
+
+/* ミニマルアイコン（SVG） */
+.mode-icon{
+  width:36px;height:36px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface-2);
+}
+.mode-card.primary .mode-icon{background:rgba(255,255,255,0.1)}
+.mode-icon svg{display:block}
+
+/* カードテキスト */
+.mode-text{flex:1;min-width:0}
+.mode-name{
+  font-size:14px;font-weight:900;color:var(--text-primary);
+  letter-spacing:-0.01em;margin-bottom:2px;line-height:1.2;
+}
+.mode-card.primary .mode-name{color:#fff}
+.mode-sub{
+  font-size:10px;font-weight:500;color:var(--text-muted);line-height:1.4;
+}
+.mode-card.primary .mode-sub{color:rgba(255,255,255,0.45)}
+
+/* 矢印 */
+.mode-arrow{
+  flex-shrink:0;width:22px;height:22px;border-radius:50%;
+  background:var(--surface-2);display:flex;align-items:center;justify-content:center;
+  transition:background 0.15s;
+}
+.mode-card:hover .mode-arrow{background:var(--text-primary)}
+.mode-card:hover .mode-arrow svg polyline{stroke:#fff}
+.mode-card.primary .mode-arrow{background:rgba(255,255,255,0.12)}
+.mode-card.primary:hover .mode-arrow{background:rgba(255,255,255,0.25)}
+.mode-arrow svg{display:block}
+
+/* ライブボタン（フェイクドア・通常ボタンと同サイズ） */
+.live-card{
+  display:flex;align-items:center;gap:14px;
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:13px;padding:13px 14px;
+  cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s,transform 0.12s;
+  position:relative;overflow:hidden;
+}
+.live-card:hover{
+  border-color:var(--text-primary);
+  box-shadow:0 4px 16px rgba(0,0,0,0.09);
+  transform:translateY(-1px);
+}
+.live-icon{
+  width:36px;height:36px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface-2);position:relative;
+}
+.live-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:#E53E3E;
+  animation:blink 1.4s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+.live-text{flex:1}
+.live-name{font-size:14px;font-weight:900;color:var(--text-secondary);letter-spacing:-0.01em;margin-bottom:2px}
+.live-sub{font-size:10px;font-weight:500;color:var(--text-muted);line-height:1.4}
+.live-arrow{
+  flex-shrink:0;width:22px;height:22px;border-radius:50%;
+  background:var(--surface-2);display:flex;align-items:center;justify-content:center;
+}
+
+/* ？ボタン（右上固定） */
+.help-btn{
+  position:fixed;top:52px;right:calc(50% - 195px + 16px);
+  width:34px;height:34px;border-radius:50%;
+  background:rgba(255,255,255,0.12);
+  border:1.5px solid rgba(255,255,255,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;color:rgba(255,255,255,0.7);
+  cursor:pointer;
+  font-family:'DM Sans',sans-serif;z-index:100;
+  transition:background 0.15s;
+}
+.help-btn:hover{background:rgba(255,255,255,0.2)}
+
+/* 履歴ボタン（右下固定） */
+.history-fab{
+  position:fixed;bottom:68px;right:calc(50% - 195px + 16px);
+  width:44px;height:44px;border-radius:50%;
+  background:var(--surface);border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,0.1);
+  z-index:100;transition:box-shadow 0.15s;
+}
+.history-fab:hover{box-shadow:0 6px 20px rgba(0,0,0,0.15)}
+
+/* ボトムシート共通 */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.bottom-sheet{
+  width:390px;background:var(--surface);border-radius:24px 24px 0 0;
+  padding:20px 24px 48px;max-height:80vh;overflow-y:auto;
+  transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.34,1.1,0.64,1);
+}
+.overlay.open .bottom-sheet{transform:translateY(0)}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 20px}
+.sheet-title{font-size:16px;font-weight:900;color:var(--text-primary);margin-bottom:16px}
+
+/* 遊び方シート */
+.rule-item{display:flex;gap:12px;margin-bottom:16px}
+.rule-num{
+  width:24px;height:24px;border-radius:50%;background:var(--text-primary);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  font-family:'DM Sans',sans-serif;font-size:11px;font-weight:900;font-style:italic;color:#fff;
+}
+.rule-title{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:3px}
+.rule-desc{font-size:11px;color:var(--text-secondary);line-height:1.6}
+.score-box{background:var(--surface-2);border-radius:10px;padding:12px 14px;margin-top:4px}
+.score-box-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:8px}
+.score-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text-secondary)}
+.score-row:last-child{border-bottom:none}
+.score-row span:last-child{font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary)}
+
+/* 履歴シート */
+.history-list{display:flex;flex-direction:column;gap:8px}
+.history-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;background:var(--surface-2);
+  border-radius:10px;cursor:pointer;
+  transition:background 0.15s;
+}
+.history-item:hover{background:var(--border)}
+.history-info{flex:1}
+.history-theme{font-size:12px;font-weight:700;color:var(--text-primary);margin-bottom:2px}
+.history-meta{font-size:10px;color:var(--text-muted)}
+.history-score{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:900;font-style:italic;color:var(--text-primary);flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar"><span>9:41</span><div style="display:flex;gap:5px">📶🔋</div></div>
+
+  <!-- ヒーロー -->
+  <div class="hero">
+    <div class="hb b1"></div>
+    <div class="hb b2"></div>
+
+    <div class="logo-area">
+      <div class="logo-sub">ランキュー</div>
+      <div class="logo-row">
+        <div class="logo-main">Rank&thinsp;-&thinsp;Q</div>
+        <div class="logo-beta">BETA</div>
+      </div>
+      <div class="logo-catch">ランクを読み合う<br>コミュニケーションゲーム</div>
+    </div>
+  </div>
+
+  <!-- モード選択 -->
+  <div class="modes-area">
+    <div class="modes-label">モードを選ぶ</div>
+
+    <div class="mode-cards">
+
+      <!-- ふたりであそぶ -->
+      <div class="mode-card" onclick="">
+        <div class="mode-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+            <circle cx="17" cy="7" r="3"/><path d="M22 21v-2a3 3 0 0 0-2-2.83"/>
+          </svg>
+        </div>
+        <div class="mode-text">
+          <div class="mode-name">ふたりであそぶ</div>
+          <div class="mode-sub">2人専用 · 各自のスマホを使用</div>
+        </div>
+        <div class="mode-arrow">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- みんなであそぶ（プライマリ） -->
+      <div class="mode-card primary" onclick="">
+        <div class="mode-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+            <circle cx="18" cy="5" r="3"/><path d="M23 21v-2a3 3 0 0 0-2-2.83"/>
+            <line x1="19" y1="13" x2="19" y2="21"/><line x1="15" y1="17" x2="23" y2="17"/>
+          </svg>
+        </div>
+        <div class="mode-text">
+          <div class="mode-name">みんなであそぶ</div>
+          <div class="mode-sub">3〜10人用 · 各自のスマホを使用</div>
+        </div>
+        <div class="mode-arrow">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- 1台であそぶ -->
+      <div class="mode-card" onclick="">
+        <div class="mode-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+            <line x1="12" y1="18" x2="12.01" y2="18"/>
+          </svg>
+        </div>
+        <div class="mode-text">
+          <div class="mode-name">1台であそぶ</div>
+          <div class="mode-sub">2〜5人用 · 1台のスマホをまわす</div>
+        </div>
+        <div class="mode-arrow">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ライブであそぶ（フェイクドア） -->
+    <div class="live-card" onclick="handleLive()">
+      <div class="live-icon">
+        <div class="live-dot"></div>
+      </div>
+      <div class="live-text">
+        <div class="live-name">ライブであそぶ</div>
+        <div class="live-sub">ライブ配信用 · 視聴者や参加者との交流に</div>
+      </div>
+      <div class="live-arrow">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ？ボタン（右上固定） -->
+<div class="help-btn" onclick="openHelp()">?</div>
+
+<!-- 履歴FAB（右下固定） -->
+<div class="history-fab" onclick="openHistory()">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+  </svg>
+</div>
+
+<!-- 遊び方ボトムシート -->
+<div class="overlay" id="helpOverlay" onclick="closeHelp(event)">
+  <div class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">遊び方</div>
+    <div class="rule-item">
+      <div class="rule-num">1</div>
+      <div>
+        <div class="rule-title">テーマに対して自分のTOP5を入力</div>
+        <div class="rule-desc">正直に入力するほど、後の結果発表が盛り上がります。最大50文字まで。</div>
+      </div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-num">2</div>
+      <div>
+        <div class="rule-title">全員のランキングを予想して並べ替え</div>
+        <div class="rule-desc">他の参加者のランキングをドラッグ&ドロップで並べ替えて予想します。</div>
+      </div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-num">3</div>
+      <div>
+        <div class="rule-title">結果発表！ズレを楽しもう</div>
+        <div class="rule-desc">正解に近いほど高得点。でも本当の楽しさはズレから生まれる会話にあります。</div>
+      </div>
+    </div>
+    <div class="score-box">
+      <div class="score-box-label">スコア</div>
+      <div class="score-row"><span>ぴったり正解</span><span>+2pt</span></div>
+      <div class="score-row"><span>おしい（±1位）</span><span>+1pt</span></div>
+      <div class="score-row"><span>はずれ</span><span>+0pt</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 履歴ボトムシート -->
+<div class="overlay" id="historyOverlay" onclick="closeHistory(event)">
+  <div class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">ゲーム履歴</div>
+    <div class="history-list">
+      <div class="history-item">
+        <div class="history-info">
+          <div class="history-theme">この1年で買ってよかったものTOP5</div>
+          <div class="history-meta">3月8日 · 8人でプレイ</div>
+        </div>
+        <div class="history-score">42pt</div>
+      </div>
+      <div class="history-item">
+        <div class="history-info">
+          <div class="history-theme">人生で一番笑ったエピソードTOP5</div>
+          <div class="history-meta">2月22日 · 5人でプレイ</div>
+        </div>
+        <div class="history-score">28pt</div>
+      </div>
+      <div class="history-item">
+        <div class="history-info">
+          <div class="history-theme">ストレス発散方法TOP5</div>
+          <div class="history-meta">2月14日 · 6人でプレイ</div>
+        </div>
+        <div class="history-score">35pt</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openHelp()    { document.getElementById('helpOverlay').classList.add('open') }
+function closeHelp(e)  { if(e.target===document.getElementById('helpOverlay')) document.getElementById('helpOverlay').classList.remove('open') }
+function openHistory()    { document.getElementById('historyOverlay').classList.add('open') }
+function closeHistory(e)  { if(e.target===document.getElementById('historyOverlay')) document.getElementById('historyOverlay').classList.remove('open') }
+function handleLive() {
+  // フェイクドア：タップ数を記録する想定（デモではアラート）
+  alert('ライブ機能は現在準備中です！\nご興味ありがとうございます。実装時にお知らせします。')
+}
+</script>
+</body>
+</html>

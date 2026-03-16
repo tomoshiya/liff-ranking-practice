@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>RankQuest β — ルーム関連画面</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Sans:ital,opsz,wght@0,9..40,700;0,9..40,900;1,9..40,900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F4F0;--surface:#FFFFFF;--surface-2:#ECEAE4;--border:#E0DDD5;--text-primary:#18171A;--text-secondary:#6B6860;--text-muted:#A8A49C;--hero:#1E1C2E}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#DDDBD4;font-family:'Noto Sans JP',sans-serif;padding:28px 16px 48px}
+
+/* タブナビ */
+.tab-nav{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:24px}
+.tab-btn{padding:6px 14px;border-radius:20px;border:1.5px solid #C8C5BE;background:#fff;font-size:11px;font-weight:700;color:#6B6860;cursor:pointer;transition:all 0.15s;font-family:'Noto Sans JP',sans-serif;white-space:nowrap}
+.tab-btn.active{background:#18171A;border-color:#18171A;color:#fff}
+
+/* 画面ラッパー */
+.screens{display:flex;justify-content:center}
+.screen{display:none}
+.screen.active{display:block}
+
+/* 電話フレーム */
+.phone{width:390px;background:var(--bg);border-radius:44px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,0.22),0 0 0 1px rgba(0,0,0,0.06);display:flex;flex-direction:column;min-height:700px}
+.status-bar{background:var(--hero);padding:14px 28px 8px;display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:rgba(255,255,255,0.5)}
+
+/* ヒーロー共通 */
+.hero{background:var(--hero);padding:16px 24px 28px;position:relative;overflow:hidden;flex-shrink:0}
+.hb{position:absolute;border-radius:50%;pointer-events:none}
+.hb.b1{width:220px;height:220px;top:-80px;right:-60px;background:rgba(255,255,255,0.03)}
+.hb.b2{width:100px;height:100px;bottom:-40px;left:-20px;background:rgba(255,255,255,0.04)}
+
+/* ヒーロー上部バー */
+.hero-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;position:relative;z-index:10}
+
+/* プロフィール名（左上） */
+.profile-btn{display:flex;align-items:center;gap:5px;cursor:pointer;padding:5px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);transition:background 0.15s}
+.profile-btn:hover{background:rgba(255,255,255,0.12)}
+.profile-avatar{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
+.profile-name{font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-edit{font-size:9px;color:rgba(255,255,255,0.35)}
+
+/* 履歴ボタン */
+.history-btn{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);cursor:pointer;transition:background 0.15s}
+.history-btn:hover{background:rgba(255,255,255,0.12)}
+.history-btn span{font-size:11px;font-weight:700;color:rgba(255,255,255,0.6)}
+
+/* ロゴ */
+.logo-area{position:relative;z-index:10}
+.logo-sub{font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:6px;letter-spacing:0.06em}
+.logo-row{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.logo-main{font-family:'DM Sans',sans-serif;font-size:44px;font-weight:900;font-style:italic;color:#fff;letter-spacing:-0.03em;line-height:1}
+.logo-beta{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase;border:1.5px solid rgba(255,255,255,0.2);padding:2px 7px;border-radius:5px;margin-bottom:4px}
+.logo-catch{font-size:12px;font-weight:700;color:rgba(255,255,255,0.45);line-height:1.5}
+
+/* モードエリア */
+.modes-area{flex:1;background:var(--bg);padding:20px 20px 24px;display:flex;flex-direction:column}
+.modes-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:10px}
+.mode-cards{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
+.mode-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1.5px solid var(--border);border-radius:13px;padding:13px 14px;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s,transform 0.12s;position:relative;overflow:hidden}
+.mode-card:hover{border-color:var(--text-primary);box-shadow:0 4px 16px rgba(0,0,0,0.09);transform:translateY(-1px)}
+.mode-card.primary{background:var(--hero);border-color:var(--hero)}
+.mode-card.primary:hover{box-shadow:0 4px 20px rgba(30,28,46,0.32)}
+.mode-icon{width:36px;height:36px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface-2)}
+.mode-card.primary .mode-icon{background:rgba(255,255,255,0.1)}
+.mode-text{flex:1;min-width:0}
+.mode-name{font-size:14px;font-weight:900;color:var(--text-primary);letter-spacing:-0.01em;margin-bottom:2px;line-height:1.2}
+.mode-card.primary .mode-name{color:#fff}
+.mode-sub{font-size:10px;font-weight:500;color:var(--text-muted);line-height:1.4}
+.mode-card.primary .mode-sub{color:rgba(255,255,255,0.45)}
+.mode-arrow{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;transition:background 0.15s}
+.mode-card:hover .mode-arrow{background:var(--text-primary)}
+.mode-card.primary .mode-arrow{background:rgba(255,255,255,0.12)}
+
+/* ライブカード */
+.live-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1.5px solid var(--border);border-radius:13px;padding:13px 14px;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s,transform 0.12s}
+.live-card:hover{border-color:var(--text-primary);box-shadow:0 4px 16px rgba(0,0,0,0.09);transform:translateY(-1px)}
+.live-icon{width:36px;height:36px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface-2)}
+.live-dot{width:9px;height:9px;border-radius:50%;background:#E53E3E;animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+.live-text{flex:1}
+.live-name{font-size:14px;font-weight:900;color:var(--text-secondary);letter-spacing:-0.01em;margin-bottom:2px}
+.live-sub{font-size:10px;font-weight:500;color:var(--text-muted);line-height:1.4}
+.live-arrow{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center}
+
+/* ？ボタン固定 */
+.help-btn{position:fixed;top:52px;right:calc(50% - 195px + 16px);width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:rgba(255,255,255,0.7);cursor:pointer;font-family:'DM Sans',sans-serif;z-index:50}
+
+/* ===== ルーム関連共通 ===== */
+.page-hero{background:var(--hero);padding:16px 24px 24px;position:relative;overflow:hidden;flex-shrink:0}
+.page-hero .hb.b1{width:180px;height:180px;top:-60px;right:-40px;background:rgba(255,255,255,0.03)}
+.back-btn{display:flex;align-items:center;gap:4px;color:rgba(255,255,255,0.5);font-size:11px;font-weight:700;cursor:pointer;margin-bottom:16px;width:fit-content}
+.back-btn svg{opacity:0.5}
+.page-title{font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.02em;margin-bottom:4px;position:relative;z-index:2}
+.page-desc{font-size:11px;color:rgba(255,255,255,0.45);line-height:1.6;position:relative;z-index:2}
+
+.page-body{flex:1;padding:20px;overflow-y:auto}
+.page-body::-webkit-scrollbar{display:none}
+
+/* カード */
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+.card-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:8px}
+
+/* 選択ボタン（部屋をつくる/入る） */
+.select-btn{display:flex;align-items:center;gap:14px;background:var(--surface);border:1.5px solid var(--border);border-radius:13px;padding:16px;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s,transform 0.12s;margin-bottom:10px}
+.select-btn:hover{border-color:var(--text-primary);box-shadow:0 4px 16px rgba(0,0,0,0.09);transform:translateY(-1px)}
+.select-btn.primary{background:var(--hero);border-color:var(--hero)}
+.select-btn.primary:hover{box-shadow:0 6px 24px rgba(30,28,46,0.3)}
+.select-icon{width:44px;height:44px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface-2)}
+.select-btn.primary .select-icon{background:rgba(255,255,255,0.12)}
+.select-text{flex:1}
+.select-name{font-size:16px;font-weight:900;color:var(--text-primary);margin-bottom:3px;letter-spacing:-0.01em}
+.select-btn.primary .select-name{color:#fff}
+.select-desc{font-size:11px;color:var(--text-muted);line-height:1.4}
+.select-btn.primary .select-desc{color:rgba(255,255,255,0.45)}
+.select-arrow{width:24px;height:24px;border-radius:50%;background:var(--surface-2);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.select-btn.primary .select-arrow{background:rgba(255,255,255,0.12)}
+
+/* ルームコード表示 */
+.room-code-display{text-align:center;padding:20px 0 8px}
+.room-code-num{font-family:'DM Sans',sans-serif;font-size:52px;font-weight:900;letter-spacing:0.12em;color:var(--text-primary);line-height:1}
+.room-code-hint{font-size:11px;color:var(--text-muted);margin-top:8px}
+
+/* コピーボタン */
+.btn-copy{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface-2);font-size:13px;font-weight:700;font-family:'Noto Sans JP',sans-serif;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;transition:background 0.15s}
+.btn-copy:hover{background:var(--border)}
+
+/* メンバーリスト */
+.member-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.member-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface-2);border-radius:8px}
+.member-avatar{width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text-secondary);flex-shrink:0}
+.member-avatar.host{background:var(--hero);color:#fff}
+.member-name{font-size:13px;font-weight:700;color:var(--text-primary);flex:1}
+.member-badge{font-size:9px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;background:var(--border);padding:2px 7px;border-radius:4px}
+.member-badge.host-badge{background:var(--hero);color:rgba(255,255,255,0.8)}
+.member-waiting{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted)}
+.dot-pulse{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:0.3}50%{opacity:1}}
+
+/* 参加人数バッジ */
+.member-count-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.member-count{font-size:13px;font-weight:700;color:var(--text-primary)}
+.member-count span{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:900;font-style:italic}
+.min-badge{font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:3px}
+.min-badge.ok{color:#16A34A;font-weight:700}
+
+/* メインボタン */
+.btn-primary{width:100%;padding:15px;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'Noto Sans JP',sans-serif;background:var(--text-primary);color:#fff;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.18);transition:transform 0.15s,opacity 0.15s;display:block;text-align:center}
+.btn-primary:disabled{opacity:0.3;cursor:not-allowed;box-shadow:none}
+.btn-primary:not(:disabled):hover{transform:translateY(-1px)}
+.btn-danger{width:100%;padding:12px;border:1.5px solid #FCA5A5;border-radius:12px;font-size:13px;font-weight:700;font-family:'Noto Sans JP',sans-serif;background:transparent;color:#EF4444;cursor:pointer;margin-top:8px;transition:background 0.15s}
+.btn-danger:hover{background:#FEF2F2}
+
+/* 入力欄 */
+.input-wrap{margin-bottom:16px}
+.input-label{font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:6px}
+.code-input{width:100%;text-align:center;font-family:'DM Sans',sans-serif;font-size:36px;font-weight:900;letter-spacing:0.2em;color:var(--text-primary);border:1.5px solid var(--border);border-radius:12px;padding:16px;background:var(--surface);outline:none;transition:border-color 0.15s}
+.code-input:focus{border-color:var(--text-primary)}
+.code-input::placeholder{color:var(--text-muted);font-size:28px;letter-spacing:0.15em}
+.name-input{width:100%;font-family:'Noto Sans JP',sans-serif;font-size:16px;font-weight:700;color:var(--text-primary);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--surface);outline:none;transition:border-color 0.15s}
+.name-input:focus{border-color:var(--text-primary)}
+.name-input::placeholder{color:var(--text-muted);font-weight:500}
+
+/* 開始待機 */
+.waiting-hero{background:var(--hero);padding:24px 24px 32px;position:relative;overflow:hidden;flex-shrink:0;text-align:center}
+.waiting-theme-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3);margin-bottom:12px}
+.waiting-theme-card{position:relative;width:75%;margin:0 auto 20px;padding-bottom:calc(75% * 0.5625);border-radius:12px;overflow:hidden;background:#2C3E50;box-shadow:0 6px 24px rgba(0,0,0,0.4),0 0 0 1px rgba(255,255,255,0.08)}
+.waiting-theme-card .wa{position:absolute;inset:0;background:#fff;clip-path:polygon(22% 0%,100% 0%,100% 100%,14.5% 100%)}
+.waiting-theme-card .pl{position:absolute;bottom:0;left:0;width:16%;top:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:10%;z-index:10}
+.waiting-theme-card .pl span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:6px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.45)}
+.waiting-theme-card .tt{position:absolute;top:50%;right:0;width:82%;transform:translateY(-50%);padding:0 8% 0 2%;font-size:13px;font-weight:700;color:#1A1917;line-height:1.45;letter-spacing:-0.01em;z-index:10}
+.waiting-status{font-size:13px;font-weight:700;color:rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;gap:8px}
+.waiting-dots{display:flex;gap:4px}
+.wd{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.4);animation:wdpulse 1.2s ease-in-out infinite}
+.wd:nth-child(2){animation-delay:0.2s}
+.wd:nth-child(3){animation-delay:0.4s}
+@keyframes wdpulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1)}}
+
+/* Tipsカード */
+.tips-scroll{flex:1;padding:16px 20px 24px;overflow-y:auto}
+.tips-scroll::-webkit-scrollbar{display:none}
+.tips-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:10px}
+.tip-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px}
+.tip-number{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:900;font-style:italic;color:var(--text-muted);margin-bottom:4px}
+.tip-title{font-size:14px;font-weight:900;color:var(--text-primary);margin-bottom:4px;letter-spacing:-0.01em}
+.tip-desc{font-size:12px;color:var(--text-secondary);line-height:1.6}
+.tip-accent{display:inline-block;margin-top:6px;padding:3px 10px;background:var(--surface-2);border-radius:20px;font-size:11px;font-weight:700;color:var(--text-secondary)}
+
+/* モーダル（名前入力） */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:20px;padding:24px;width:100%;max-width:340px;box-shadow:0 24px 60px rgba(0,0,0,0.2)}
+.modal-title{font-size:18px;font-weight:900;color:var(--text-primary);margin-bottom:6px;letter-spacing:-0.01em}
+.modal-desc{font-size:12px;color:var(--text-secondary);line-height:1.6;margin-bottom:20px}
+.modal-input{width:100%;font-family:'Noto Sans JP',sans-serif;font-size:18px;font-weight:700;color:var(--text-primary);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--bg);outline:none;transition:border-color 0.15s;margin-bottom:16px}
+.modal-input:focus{border-color:var(--text-primary)}
+.modal-hint{font-size:11px;color:var(--text-muted);margin-bottom:16px;margin-top:-10px}
+
+/* ゲスト待機 */
+.guest-waiting-body{flex:1;padding:24px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px}
+.guest-avatar-row{display:flex;gap:-8px;justify-content:center;margin-bottom:4px}
+.guest-av{width:36px;height:36px;border-radius:50%;border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;margin-left:-8px}
+.guest-av:first-child{margin-left:0}
+.guest-waiting-title{font-size:18px;font-weight:900;color:var(--text-primary);letter-spacing:-0.01em}
+.guest-waiting-desc{font-size:12px;color:var(--text-secondary);line-height:1.6}
+.room-code-mini{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--surface-2);border-radius:20px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:900;color:var(--text-primary);letter-spacing:0.1em}
+.room-code-mini-label{font-size:10px;font-weight:700;color:var(--text-muted);font-family:'Noto Sans JP',sans-serif;letter-spacing:0}
+</style>
+</head>
+<body>
+
+<!-- タブナビゲーション -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="showScreen('top')">① トップ</button>
+  <button class="tab-btn" onclick="showScreen('name-modal')">② 名前入力</button>
+  <button class="tab-btn" onclick="showScreen('room-select')">③ ルーム選択</button>
+  <button class="tab-btn" onclick="showScreen('room-join')">④ 部屋に入る</button>
+  <button class="tab-btn" onclick="showScreen('room-host')">⑤ 待機室（ホスト）</button>
+  <button class="tab-btn" onclick="showScreen('room-guest')">⑥ 待機室（ゲスト）</button>
+  <button class="tab-btn" onclick="showScreen('start-wait')">⑦ 開始待機</button>
+</div>
+
+<div class="screens">
+
+  <!-- ① トップ（プロフィール名追加版） -->
+  <div class="screen active" id="screen-top">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><div style="display:flex;gap:5px">📶🔋</div></div>
+      <div class="hero" style="position:relative">
+        <div class="hb b1"></div><div class="hb b2"></div>
+        <div style="position:absolute;bottom:14px;right:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:rgba(255,255,255,0.7);cursor:pointer;font-family:'DM Sans',sans-serif;z-index:20;flex-shrink:0">?</div>
+        
+        <div class="hero-bar">
+          <!-- 左上：プロフィール名 -->
+          <div class="profile-btn" onclick="showScreen('name-modal');setTab(1)">
+            <div class="profile-avatar">け</div>
+            <div class="profile-name">けんじ</div>
+            <div class="profile-edit">✏️</div>
+          </div>
+
+        </div>
+        <div class="logo-area">
+          <div class="logo-sub">ランキュー</div>
+          <div class="logo-row">
+            <div class="logo-main">Rank&thinsp;-&thinsp;Q</div>
+            <div class="logo-beta">BETA</div>
+          </div>
+          <div class="logo-catch">ランクを読み合う<br>コミュニケーションゲーム</div>
+        </div>
+      </div>
+      <div class="modes-area">
+        <div class="modes-label">モードを選ぶ</div>
+        <div class="mode-cards">
+          <div class="mode-card" onclick="">
+            <div class="mode-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="3"/><path d="M22 21v-2a3 3 0 0 0-2-2.83"/></svg></div>
+            <div class="mode-text"><div class="mode-name">ふたりであそぶ</div><div class="mode-sub">2人専用 · 各自のスマホを使用</div></div>
+            <div class="mode-arrow"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="mode-card primary" onclick="showScreen('room-select');setTab(2)">
+            <div class="mode-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="18" cy="5" r="3"/><path d="M23 21v-2a3 3 0 0 0-2-2.83"/><line x1="19" y1="13" x2="19" y2="21"/><line x1="15" y1="17" x2="23" y2="17"/></svg></div>
+            <div class="mode-text"><div class="mode-name">みんなであそぶ</div><div class="mode-sub">3〜10人用 · 各自のスマホを使用</div></div>
+            <div class="mode-arrow"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="mode-card" onclick="">
+            <div class="mode-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+            <div class="mode-text"><div class="mode-name">1台であそぶ</div><div class="mode-sub">2〜5人用 · 1台のスマホをまわす</div></div>
+            <div class="mode-arrow"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+        </div>
+        <div class="live-card">
+          <div class="live-icon"><div class="live-dot"></div></div>
+          <div class="live-text"><div class="live-name">ライブであそぶ</div><div class="live-sub">ライブ配信用 · 視聴者や参加者との交流に</div></div>
+          <div class="live-arrow"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 名前入力モーダル（初回 or 編集） -->
+  <div class="screen" id="screen-name-modal">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><div style="display:flex;gap:5px">📶🔋</div></div>
+      <div class="hero" style="position:relative">
+        <div class="hb b1"></div><div class="hb b2"></div>
+        <div style="position:absolute;bottom:14px;right:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:rgba(255,255,255,0.7);cursor:pointer;font-family:'DM Sans',sans-serif;z-index:20;flex-shrink:0">?</div>
+
+        <div class="logo-area">
+          <div class="logo-sub">ランキュー</div>
+          <div class="logo-row"><div class="logo-main">Rank&thinsp;-&thinsp;Q</div><div class="logo-beta">BETA</div></div>
+          <div class="logo-catch">ランクを読み合う<br>コミュニケーションゲーム</div>
+        </div>
+      </div>
+      <!-- モーダル風に画面中央に配置 -->
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,0.15)">
+        <div class="modal" style="max-width:100%">
+          <div class="modal-title">あなたの名前を教えてください</div>
+          <div class="modal-desc">ゲーム内で他の参加者に表示されます。<br>後からトップ画面で変更できます。</div>
+          <input class="modal-input" type="text" placeholder="例：けんじ" value="けんじ">
+          <div class="modal-hint">※ 10文字以内推奨</div>
+          <button class="btn-primary">この名前であそぶ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ ルーム作成・参加選択 -->
+  <div class="screen" id="screen-room-select">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><div style="display:flex;gap:5px">📶🔋</div></div>
+      <div class="page-hero" style="position:relative">
+        <div class="hb b1"></div>
+        <div style="position:absolute;bottom:14px;right:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:rgba(255,255,255,0.7);cursor:pointer;font-family:'DM Sans',sans-serif;z-index:20;flex-shrink:0">?</div>
+        <div class="back-btn" onclick="showScreen('top');setTab(0)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          トップへ戻る
+        </div>
+        <div class="page-title">みんなであそぶ</div>
+        <div class="page-desc">部屋をつくってメンバーを招待するか、<br>部屋番号を入力して参加しましょう。</div>
+      </div>
+      <div class="page-body">
+        <div class="select-btn primary" onclick="showScreen('room-host');setTab(4)">
+          <div class="select-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div class="select-text">
+            <div class="select-name">部屋をつくる</div>
+            <div class="select-desc">部屋番号を発行してメンバーを招待</div>
+          </div>
+          <div class="select-arrow"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="select-btn" onclick="showScreen('room-join');setTab(3)">
+          <div class="select-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B6860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          </div>
+          <div class="select-text">
+            <div class="select-name">部屋に入る</div>
+            <div class="select-desc">部屋番号を入力して参加する</div>
+          </div>
+          <div class="select-arrow"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 部屋に入る（コード入力） -->
+  <div class="screen" id="screen-room-join">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><div style="display:flex;gap:5px">📶🔋</div></div>
+      <div class="page-hero" style="position:relative">
+        <div class="hb b1"></div>
+        <div style="position:absolute;bottom:14px;right:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:rgba(255,255,255,0.7);cursor:pointer;font-family:'DM Sans',sans-serif;z-index:20;flex-shrink:0">?</div>
+        <div class="back-btn" onclick="showScreen('room-select');setTab(2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>戻る</div>
+        <div class="page-title">部屋に入る</div>
+        <div class="page-desc">ホストから教えてもらった<br>5桁の部屋番号を入力してください。</div>
+      </div>
+      <div class="page-body">
+        <div class="card">
+          <div class="card-label">部屋番号</div>
+          <div class="input-wrap" style="margin-bottom:0">
+            <input class="code-input" type="tel" maxlength="5" placeholder="30226" value="3 0 2 2 6">
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div class="card-label" style="margin-bottom:6px">参加者名</div>
+          <input class="name-input" type="text" value="けんじ" placeholder="名前を入力">
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">トップ画面で設定した名前です。変更できます。</div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-bottom:10px">この名前であそびます。あとから変更もできます。</div><button class="btn-primary" onclick="showScreen('room-guest');setTab(5)">部屋に参加する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ 待機室（ホスト視点） -->
+  <div class="screen" id="screen-room-host">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><div style="display:flex;gap:5px">📶🔋</div></div>
+      <div class="page-hero" style="position:relative">
+        <div class="hb b1"></div>
+        <div style="position:absolute;bottom:14px;right:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:rgba(255,255,255,0.7);cursor:pointer;font-family:'DM Sans',sans-serif;z-index:20;flex-shrink:0">?</div>
+        <div class="back-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>戻る</div>
+        <div class="page-title">待機室</div>
+        <div class="page-desc">メンバーが揃ったらゲームを開始できます。</div>
+      </div>
+      <div class="page-body" style="overflow-y:auto">
+
+        <!-- 部屋番号カード -->
+        <div class="card">
+          <div class="card-label">部屋番号 — メンバーに伝えてください</div>
+          <div class="room-code-display">
+            <div class="room-code-num">3 0 2 2 6</div>
+            <div class="room-code-hint">この番号を参加者に共有しましょう</div>
+          </div>
+          <button class="btn-copy">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            番号をコピー
+          </button>
+        </div>
+
+        <!-- メンバーカード -->
+        <div class="card">
+          <div class="member-count-row">
+            <div class="member-count"><span>3</span> 人が参加中</div>
+            <div class="min-badge ok">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              開始できます
+            </div>
+          </div>
+          <div class="member-list">
+            <div class="member-item">
+              <div class="member-avatar host">け</div>
+              <div class="member-name">けんじ</div>
+              <div class="member-badge host-badge">HOST</div>
+            </div>
+            <div class="member-item">
+              <div class="member-avatar" style="background:#4A7C59;color:#fff">は</div>
+              <div class="member-name">はなこ</div>
+            </div>
+            <div class="member-item">
+              <div class="member-avatar" style="background:#7C4A6B;color:#fff">さ</div>
+              <div class="member-name">さくら</div>
+            </div>
+            <div class="member-item" style="opacity:0.5">
+              <div class="member-avatar">…</div>
+              <div class="member-waiting"><div class="dot-pulse"></div>参加待ち</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary">このメンバーでゲームを始める</button>
+        <button class="btn-danger">部屋を閉じる</button>
+        <div style="height:20px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑥ 待機室（ゲスト視点） -->
+  <div class="screen" id="screen-room-guest">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><div style="display:flex;gap:5px">📶🔋</div></div>
+      <div class="page-hero" style="position:relative">
+        <div class="hb b1"></div>
+        <div style="position:absolute;bottom:14px;right:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:rgba(255,255,255,0.7);cursor:pointer;font-family:'DM Sans',sans-serif;z-index:20;flex-shrink:0">?</div>
+        <div class="back-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>退出する</div>
+        <div class="page-title">待機室</div>
+        <div class="page-desc">ホストがゲームを開始するまで<br>このまま待っていてください。</div>
+      </div>
+      <div class="guest-waiting-body">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+          <div style="width:44px;height:44px;border-radius:50%;background:var(--hero);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff">け</div>
+          <div style="width:44px;height:44px;border-radius:50%;background:#4A7C59;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff">は</div>
+          <div style="width:44px;height:44px;border-radius:50%;background:#7C4A6B;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff">さ</div>
+        </div>
+        <div>
+          <div class="guest-waiting-title">3人が集まっています</div>
+          <div class="guest-waiting-desc" style="margin-top:6px">ホストがゲームを開始すると<br>自動で次の画面に進みます</div>
+        </div>
+        <div class="room-code-mini">
+          <div class="room-code-mini-label">部屋番号</div>
+          30226
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:12px;font-weight:700">
+          <div class="waiting-dots"><div class="wd"></div><div class="wd"></div><div class="wd"></div></div>
+          ホストの開始を待っています
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑦ 開始待機（テーマ選択後・ゲスト用） -->
+  <div class="screen" id="screen-start-wait">
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><div style="display:flex;gap:5px">📶🔋</div></div>
+      <div class="waiting-hero" style="position:relative">
+        <div class="hb b1"></div>
+        <div class="hb b2"></div>
+        <div style="position:absolute;bottom:14px;right:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:rgba(255,255,255,0.7);cursor:pointer;font-family:'DM Sans',sans-serif;z-index:20;flex-shrink:0">?</div>
+        <!-- ステップインジケーター -->
+        <div class="steps" style="display:flex;align-items:center;margin-bottom:20px;position:relative;z-index:2;">
+          <div class="step active" style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.9);white-space:nowrap">
+            <div style="width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,0.15);flex-shrink:0"></div>
+            <span>テーマ選択</span>
+          </div>
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.12);margin:0 6px;min-width:14px"></div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);white-space:nowrap">
+            <div style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2);flex-shrink:0"></div>
+            <span>入力</span>
+          </div>
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.12);margin:0 6px;min-width:14px"></div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);white-space:nowrap">
+            <div style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2);flex-shrink:0"></div>
+            <span>予想</span>
+          </div>
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.12);margin:0 6px;min-width:14px"></div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);white-space:nowrap">
+            <div style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2);flex-shrink:0"></div>
+            <span>結果発表</span>
+          </div>
+        </div>
+        <div class="waiting-status">
+          <div class="waiting-dots"><div class="wd"></div><div class="wd"></div><div class="wd"></div></div>
+          ホストのテーマ選択を待っています
+        </div>
+      </div>
+      <div class="tips-scroll">
+        <div class="tips-label">ゲームのポイント</div>
+        <div class="tip-card">
+          <div class="tip-number">Point 01</div>
+          <div class="tip-title">正直に自分のTOP5を答えよう</div>
+          <div class="tip-desc">考えすぎず、思ったままの順番で入力するのが一番です。内容や順序にウソをつかないほど、結果発表が盛り上がります。</div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-number">Point 02</div>
+          <div class="tip-title">伏せたいものは書かなくてOK</div>
+          <div class="tip-desc">普段あまり出さない情報が見えると場が盛り上がります。でも、どうしても公開したくないものは書かなくて大丈夫。自分が楽しめる範囲で答えましょう。</div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-number">Point 03</div>
+          <div class="tip-title">ズレや会話を楽しもう</div>
+          <div class="tip-desc">予想が当たっても外れてもOK。むしろズレたところが一番の盛り上がりポイントです。「なんでそれが1位？」というアフタートークこそ、このゲームの醍醐味。</div>
+        </div>
+        <div style="height:16px"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /screens -->
+<!-- 履歴FAB（トップ画面のみ表示） -->
+<div id="historyFab" style="position:fixed;bottom:60px;right:calc(50% - 195px + 16px);width:40px;height:40px;border-radius:50%;background:#fff;border:1.5px solid #E0DDD5;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,0.1);z-index:100">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6B6860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+</div>
+
+<script>
+const screens = ['top','name-modal','room-select','room-join','room-host','room-guest','start-wait'];
+const tabs = document.querySelectorAll('.tab-btn');
+
+function showScreen(id) {
+  screens.forEach(s => {
+    document.getElementById('screen-' + s).classList.remove('active');
+  });
+  document.getElementById('screen-' + id).classList.add('active');
+  // 履歴FABはトップ画面のみ表示
+  document.getElementById('historyFab').style.display = id === 'top' ? 'flex' : 'none';
+}
+function setTab(idx) {
+  tabs.forEach((t, i) => t.classList.toggle('active', i === idx));
+}
+tabs.forEach((btn, i) => {
+  btn.addEventListener('click', () => setTab(i));
+});
+</script>
+</body>
+</html>
