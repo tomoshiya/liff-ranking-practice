@@ -2,8 +2,10 @@
 // アプリ エントリーポイント・グローバル状態
 // ========================================
 
-const LIFF_ID = window.location.hostname.includes('netlify.app')
-    ? '2008911809-43mMnuKh'   // 開発環境 (Netlify)
+const LIFF_ID = window.location.hostname.includes('beta--dashing-granita')
+    ? '2008911809-x8vw37eD'   // beta環境 (Netlify beta)
+    : window.location.hostname.includes('netlify.app')
+    ? '2008911809-43mMnuKh'   // 開発環境 (Netlify develop)
     : '2008911809-CBLKsbT1';  // 本番環境 (GitHub Pages)
 
 // グローバル状態
