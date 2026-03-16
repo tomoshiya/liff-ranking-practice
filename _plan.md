@@ -58,10 +58,13 @@ todos:
   # ===== β版リビルド（優先） =====
   - id: beta-rebuild-design
     content: "Phase 6-Rebuild: β版ファイル構成設計（HTML/CSS/JS分割）"
-    status: pending
+    status: completed
   - id: beta-rebuild-impl
     content: "Phase 6-Rebuild: β版フロントエンド実装（ワイヤーフレームベース）"
-    status: pending
+    status: completed
+  - id: beta-rebuild-debug
+    content: "Phase 6-Rebuild: β版テスト・デバッグ・修正（実機確認）"
+    status: in_progress
 
   # ===== β版フロントエンド改善（後回し） =====
   - id: ux-wireframe
@@ -112,7 +115,7 @@ todos:
 > - 作業後は必ずこのファイルのTODOを更新する
 >
 > ### ブランチ・デプロイルール（必読）
-> - **作業は常に `develop` ブランチで行う**
+> - **β版作業は `beta` ブランチで行う。α版の修正は `develop` ブランチで行う**
 > - `git push` の前に必ずブランチ名を確認・明示してから実行する
 > - `main` への直接プッシュは GitHub の Branch Protection により物理的に禁止済み
 > - `main` への反映はユーザーが「本番に反映して」と明示的に指示した場合のみ PR を作成する
@@ -161,7 +164,8 @@ todos:
 | ブランチ | 役割 | デプロイ先 | LIFF |
 |---|---|---|---|
 | `main` | 本番リリース | GitHub Pages | RankQuest（α版）`2008911809-CBLKsbT1` |
-| `develop` | 開発・テスト用 | Netlify | RankQuest Dev `2008911809-43mMnuKh` |
+| `develop` | α版の開発・テスト用 | Netlify (develop) | RankQuest Dev `2008911809-43mMnuKh` |
+| `beta` | β版リビルド専用 | Netlify (beta) | Rank-Q beta `2008911809-x8vw37eD` |
 
 ### 開発フロー
 
