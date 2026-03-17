@@ -102,7 +102,7 @@ async function createRoom() {
 }
 
 function generateRoomCode() {
-    return String(Math.floor(10000 + Math.random() * 90000));
+    return String(Math.floor(1000 + Math.random() * 9000));
 }
 
 // ========================================
@@ -112,14 +112,14 @@ function generateRoomCode() {
 function onRoomCodeInput(input) {
     const nameInput = document.getElementById('joinNameInput');
     const btn = document.getElementById('joinRoomBtn');
-    btn.disabled = input.value.length < 5 || !nameInput.value.trim();
+    btn.disabled = input.value.length < 4 || !nameInput.value.trim();
 }
 
 function onJoinNameInput() {
     const codeInput = document.getElementById('roomCodeInput');
     const nameInput = document.getElementById('joinNameInput');
     const btn = document.getElementById('joinRoomBtn');
-    btn.disabled = codeInput.value.length < 5 || !nameInput.value.trim();
+    btn.disabled = codeInput.value.length < 4 || !nameInput.value.trim();
 }
 
 async function joinRoom() {
@@ -131,7 +131,7 @@ async function joinRoom() {
     const roomId = document.getElementById('roomCodeInput').value.trim();
     const guestName = document.getElementById('joinNameInput').value.trim();
 
-    if (!roomId || roomId.length < 5) {
+    if (!roomId || roomId.length < 4) {
         showToast('部屋番号を入力してください', 'error');
         return;
     }
@@ -589,16 +589,16 @@ function showSharedRankingInput(playerName = null) {
 
 // 全モード共通: 入力リスト描画（オプションで事前データを挿入）
 function renderRankInputList(prefillData = null) {
-    const badges = ['1st','2nd','3rd','4th','5th'];
-    document.getElementById('rankInputList').innerHTML = badges.map((b, i) => `
+    const SUFFIXES = ['st','nd','rd','th','th'];
+    document.getElementById('rankInputList').innerHTML = [1,2,3,4,5].map(r => `
         <div class="rank-item">
-            <div class="rank-badge">${b}</div>
-            <textarea class="rank-input" rows="1" id="rankInput_${i+1}"
-                placeholder="${i+1}位を入力"
+            <div class="rank-badge"><span style="font-size:17px;line-height:1;">${r}</span><span style="font-size:9px;opacity:0.6;">${SUFFIXES[r-1]}</span></div>
+            <textarea class="rank-input" rows="1" id="rankInput_${r}"
+                placeholder="${r}位を入力"
                 maxlength="50"
-                oninput="onRankInput(); autoResize(this); updateRankCharCount(${i+1}, this.value)"
-                onkeydown="if(event.key==='Enter'){event.preventDefault();return false;}"></textarea>
-            <span class="rank-char-count" id="rankCharCount_${i+1}">0/50</span>
+                oninput="onRankInput(); autoResize(this); updateRankCharCount(${r}, this.value)"
+                onkeydown="onRankKeydown(event, ${r})"></textarea>
+            <span class="rank-char-count" id="rankCharCount_${r}">0/50</span>
             <div class="rank-drag-handle">⋮⋮</div>
         </div>
     `).join('');
@@ -624,16 +624,33 @@ function renderRankInputList(prefillData = null) {
         onEnd: updateInputBadges
     });
 
-    document.getElementById('submitRankingBtn').disabled = !prefillData;
+    // 常にボタンテキストをリセット（2回目ゲームのバグ対策）
+    const btn = document.getElementById('submitRankingBtn');
+    if (btn) {
+        btn.textContent = 'あなたのTOP5を確定する';
+        btn.disabled = !prefillData;
+    }
     if (!prefillData) setTimeout(() => document.getElementById('rankInput_1')?.focus(), 100);
 }
 
-// 文字数カウンター更新
+// エンターキーで次フィールドへ
+function onRankKeydown(e, rank) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (rank < 5) {
+            const next = document.getElementById(`rankInput_${rank + 1}`);
+            if (next) next.focus();
+        }
+        return false;
+    }
+}
+
+// 文字数カウンター更新（常時表示）
 function updateRankCharCount(rank, value) {
     const el = document.getElementById(`rankCharCount_${rank}`);
     if (!el) return;
     const len = value.length;
-    el.textContent = len > 30 ? `${len}/50` : '';
+    el.textContent = `${len}/50`;
     el.className = 'rank-char-count' + (len >= 50 ? ' rank-char-count--over' : len >= 40 ? ' rank-char-count--warn' : '');
 }
 
@@ -660,14 +677,38 @@ function autoResize(el) {
     el.style.height = el.scrollHeight + 'px';
 }
 
-// 全モード共通: 送信ボタンのディスパッチャー（確認ポップアップ付き）
+// 全モード共通: 送信ボタンのディスパッチャー（カスタム確認モーダル）
 function submitRanking() {
-    if (!confirm('このTOP5で確定しますか？\n送信後も修正できます。')) return;
-    if (App.currentMode === 'local') {
-        localHandleSubmitRanking();
-    } else {
-        onlineHandleSubmitRanking();
+    const items = {};
+    let allFilled = true;
+    for (let r = 1; r <= 5; r++) {
+        const el = document.getElementById(`rankInput_${r}`);
+        const val = el ? el.value.trim() : '';
+        if (!val) { allFilled = false; break; }
+        items[r] = val;
     }
+    if (!allFilled) { showToast('全ての順位を入力してください', 'error'); return; }
+
+    showRankConfirmModal(items, () => {
+        if (App.currentMode === 'local') localHandleSubmitRanking();
+        else onlineHandleSubmitRanking();
+    });
+}
+
+// 送信確認モーダルを表示
+function showRankConfirmModal(items, onConfirm) {
+    const SUFFIXES = ['st','nd','rd','th','th'];
+    document.getElementById('rankConfirmList').innerHTML = [1,2,3,4,5].map(r => `
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">
+            <span style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:900;font-style:italic;color:var(--text-secondary);min-width:32px;">${r}<span style="font-size:9px;">${SUFFIXES[r-1]}</span></span>
+            <span style="font-size:13px;font-weight:700;color:var(--text-primary);">${escapeHtml(items[r] || '')}</span>
+        </div>
+    `).join('');
+    document.getElementById('rankConfirmModal').classList.add('modal-overlay--active');
+    document.getElementById('rankConfirmOkBtn').onclick = () => {
+        document.getElementById('rankConfirmModal').classList.remove('modal-overlay--active');
+        onConfirm();
+    };
 }
 
 // online専用: Firebase送信処理
@@ -705,19 +746,45 @@ async function onlineHandleSubmitRanking() {
         document.getElementById('rankingInputForm').style.display = 'none';
         document.getElementById('inputSubmittedBanner').style.display = 'flex';
 
+        // 送信後ランキングを表示
+        const SUFFIXES = ['st','nd','rd','th','th'];
+        const preview = document.getElementById('submittedRankingPreview');
+        if (preview) {
+            preview.innerHTML = Object.entries(rankingData)
+                .sort(([a],[b]) => parseInt(a)-parseInt(b))
+                .map(([r, v]) => `
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 12px;background:#fff;border:1px solid var(--border);border-radius:10px;margin-bottom:5px;">
+                        <span style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:900;font-style:italic;color:var(--text-secondary);min-width:30px;">${parseInt(r)}<span style="font-size:9px;">${SUFFIXES[parseInt(r)-1]}</span></span>
+                        <span style="font-size:13px;font-weight:700;">${escapeHtml(v)}</span>
+                    </div>`).join('');
+            preview.style.display = 'block';
+        }
+
     } catch (err) {
         console.error('ランキング送信エラー:', err);
         showToast('送信に失敗しました', 'error');
         btn.disabled = false;
-        btn.textContent = 'TOP5を送信する';
+        btn.textContent = 'あなたのTOP5を確定する';
     }
 }
 
-function editMyRanking() {
-    document.getElementById('inputSubmittedBanner').style.display = 'none';
-    document.getElementById('rankingInputForm').style.display = 'block';
-    // 送信済みデータを取得してプリフィル
+// 修正：Firebaseから送信を撤回してプリフィル状態で再表示
+async function editMyRanking() {
     const submittedData = room.data?.rankings?.[App.userProfile?.userId] || null;
+    try {
+        await database.ref('gameRooms/' + room.roomId).update({
+            [`rankings/${App.userProfile.userId}`]: null,
+            [`players/${App.userProfile.userId}/status`]: 'waiting',
+            lastActivityAt: Date.now()
+        });
+    } catch (err) {
+        showToast('修正の準備に失敗しました', 'error');
+        return;
+    }
+    document.getElementById('inputSubmittedBanner').style.display = 'none';
+    const preview = document.getElementById('submittedRankingPreview');
+    if (preview) preview.style.display = 'none';
+    document.getElementById('rankingInputForm').style.display = 'block';
     renderRankInputList(submittedData);
 }
 
@@ -852,6 +919,37 @@ async function submitGuess() {
         }
     }
 
+    // カスタム確認モーダルを表示
+    showGuessConfirmModal(data, targets, async () => {
+        await doSubmitGuess(data, targets);
+    });
+}
+
+// 予想確認モーダルを表示
+function showGuessConfirmModal(data, targets, onConfirm) {
+    const SUFFIXES = ['st','nd','rd','th','th'];
+    let html = '';
+    targets.forEach(tid => {
+        const draft = guessDraft[tid] || {};
+        const targetName = data.players[tid]?.displayName || '不明';
+        html += `<div style="margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:6px;">${escapeHtml(targetName)}さんの予想</div>
+            ${[1,2,3,4,5].map(r => `
+                <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">
+                    <span style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:900;font-style:italic;color:var(--text-secondary);min-width:28px;">${r}<span style="font-size:8px;">${SUFFIXES[r-1]}</span></span>
+                    <span style="font-size:12px;font-weight:700;">${escapeHtml(draft[String(r)] || '')}</span>
+                </div>`).join('')}
+        </div>`;
+    });
+    document.getElementById('guessConfirmList').innerHTML = html;
+    document.getElementById('guessConfirmModal').classList.add('modal-overlay--active');
+    document.getElementById('guessConfirmOkBtn').onclick = () => {
+        document.getElementById('guessConfirmModal').classList.remove('modal-overlay--active');
+        onConfirm();
+    };
+}
+
+async function doSubmitGuess(data, targets) {
     const btn = document.getElementById('submitGuessBtn');
     btn.disabled = true;
     btn.textContent = '送信中...';
@@ -864,7 +962,6 @@ async function submitGuess() {
         });
         await ref.update(updates);
 
-        // 全員予想完了チェック
         const snap = await ref.once('value');
         const d = snap.val();
         const allGuessed = Object.keys(d.players || {}).every(id => d.guesses?.[id]);
@@ -873,6 +970,7 @@ async function submitGuess() {
         }
 
         document.getElementById('guessSubmittedBanner').style.display = 'flex';
+        document.getElementById('guessPersonArea').style.display = 'none';
         btn.style.display = 'none';
 
     } catch (err) {
@@ -881,6 +979,22 @@ async function submitGuess() {
         btn.disabled = false;
         btn.textContent = '予想を送信する';
     }
+}
+
+// 予想の修正（Firebaseから撤回）
+async function editMyGuess() {
+    try {
+        await database.ref(`gameRooms/${room.roomId}/guesses/${App.userProfile.userId}`).remove();
+    } catch (err) {
+        showToast('修正の準備に失敗しました', 'error');
+        return;
+    }
+    document.getElementById('guessSubmittedBanner').style.display = 'none';
+    document.getElementById('guessPersonArea').style.display = 'block';
+    const btn = document.getElementById('submitGuessBtn');
+    btn.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '予想を送信する';
 }
 
 function updateGuessProgress(data) {
@@ -894,15 +1008,12 @@ function updateGuessProgress(data) {
 // ========================================
 
 function renderOnlineResultScreen(data) {
-    // テーマカード
-    renderThemeCard(data.theme, data.themePack || 'basic', document.getElementById('resultThemeCard'));
-
     const players = Object.entries(data.players || {});
 
     // スコア計算
     const scores = {};
-    players.forEach(([guesserId, g]) => {
-        let totalScore = 0, perfect = 0, close1 = 0;
+    players.forEach(([guesserId]) => {
+        let totalScore = 0;
         players.forEach(([targetId]) => {
             if (targetId === guesserId) return;
             const correct = data.rankings?.[targetId];
@@ -914,35 +1025,71 @@ function renderOnlineResultScreen(data) {
                 for (let r = 1; r <= 5; r++) {
                     if (guess[String(r)] === item) { gRank = r; break; }
                 }
-                if (gRank > 0) {
-                    const diff = Math.abs(gRank - rank);
-                    totalScore += calcItemScore(diff);
-                    if (diff === 0) perfect++;
-                    else if (diff === 1) close1++;
-                }
+                if (gRank > 0) totalScore += calcItemScore(Math.abs(gRank - rank));
             }
         });
-        scores[guesserId] = { totalScore, perfect, close1 };
+        scores[guesserId] = { totalScore };
     });
 
-    // ランキング表示
     const sorted = [...players]
-        .map(([id, p]) => ({ id, name: p.displayName, ...scores[id] }))
-        .sort((a, b) => b.totalScore - a.totalScore);
-
+        .map(([id, p]) => ({ id, name: p.displayName, score: scores[id]?.totalScore || 0 }))
+        .sort((a, b) => b.score - a.score);
     const targetCount = players.length - 1;
     const maxScore = targetCount * 50;
-    const medals = ['🥇','🥈','🥉'];
+    const packColor = PACK_COLORS[data.themePack] || DEFAULT_PACK_COLOR;
+    const isHost = room.role === 'host';
 
-    document.getElementById('resultRanking').innerHTML = sorted.map((p, i) => `
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,0.08);border-radius:8px;margin-bottom:4px;">
-            <span style="font-size:20px;min-width:28px;text-align:center;">${medals[i] || `${i+1}`}</span>
-            <span style="flex:1;font-size:14px;font-weight:700;color:#fff;">${escapeHtml(p.name)}</span>
-            <span style="font-family:'DM Sans',sans-serif;font-size:20px;font-weight:900;font-style:italic;color:#fff;">
-                ${p.totalScore}<span style="font-size:11px;opacity:0.5;">/${maxScore}</span>
-            </span>
+    // ヒーロー描画（ワイヤーフレームv5ベース）
+    const heroEl = document.getElementById('resultHero');
+    heroEl.innerHTML = `
+        <div class="hero__bubble hero__bubble--1"></div>
+        <div class="hero__bubble hero__bubble--2"></div>
+        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;">
+            <div style="position:relative;width:130px;height:74px;border-radius:10px;overflow:hidden;flex-shrink:0;background:${packColor};box-shadow:0 4px 16px rgba(0,0,0,0.4);">
+                <div style="position:absolute;inset:0;background:rgba(255,255,255,0.92);clip-path:polygon(42px 0%,100% 0%,100% 100%,27px 100%);"></div>
+                <div style="position:absolute;bottom:6px;left:8px;font-size:6px;font-weight:800;color:rgba(255,255,255,0.42);text-transform:uppercase;letter-spacing:0.12em;writing-mode:vertical-rl;transform:rotate(180deg);">${escapeHtml(data.themePack || 'basic')}</div>
+                <div style="position:absolute;top:50%;right:0;width:calc(100% - 38px);transform:translateY(-50%);padding:0 8px 0 3px;font-size:10px;font-weight:700;color:#1A1917;line-height:1.4;z-index:10;">${escapeHtml(data.theme)}</div>
+            </div>
+            <div style="flex:1;padding-top:2px;display:flex;flex-direction:column;gap:8px;">
+                <div>
+                    <div style="font-size:9px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.3);">参加人数</div>
+                    <div style="font-size:16px;font-weight:900;color:#fff;">${players.length}人</div>
+                </div>
+                <div>
+                    <div style="font-size:9px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.3);">最大pt</div>
+                    <div style="font-size:16px;font-weight:900;color:#fff;">${maxScore}pt</div>
+                </div>
+            </div>
         </div>
-    `).join('');
+        <div style="font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;">総合ランキング</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+            ${sorted.map((p, i) => {
+                const bgOpacity = i === 0 ? '0.15' : i <= 2 ? '0.08' : '0.05';
+                const scoreColor = i === 0 ? '#F59E0B' : 'rgba(255,255,255,0.7)';
+                const nameSz = i === 0 ? '14px' : '12px';
+                const scoreSz = i === 0 ? '20px' : '15px';
+                return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(255,255,255,${bgOpacity});border-radius:8px;animation:su 0.4s ${i*0.08}s both;">
+                    <div style="width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:9px;font-weight:900;font-style:italic;flex-shrink:0;
+                        background:${i===0?'#F59E0B':i===1?'rgba(255,255,255,0.2)':i===2?'rgba(180,100,30,0.45)':'rgba(255,255,255,0.08)'};
+                        color:${i<=2?'#fff':'rgba(255,255,255,0.4)'};">${i+1}</div>
+                    <span style="flex:1;font-size:${nameSz};font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.name)}</span>
+                    <span style="font-family:'DM Sans',sans-serif;font-size:${scoreSz};font-weight:900;font-style:italic;color:${scoreColor};">${p.score}<span style="font-size:10px;opacity:0.5;">/${maxScore}</span></span>
+                </div>`;
+            }).join('')}
+        </div>`;
+
+    // コンテンツ描画
+    const contentEl = document.getElementById('resultContent');
+    contentEl.innerHTML = `
+        <div style="padding:16px 20px 8px;">
+            <div class="section-label">個人詳細</div>
+            <div class="person-tabs" id="resultTabs" style="margin-bottom:12px;"></div>
+            <div id="resultPersonDetail"></div>
+        </div>
+        <div style="padding:0 20px;margin-top:8px;display:flex;flex-direction:column;gap:8px;padding-bottom:40px;">
+            ${isHost ? `<button class="btn btn--primary" onclick="playAgain()">テーマを変えてもう一度あそぶ</button>` : ''}
+            <button class="btn btn--outline" onclick="confirmGoHome()">HOMEにもどる</button>
+        </div>`;
 
     // 個人詳細タブ
     document.getElementById('resultTabs').innerHTML = players.map(([id, p], i) => `
@@ -961,17 +1108,19 @@ function renderOnlineResultScreen(data) {
         myLineUserId: myId,
         myScore: scores[myId]?.totalScore || 0,
         maxScore,
-        totalScore: sorted.reduce((s, p) => s + p.totalScore, 0),
+        totalScore: sorted.reduce((s, p) => s + p.score, 0),
         totalMaxScore: maxScore * players.length,
         answers: data.rankings || {}
     }));
 
-    // Bug7修正: ゲストはリプレイボタンを非表示
-    const isHost = room.role === 'host';
-    const playAgainBtn = document.getElementById('resultPlayAgainBtn');
-    if (playAgainBtn) playAgainBtn.style.display = isHost ? 'block' : 'none';
-
     showScreen('resultScreen');
+}
+
+function confirmGoHome() {
+    if (confirm('HOMEに戻りますか？\nゲームを終了します。')) {
+        cleanupRoom();
+        showScreen('topScreen');
+    }
 }
 
 function showOnlinePersonResult(targetId) {
@@ -1045,7 +1194,7 @@ async function playAgain() {
 }
 
 async function changeTheme() {
-    await playAgain();
+    await playAgain(); // playAgain と同じフローでテーマ選択に戻る
 }
 
 // ========================================
