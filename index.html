@@ -26,7 +26,7 @@
   <div class="loading__logo">Rank-Q</div>
   <div class="loading__spinner"></div>
   <div class="loading__message">読み込み中...</div>
-  <div id="loadingError">読み込みに失敗しました。<br>LINEアプリから開き直してください。</div>
+  <div id="loadingError" style="display:none;">読み込みに失敗しました。<br>LINEアプリから開き直してください。</div>
 </div>
 
 <!-- ========================================
@@ -202,8 +202,8 @@
   </div>
   <div class="content" style="gap:16px;">
     <div>
-      <div class="input-label">部屋番号（5桁）</div>
-      <input type="tel" id="roomCodeInput" class="input-field" maxlength="5" placeholder="12345"
+      <div class="input-label">部屋番号（4桁）</div>
+      <input type="tel" id="roomCodeInput" class="input-field" maxlength="4" placeholder="1234"
         style="font-family:'DM Sans',sans-serif;font-size:32px;font-weight:900;font-style:italic;text-align:center;letter-spacing:0.1em;"
         oninput="onRoomCodeInput(this)">
     </div>
@@ -438,9 +438,9 @@
     <div id="resultAfterTalk" style="margin-top:16px;"></div>
     <!-- リプレイ導線 -->
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:20px;padding-bottom:40px;">
-      <button class="btn btn--primary" onclick="playAgain()">もう一回</button>
+      <button class="btn btn--primary" id="resultPlayAgainBtn" onclick="playAgain()">もう一回</button>
       <button class="btn btn--secondary" onclick="changeTheme()">テーマを変える</button>
-      <button class="btn btn--outline" onclick="showScreen('topScreen')">HOMEにもどる</button>
+      <button class="btn btn--outline" onclick="cleanupRoom(); showScreen('topScreen')">HOMEにもどる</button>
     </div>
   </div>
 </div>
@@ -601,6 +601,7 @@
     <div class="modal__desc">ゲーム内で他の参加者に表示されます。後からトップ画面で変更できます。</div>
     <input type="text" id="nameModalInput" class="input-field" maxlength="10" placeholder="10文字以内" style="margin-bottom:16px;">
     <button class="btn btn--primary" onclick="saveDisplayName_()">この名前であそぶ</button>
+    <button class="btn btn--outline" onclick="document.getElementById('nameModal').classList.remove('modal-overlay--active')" style="margin-top:8px;">キャンセル</button>
   </div>
 </div>
 

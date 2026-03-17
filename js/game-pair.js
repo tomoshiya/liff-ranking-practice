@@ -26,13 +26,24 @@ const AVATAR_COLORS_ONLINE = ['#5C6BC0','#26A69A','#EF5350','#FFA726','#66BB6A',
 function startPairMode() {
     room.mode = 'pair';
     document.getElementById('roomSelectModeLabel').textContent = 'ふたりであそぶ';
+    prefillJoinName();
     showScreen('roomSelectScreen');
 }
 
 function startMultiMode() {
     room.mode = 'multi';
     document.getElementById('roomSelectModeLabel').textContent = 'みんなであそぶ';
+    prefillJoinName();
     showScreen('roomSelectScreen');
+}
+
+// Bug6修正: 入室画面に保存済みの名前を事前入力
+function prefillJoinName() {
+    const nameInput = document.getElementById('joinNameInput');
+    if (nameInput && App.displayName) {
+        nameInput.value = App.displayName;
+        onJoinNameInput();
+    }
 }
 
 // ========================================
@@ -248,20 +259,14 @@ function startRoomListener(roomId) {
 
         switch (data.status) {
             case 'waiting':
+                // Bug9修正: 二重レンダーを解消
                 if (activeId === 'waitingRoomHostScreen') renderWaitingRoomHost(data);
                 if (activeId === 'waitingRoomGuestScreen') renderWaitingRoomGuest(data);
 
-                // 全員揃ったらホストがsettingに遷移
                 if (room.role === 'host') {
                     const count = Object.keys(data.players || {}).length;
                     if (room.mode === 'pair' && count >= 2) {
                         database.ref('gameRooms/' + roomId).update({ status: 'setting', lastActivityAt: Date.now() });
-                    }
-                    // multiモードはホストが手動でゲーム開始
-                    if (room.mode === 'multi') {
-                        const startBtn = document.getElementById('startGameBtn');
-                        if (startBtn) startBtn.disabled = count < 2;
-                        renderWaitingRoomHost(data);
                     }
                 }
                 break;
@@ -432,14 +437,15 @@ function renderRankInputList() {
             <textarea class="rank-input" rows="1" id="onlineInput_${i+1}"
                 placeholder="${i+1}位を入力"
                 oninput="onOnlineRankInput(); autoResize(this)"></textarea>
+            <div class="rank-drag-handle">⋮⋮</div>
         </div>
     `).join('');
 
-    // SortableJS（ドラッグ並べ替え）
+    // Bug4修正: handleをrank-drag-handleに変更（textareaとの競合を解消）
     if (inputSortable) { inputSortable.destroy(); inputSortable = null; }
     inputSortable = Sortable.create(document.getElementById('rankInputList'), {
         animation: 150,
-        handle: '.rank-item',
+        handle: '.rank-drag-handle',
         onEnd: updateOnlineInputBadges
     });
 
@@ -534,11 +540,11 @@ function renderGuessScreen(data) {
     const players = Object.entries(data.players || {});
     const targets = players.filter(([id]) => id !== App.userProfile.userId);
 
-    // タブ
+    // タブ（Bug3修正: 関数名を直接記述）
     document.getElementById('guessTabs').innerHTML = targets.map(([id, p], i) => `
         <div class="person-tab${i === 0 ? ' person-tab--active' : ''}"
-             id="guessTab_${id}" onclick="onlineSwitch GuessTab('${id}')">${escapeHtml(p.displayName)}</div>
-    `).join('').replace(/onlineSwitch GuessTab/g, 'onlineSwitchGuessTab');
+             id="guessTab_${id}" onclick="onlineSwitchGuessTab('${id}')">${escapeHtml(p.displayName)}</div>
+    `).join('');
 
     // 最初のターゲットを表示
     guessDraft = {};
@@ -743,6 +749,11 @@ function renderOnlineResultScreen(data) {
         totalMaxScore: maxScore * players.length,
         answers: data.rankings || {}
     }));
+
+    // Bug7修正: ゲストはリプレイボタンを非表示
+    const isHost = room.role === 'host';
+    const playAgainBtn = document.getElementById('resultPlayAgainBtn');
+    if (playAgainBtn) playAgainBtn.style.display = isHost ? 'block' : 'none';
 
     showScreen('resultScreen');
 }
