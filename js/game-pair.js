@@ -102,7 +102,7 @@ async function createRoom() {
 }
 
 function generateRoomCode() {
-    return String(Math.floor(1000 + Math.random() * 9000));
+    return String(Math.floor(10000 + Math.random() * 90000));
 }
 
 // ========================================
@@ -112,14 +112,14 @@ function generateRoomCode() {
 function onRoomCodeInput(input) {
     const nameInput = document.getElementById('joinNameInput');
     const btn = document.getElementById('joinRoomBtn');
-    btn.disabled = input.value.length < 4 || !nameInput.value.trim();
+    btn.disabled = input.value.length < 5 || !nameInput.value.trim();
 }
 
 function onJoinNameInput() {
     const codeInput = document.getElementById('roomCodeInput');
     const nameInput = document.getElementById('joinNameInput');
     const btn = document.getElementById('joinRoomBtn');
-    btn.disabled = codeInput.value.length < 4 || !nameInput.value.trim();
+    btn.disabled = codeInput.value.length < 5 || !nameInput.value.trim();
 }
 
 async function joinRoom() {
@@ -131,7 +131,7 @@ async function joinRoom() {
     const roomId = document.getElementById('roomCodeInput').value.trim();
     const guestName = document.getElementById('joinNameInput').value.trim();
 
-    if (!roomId || roomId.length < 4) {
+    if (!roomId || roomId.length < 5) {
         showToast('部屋番号を入力してください', 'error');
         return;
     }
@@ -357,24 +357,37 @@ async function hostStartGame() {
 }
 
 // ========================================
-// テーマ選択（全モード共通）
+// テーマ選択（全モード共通・ワイヤーフレームベース）
 // ========================================
 
 let sharedSelectedThemeIdx = -1;
+let themeInputMode = 'pack'; // 'pack' | 'custom'
+let currentPackFilter = 'all';
+let customThemeText = '';
+
+const PACK_COLORS = {
+    'basic': '#2C3E50',
+    'ベーシック': '#2C3E50',
+    'love': '#8B3A52',
+    'ラブ': '#8B3A52',
+    'secret': '#3A2D6B',
+    'シークレット': '#3A2D6B',
+    'work': '#1C3D2E',
+    'ワーク': '#1C3D2E',
+};
+const DEFAULT_PACK_COLOR = '#2C3E50';
 
 // 全モード共通: テーマ選択画面を表示
 function showSharedThemeSelect() {
     sharedSelectedThemeIdx = -1;
-    document.getElementById('selectedThemePreview').style.display = 'none';
+    customThemeText = '';
+    currentPackFilter = 'all';
+    themeInputMode = 'pack';
     document.getElementById('confirmThemeBtn').disabled = true;
 
-    document.getElementById('themeList').innerHTML = themes.map((t, i) => `
-        <div class="card" style="cursor:pointer;transition:border-color 0.15s;" id="themeItem_${i}"
-             onclick="selectTheme(${i})">
-            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">${escapeHtml(t.text)}</div>
-            ${t.pack ? `<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${escapeHtml(t.pack)}</div>` : ''}
-        </div>
-    `).join('');
+    renderPackTabs();
+    renderThemeCards('all');
+    setThemeInputMode('pack');
 
     showScreen('themeSelectScreen');
 }
@@ -384,23 +397,122 @@ function renderThemeSelectScreen() {
     showSharedThemeSelect();
 }
 
-// 全モード共通: テーマを選択
+// パックタブ描画
+function renderPackTabs() {
+    const packs = ['all', ...new Set(themes.filter(t => t.pack).map(t => t.pack))];
+    const PACK_LABELS = { all: 'すべて', basic: 'ベーシック', ベーシック: 'ベーシック', love: 'ラブ', ラブ: 'ラブ', secret: 'シークレット', シークレット: 'シークレット', work: 'ワーク', ワーク: 'ワーク' };
+    document.getElementById('packTabsRow').innerHTML = packs.map(p => `
+        <div class="pack-tab-item ${p === currentPackFilter ? 'pack-tab-item--active' : ''}"
+             onclick="switchPackFilter('${p}')">${PACK_LABELS[p] || p}</div>
+    `).join('');
+}
+
+// パックフィルター切替
+function switchPackFilter(pack) {
+    currentPackFilter = pack;
+    sharedSelectedThemeIdx = -1;
+    document.getElementById('confirmThemeBtn').disabled = true;
+    document.getElementById('themeInfoPanel').style.display = 'none';
+    renderPackTabs();
+    renderThemeCards(pack);
+}
+
+// テーマカード横スクロール描画
+function renderThemeCards(pack) {
+    const filtered = pack === 'all' ? themes : themes.filter(t => t.pack === pack);
+    const scroll = document.getElementById('themeCardsScroll');
+    scroll.innerHTML = filtered.map(t => {
+        const origIdx = themes.indexOf(t);
+        const color = PACK_COLORS[t.pack] || DEFAULT_PACK_COLOR;
+        const packLabel = t.pack || 'BASIC';
+        return `<div class="theme-card-item" id="themeCardItem_${origIdx}"
+                     onclick="selectTheme(${origIdx})"
+                     style="background:${color};">
+            <div class="theme-card-white"></div>
+            <div class="theme-card-check"><div class="theme-card-check-circle">✓</div></div>
+            <div class="theme-card-pack-label">${escapeHtml(packLabel)}</div>
+            <div class="theme-card-text">${escapeHtml(t.text)}</div>
+        </div>`;
+    }).join('');
+
+    const counter = document.getElementById('scrollCounterText');
+    const fill = document.getElementById('scrollBarFill');
+    counter.textContent = filtered.length > 0 ? `1 / ${filtered.length}` : '0 / 0';
+    fill.style.width = filtered.length > 1 ? `${100 / filtered.length}%` : '100%';
+
+    scroll.scrollLeft = 0;
+}
+
+// スクロールインジケーター更新
+function onThemeCardsScroll() {
+    const scroll = document.getElementById('themeCardsScroll');
+    const pack = currentPackFilter;
+    const filtered = pack === 'all' ? themes : themes.filter(t => t.pack === pack);
+    const total = filtered.length;
+    if (total <= 1) return;
+
+    const cardWidth = 200 + 12;
+    const current = Math.min(Math.round(scroll.scrollLeft / cardWidth) + 1, total);
+    document.getElementById('scrollCounterText').textContent = `${current} / ${total}`;
+    document.getElementById('scrollBarFill').style.width = `${(current / total) * 100}%`;
+}
+
+// テーマ選択
 function selectTheme(idx) {
     sharedSelectedThemeIdx = idx;
-    document.querySelectorAll('#themeList .card').forEach((el, i) => {
-        el.style.borderColor = i === idx ? 'var(--text-primary)' : 'var(--border)';
-    });
+    document.querySelectorAll('.theme-card-item').forEach(el => el.classList.remove('theme-card-item--selected'));
+    document.getElementById(`themeCardItem_${idx}`)?.classList.add('theme-card-item--selected');
+
     const theme = themes[idx];
-    const preview = document.getElementById('selectedThemePreview');
-    preview.style.display = 'flex';
-    renderThemeCard(theme.text, theme.pack || 'basic', preview);
+    const panel = document.getElementById('themeInfoPanel');
+    document.getElementById('themeInfoText').textContent = theme.text;
+    panel.style.display = 'block';
+
     document.getElementById('confirmThemeBtn').disabled = false;
+}
+
+// テーマ入力モード切替（パック/カスタム）
+function setThemeInputMode(mode) {
+    themeInputMode = mode;
+    document.querySelectorAll('.theme-mode-btn').forEach((b, i) => {
+        b.classList.toggle('theme-mode-btn--active', (i === 0 && mode === 'pack') || (i === 1 && mode === 'custom'));
+    });
+    document.getElementById('themePackSection').style.display = mode === 'pack' ? 'flex' : 'none';
+    document.getElementById('themeCustomSection').style.display = mode === 'custom' ? 'block' : 'none';
+
+    if (mode === 'custom') {
+        sharedSelectedThemeIdx = -1;
+        const val = document.getElementById('customThemeInput').value.trim();
+        document.getElementById('confirmThemeBtn').disabled = !val;
+        setTimeout(() => document.getElementById('customThemeInput').focus(), 50);
+    } else {
+        document.getElementById('confirmThemeBtn').disabled = sharedSelectedThemeIdx < 0;
+    }
+}
+
+// カスタムテーマ入力
+function onCustomThemeInput(el) {
+    customThemeText = el.value.trim();
+    const len = el.value.length;
+    const pct = (len / 50) * 100;
+    document.getElementById('customCharBarFill').style.width = Math.min(pct, 100) + '%';
+    const lbl = document.getElementById('customCharLbl');
+    lbl.textContent = `${len} / 50`;
+    lbl.className = 'custom-char-lbl' + (len >= 50 ? ' rank-char-count--over' : len >= 40 ? ' rank-char-count--warn' : '');
+    document.getElementById('confirmThemeBtn').disabled = !customThemeText;
 }
 
 // 全モード共通: テーマ確定（モードで処理を分岐）
 async function confirmTheme() {
-    if (sharedSelectedThemeIdx < 0) return;
-    const theme = themes[sharedSelectedThemeIdx];
+    let theme;
+    if (themeInputMode === 'custom') {
+        const text = document.getElementById('customThemeInput').value.trim();
+        if (!text) { showToast('テーマを入力してください', 'error'); return; }
+        theme = { text, pack: 'custom', id: '' };
+    } else {
+        if (sharedSelectedThemeIdx < 0) return;
+        theme = themes[sharedSelectedThemeIdx];
+    }
 
     if (App.currentMode === 'local') {
         localGame.theme = theme;
@@ -475,18 +587,35 @@ function showSharedRankingInput(playerName = null) {
     showScreen('rankingInputScreen');
 }
 
-// 全モード共通: 入力リスト描画
-function renderRankInputList() {
+// 全モード共通: 入力リスト描画（オプションで事前データを挿入）
+function renderRankInputList(prefillData = null) {
     const badges = ['1st','2nd','3rd','4th','5th'];
     document.getElementById('rankInputList').innerHTML = badges.map((b, i) => `
         <div class="rank-item">
             <div class="rank-badge">${b}</div>
             <textarea class="rank-input" rows="1" id="rankInput_${i+1}"
                 placeholder="${i+1}位を入力"
-                oninput="onRankInput(); autoResize(this)"></textarea>
+                maxlength="50"
+                oninput="onRankInput(); autoResize(this); updateRankCharCount(${i+1}, this.value)"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();return false;}"></textarea>
+            <span class="rank-char-count" id="rankCharCount_${i+1}">0/50</span>
             <div class="rank-drag-handle">⋮⋮</div>
         </div>
     `).join('');
+
+    // 事前データ挿入（修正時）
+    if (prefillData) {
+        [1,2,3,4,5].forEach(r => {
+            const el = document.getElementById(`rankInput_${r}`);
+            const val = prefillData[String(r)] || '';
+            if (el && val) {
+                el.value = val;
+                autoResize(el);
+                updateRankCharCount(r, val);
+            }
+        });
+        onRankInput();
+    }
 
     if (inputSortable) { inputSortable.destroy(); inputSortable = null; }
     inputSortable = Sortable.create(document.getElementById('rankInputList'), {
@@ -495,8 +624,17 @@ function renderRankInputList() {
         onEnd: updateInputBadges
     });
 
-    document.getElementById('submitRankingBtn').disabled = true;
-    setTimeout(() => document.getElementById('rankInput_1')?.focus(), 100);
+    document.getElementById('submitRankingBtn').disabled = !prefillData;
+    if (!prefillData) setTimeout(() => document.getElementById('rankInput_1')?.focus(), 100);
+}
+
+// 文字数カウンター更新
+function updateRankCharCount(rank, value) {
+    const el = document.getElementById(`rankCharCount_${rank}`);
+    if (!el) return;
+    const len = value.length;
+    el.textContent = len > 30 ? `${len}/50` : '';
+    el.className = 'rank-char-count' + (len >= 50 ? ' rank-char-count--over' : len >= 40 ? ' rank-char-count--warn' : '');
 }
 
 // 全モード共通: ドラッグ後バッジ更新
@@ -522,8 +660,9 @@ function autoResize(el) {
     el.style.height = el.scrollHeight + 'px';
 }
 
-// 全モード共通: 送信ボタンのディスパッチャー
+// 全モード共通: 送信ボタンのディスパッチャー（確認ポップアップ付き）
 function submitRanking() {
+    if (!confirm('このTOP5で確定しますか？\n送信後も修正できます。')) return;
     if (App.currentMode === 'local') {
         localHandleSubmitRanking();
     } else {
@@ -577,13 +716,33 @@ async function onlineHandleSubmitRanking() {
 function editMyRanking() {
     document.getElementById('inputSubmittedBanner').style.display = 'none';
     document.getElementById('rankingInputForm').style.display = 'block';
-    renderRankInputList();
+    // 送信済みデータを取得してプリフィル
+    const submittedData = room.data?.rankings?.[App.userProfile?.userId] || null;
+    renderRankInputList(submittedData);
 }
 
 function updateInputProgress(data) {
-    const players = Object.keys(data.players || {});
-    const submitted = players.filter(id => data.rankings?.[id]).length;
+    const players = Object.entries(data.players || {});
+    const submitted = players.filter(([id]) => data.rankings?.[id]).length;
     document.getElementById('inputProgressText').textContent = `${submitted} / ${players.length} 人が入力完了`;
+
+    // ドロップダウン内容を更新
+    const dropdown = document.getElementById('inputProgressDropdown');
+    if (dropdown) {
+        dropdown.innerHTML = players.map(([id, p]) => {
+            const done = !!data.rankings?.[id];
+            return `<div class="progress-dropdown__item">
+                <span style="color:${done ? 'var(--success)' : 'var(--text-muted)'};">${done ? '✓' : '○'}</span>
+                <span style="color:var(--text-primary);font-weight:700;">${escapeHtml(p.displayName)}</span>
+                <span style="color:var(--text-muted);font-size:10px;margin-left:auto;">${done ? '入力済' : '未入力'}</span>
+            </div>`;
+        }).join('');
+    }
+}
+
+function toggleProgressDropdown() {
+    const dropdown = document.getElementById('inputProgressDropdown');
+    if (dropdown) dropdown.classList.toggle('progress-dropdown--open');
 }
 
 // ========================================

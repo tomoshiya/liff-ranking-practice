@@ -39,29 +39,34 @@
     <div class="hero__bubble hero__bubble--1"></div>
     <div class="hero__bubble hero__bubble--2"></div>
 
-    <!-- プロフィール -->
+    <!-- プロフィール（右上） -->
     <div class="hero__profile">
-      <div class="profile-avatar" id="topAvatar">？</div>
-      <div class="profile-name" id="topName">---</div>
-      <div class="profile-edit" onclick="openNameModal()">✏️</div>
+      <div id="topAvatar" style="display:none;"></div>
+      <div class="profile-name-btn" onclick="openNameModal()">
+        <span class="profile-name" id="topName">---</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </div>
     </div>
 
     <!-- ロゴ -->
     <div class="logo-area">
-      <div class="logo-sub">ランキュー</div>
+      <div class="logo-sub">ランクキュー</div>
       <div class="logo-row">
-        <div class="logo-main">Rank&thinsp;-&thinsp;Q</div>
+        <div class="logo-main">Rank<span style="font-size:0.7em;letter-spacing:-0.05em;opacity:0.7;">-</span>Q</div>
         <div class="logo-beta">BETA</div>
       </div>
-      <div class="logo-catch">ランクを読み合う<br>コミュニケーションゲーム</div>
+      <div class="logo-catch">話題が広がる、仲が深まる<br>ランクを読み合うコミュニケーションゲーム</div>
     </div>
+
+    <!-- ？ボタン（ヒーロー右下） -->
+    <button class="help-btn" onclick="openHelpSheet()">?</button>
   </div>
 
-  <!-- ？ボタン -->
-  <button class="help-btn" onclick="openHelpSheet()">?</button>
-
   <!-- 履歴FAB -->
-  <button class="history-fab" id="historyFab" onclick="openHistorySheet()" title="履歴">
+  <button class="history-fab" id="historyFab" onclick="openHistorySheet()" title="履歴" style="display:none;">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
     </svg>
@@ -89,13 +94,16 @@
         </div>
       </div>
 
-      <!-- みんなであそぶ（プライマリ） -->
-      <div class="mode-card mode-card--primary" onclick="startMultiMode()">
+      <!-- みんなであそぶ -->
+      <div class="mode-card" onclick="startMultiMode()">
         <div class="mode-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-            <circle cx="18" cy="5" r="3"/><path d="M23 21v-2a3 3 0 0 0-2-2.83"/>
-            <line x1="19" y1="13" x2="19" y2="21"/><line x1="15" y1="17" x2="23" y2="17"/>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="5.5" cy="8" r="2.5"/>
+            <circle cx="12" cy="6" r="2.5"/>
+            <circle cx="18.5" cy="8" r="2.5"/>
+            <path d="M2 21v-1.5A3.5 3.5 0 0 1 5.5 16h1"/>
+            <path d="M22 21v-1.5A3.5 3.5 0 0 0 18.5 16h-1"/>
+            <path d="M8.5 21v-1a3.5 3.5 0 0 1 7 0v1"/>
           </svg>
         </div>
         <div class="mode-text">
@@ -103,7 +111,7 @@
           <div class="mode-sub">3〜10人用 · 各自のスマホを使用</div>
         </div>
         <div class="mode-arrow">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </div>
 
@@ -156,9 +164,9 @@
   </div>
   <div class="content">
     <div class="mode-cards">
-      <div class="mode-card mode-card--primary" onclick="createRoom()">
+      <div class="mode-card" onclick="createRoom()">
         <div class="mode-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
@@ -168,7 +176,7 @@
           <div class="mode-sub">部屋番号を発行してメンバーを招待</div>
         </div>
         <div class="mode-arrow">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </div>
       <div class="mode-card" onclick="showScreen('roomJoinScreen')">
@@ -202,8 +210,8 @@
   </div>
   <div class="content" style="gap:16px;">
     <div>
-      <div class="input-label">部屋番号（4桁）</div>
-      <input type="tel" id="roomCodeInput" class="input-field" maxlength="4" placeholder="1234"
+      <div class="input-label">部屋番号（5桁）</div>
+      <input type="tel" id="roomCodeInput" class="input-field" maxlength="5" placeholder="12345"
         style="font-family:'DM Sans',sans-serif;font-size:32px;font-weight:900;font-style:italic;text-align:center;letter-spacing:0.1em;"
         oninput="onRoomCodeInput(this)">
     </div>
@@ -270,13 +278,13 @@
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
     <div class="step-indicator">
-      <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">テーマ</div></div>
+      <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">テーマ選択</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">入力</div></div>
+      <div class="step-item"><div class="step-dot"></div><div class="step-label">ランク入力</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">予想</div></div>
+      <div class="step-item"><div class="step-dot"></div><div class="step-label">ランク予想</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">結果</div></div>
+      <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
     </div>
     <div class="waiting-dots" style="margin-bottom:10px;">
       <div class="waiting-dot"></div><div class="waiting-dot"></div><div class="waiting-dot"></div>
@@ -305,59 +313,97 @@
 </div>
 
 <!-- ========================================
-     テーマ選択（ホスト）
+     テーマ選択（全モード共通・ワイヤーフレームベース）
      ======================================== -->
 <div id="themeSelectScreen" class="screen">
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
     <div class="step-indicator">
-      <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">テーマ</div></div>
+      <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">テーマ選択</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">入力</div></div>
+      <div class="step-item"><div class="step-dot"></div><div class="step-label">ランク入力</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">予想</div></div>
+      <div class="step-item"><div class="step-dot"></div><div class="step-label">ランク予想</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">結果</div></div>
+      <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
     </div>
-    <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.7);margin-bottom:8px;">テーマを選ぼう</div>
-    <!-- 選択中テーマカードプレビュー -->
-    <div class="hero__theme" id="selectedThemePreview" style="display:none;"></div>
+    <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.7);">テーマを選ぼう</div>
+    <button class="help-btn" onclick="openHelpSheet()">?</button>
   </div>
-  <div class="content">
-    <!-- テーマリスト -->
-    <div id="themeList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:80px;"></div>
-    <div class="bottom-bar">
-      <button id="confirmThemeBtn" class="btn btn--primary" onclick="confirmTheme()" disabled>このテーマで始める</button>
+
+  <!-- モード切替 -->
+  <div class="theme-mode-toggle">
+    <button class="theme-mode-btn theme-mode-btn--active" onclick="setThemeInputMode('pack')">パックから選ぶ</button>
+    <button class="theme-mode-btn" onclick="setThemeInputMode('custom')">自分で作る</button>
+  </div>
+
+  <!-- パックモード -->
+  <div id="themePackSection" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+    <!-- パックタブ -->
+    <div class="pack-tabs-row" id="packTabsRow"></div>
+    <!-- カード横スクロール -->
+    <div class="theme-cards-scroll" id="themeCardsScroll" onscroll="onThemeCardsScroll()"></div>
+    <!-- スクロールインジケーター -->
+    <div class="scroll-indicator-row" id="scrollIndicatorRow">
+      <span class="scroll-counter-text" id="scrollCounterText">1 / 1</span>
+      <div class="scroll-bar-track"><div class="scroll-bar-fill" id="scrollBarFill" style="width:100%"></div></div>
     </div>
+    <!-- 情報パネル -->
+    <div class="theme-info-panel" id="themeInfoPanel">
+      <div class="theme-info-label">選択中のテーマ</div>
+      <div class="theme-info-text" id="themeInfoText"></div>
+    </div>
+  </div>
+
+  <!-- カスタムモード -->
+  <div id="themeCustomSection" style="display:none;flex:1;overflow:hidden;">
+    <div class="custom-theme-section">
+      <textarea class="custom-theme-input" id="customThemeInput" rows="3"
+        placeholder="テーマを入力&#10;例：好きな映画TOP5"
+        maxlength="50"
+        oninput="onCustomThemeInput(this)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();return false;}"></textarea>
+      <div class="custom-char-bar-wrap">
+        <div class="custom-char-bar-bg"><div class="custom-char-bar-fill" id="customCharBarFill"></div></div>
+        <span class="custom-char-lbl" id="customCharLbl">0 / 50</span>
+      </div>
+      <div class="custom-char-hint">「〇〇TOP5」の形にすると答えやすくなります。<br>例：最近ハマっているものTOP5</div>
+    </div>
+  </div>
+
+  <!-- 確定ボタン -->
+  <div class="bottom-bar">
+    <button id="confirmThemeBtn" class="btn btn--primary" onclick="confirmTheme()" disabled>このテーマでスタート</button>
   </div>
 </div>
 
 <!-- ========================================
-     ランキング入力
+     ランキング入力（全モード共通）
      ======================================== -->
 <div id="rankingInputScreen" class="screen">
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
     <button class="help-btn" onclick="openHelpSheet()">?</button>
     <div class="step-indicator">
-      <div class="step-item"><div class="step-dot step-dot--done"></div><div class="step-label">テーマ</div></div>
+      <div class="step-item"><div class="step-dot step-dot--done"></div><div class="step-label">テーマ選択</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">入力</div></div>
+      <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">ランク入力</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">予想</div></div>
+      <div class="step-item"><div class="step-dot"></div><div class="step-label">ランク予想</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">結果</div></div>
+      <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
     </div>
     <!-- 1台モード用プレイヤー名（online時は非表示） -->
     <div id="inputPlayerName" style="display:none;font-size:18px;font-weight:900;color:#fff;margin-bottom:6px;"></div>
     <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px;">あなたのTOP5を入力・完成させてください</div>
     <div class="hero__theme" id="inputThemeCard"></div>
     <!-- 進捗（onlineモードのみ表示） -->
-    <div id="inputProgressArea" style="margin-top:10px;">
-      <div class="progress-pill" onclick="toggleProgressAccordion()">
+    <div id="inputProgressArea" style="margin-top:10px;position:relative;">
+      <div class="progress-pill" onclick="toggleProgressDropdown()">
         <span class="progress-pill__text" id="inputProgressText">0 / ? 人が入力完了</span>
         <span class="progress-pill__arrow">▼</span>
       </div>
+      <div class="progress-dropdown" id="inputProgressDropdown"></div>
     </div>
   </div>
   <div class="content" id="rankingInputContent">
@@ -371,7 +417,7 @@
     <div id="rankingInputForm">
       <div id="rankInputList" style="margin-bottom:80px;"></div>
       <div class="bottom-bar">
-        <button id="submitRankingBtn" class="btn btn--primary" onclick="submitRanking()" disabled>TOP5を送信する</button>
+        <button id="submitRankingBtn" class="btn btn--primary" onclick="submitRanking()" disabled>あなたのTOP5を確定する</button>
       </div>
     </div>
   </div>
@@ -385,13 +431,13 @@
     <div class="hero__bubble hero__bubble--1"></div>
     <button class="help-btn" onclick="openHelpSheet()">?</button>
     <div class="step-indicator">
-      <div class="step-item"><div class="step-dot step-dot--done"></div><div class="step-label">テーマ</div></div>
+      <div class="step-item"><div class="step-dot step-dot--done"></div><div class="step-label">テーマ選択</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot step-dot--done"></div><div class="step-label">入力</div></div>
+      <div class="step-item"><div class="step-dot step-dot--done"></div><div class="step-label">ランク入力</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">予想</div></div>
+      <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">ランク予想</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">結果</div></div>
+      <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
     </div>
     <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px;">正しい順番を予想して並べ替えてください</div>
     <div class="hero__theme" id="guessThemeCard"></div>
@@ -466,7 +512,6 @@
   </div>
 </div>
 
-
 <!-- ========================================
      1台であそぶ：受け渡し画面
      ======================================== -->
@@ -474,7 +519,7 @@
   <div style="text-align:center;padding:40px 32px;">
     <div style="font-size:48px;margin-bottom:24px;">📱</div>
     <div id="localHandoffTitle" style="font-size:22px;font-weight:900;color:#fff;margin-bottom:12px;"></div>
-    <div id="localHandoffMessage" style="font-size:14px;color:rgba(255,255,255,0.6);line-height:1.7;margin-bottom:32px;"></div>
+    <div id="localHandoffMessage" style="font-size:14px;color:rgba(255,255,255,0.6);line-height:1.7;margin-bottom:32px;white-space:pre-line;"></div>
     <button id="localHandoffBtn" class="btn btn--primary" onclick="localHandoffContinue()"></button>
   </div>
 </div>
@@ -486,13 +531,13 @@
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
     <div class="step-indicator">
-      <div class="step-item"><div class="step-dot step-dot--done"></div><div class="step-label">テーマ</div></div>
+      <div class="step-item"><div class="step-dot step-dot--done"></div><div class="step-label">テーマ選択</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot step-dot--done"></div><div class="step-label">入力</div></div>
+      <div class="step-item"><div class="step-dot step-dot--done"></div><div class="step-label">ランク入力</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">予想</div></div>
+      <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">ランク予想</div></div>
       <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">結果</div></div>
+      <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
     </div>
     <div id="localGuessTitle" style="font-size:16px;font-weight:900;color:#fff;margin-bottom:6px;"></div>
     <div style="font-size:12px;color:rgba(255,255,255,0.5);">正しい順番を予想して並べ替えてください</div>
