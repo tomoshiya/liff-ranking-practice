@@ -13,7 +13,8 @@ const App = {
     userProfile: null,      // LIFFプロフィール
     currentUser: null,      // Firebaseに保存したユーザー情報
     displayName: '',        // ゲーム内表示名
-    deepLinkThemeId: null   // URLパラメータ ?themeId=xxx
+    deepLinkThemeId: null,  // URLパラメータ ?themeId=xxx
+    currentMode: null       // 'pair' | 'multi' | 'local'
 };
 
 // ========================================

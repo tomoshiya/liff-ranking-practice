@@ -348,10 +348,12 @@
       <div class="step-sep"></div>
       <div class="step-item"><div class="step-dot"></div><div class="step-label">結果</div></div>
     </div>
+    <!-- 1台モード用プレイヤー名（online時は非表示） -->
+    <div id="inputPlayerName" style="display:none;font-size:18px;font-weight:900;color:#fff;margin-bottom:6px;"></div>
     <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px;">あなたのTOP5を入力・完成させてください</div>
     <div class="hero__theme" id="inputThemeCard"></div>
-    <!-- 進捗 -->
-    <div style="margin-top:10px;">
+    <!-- 進捗（onlineモードのみ表示） -->
+    <div id="inputProgressArea" style="margin-top:10px;">
       <div class="progress-pill" onclick="toggleProgressAccordion()">
         <span class="progress-pill__text" id="inputProgressText">0 / ? 人が入力完了</span>
         <span class="progress-pill__arrow">▼</span>
@@ -464,58 +466,6 @@
   </div>
 </div>
 
-<!-- ========================================
-     1台であそぶ：テーマ選択
-     ======================================== -->
-<div id="localThemeSelectScreen" class="screen">
-  <div class="hero">
-    <div class="hero__bubble hero__bubble--1"></div>
-    <div class="step-indicator">
-      <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">テーマ</div></div>
-      <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">入力</div></div>
-      <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">予想</div></div>
-      <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">結果</div></div>
-    </div>
-    <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.7);">テーマを選ぼう</div>
-    <div class="hero__theme" id="localSelectedThemePreview" style="display:none;margin-top:8px;"></div>
-  </div>
-  <div class="content">
-    <div id="localThemeList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:80px;"></div>
-    <div class="bottom-bar">
-      <button id="localConfirmThemeBtn" class="btn btn--primary" onclick="localConfirmTheme()" disabled>このテーマで始める</button>
-    </div>
-  </div>
-</div>
-
-<!-- ========================================
-     1台であそぶ：ランキング入力（1人ずつ）
-     ======================================== -->
-<div id="localRankingInputScreen" class="screen">
-  <div class="hero">
-    <div class="hero__bubble hero__bubble--1"></div>
-    <div class="step-indicator">
-      <div class="step-item"><div class="step-dot step-dot--done"></div><div class="step-label">テーマ</div></div>
-      <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">入力</div></div>
-      <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">予想</div></div>
-      <div class="step-sep"></div>
-      <div class="step-item"><div class="step-dot"></div><div class="step-label">結果</div></div>
-    </div>
-    <div id="localInputPlayerName" style="font-size:18px;font-weight:900;color:#fff;margin-bottom:6px;"></div>
-    <div style="font-size:12px;color:rgba(255,255,255,0.5);">あなたのTOP5を入力してください</div>
-    <div class="hero__theme" id="localInputThemeCard" style="margin-top:10px;"></div>
-  </div>
-  <div class="content">
-    <div id="localRankInputList" style="margin-bottom:80px;"></div>
-    <div class="bottom-bar">
-      <button id="localSubmitRankingBtn" class="btn btn--primary" onclick="localSubmitRanking()" disabled>TOP5を確定する</button>
-    </div>
-  </div>
-</div>
 
 <!-- ========================================
      1台であそぶ：受け渡し画面

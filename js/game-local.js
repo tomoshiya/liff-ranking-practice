@@ -16,6 +16,7 @@ let localGame = {
 const AVATAR_COLORS = ['#5C6BC0','#26A69A','#EF5350','#FFA726','#66BB6A','#AB47BC','#78909C','#8D6E63'];
 
 function startLocalMode() {
+    App.currentMode = 'local';
     localGame = { players: [], theme: null, rankings: {}, guesses: {}, currentRankingPlayerIdx: 0, currentGuessPlayerIdx: 0, currentGuessTargetIdx: 0 };
     renderLocalPlayerInputs();
     showScreen('localSetupScreen');
@@ -73,88 +74,32 @@ function updateLocalStartBtn() {
     btn.disabled = localGame.players.some(p => !p.name);
 }
 
+// テーマ選択: 共通画面を使用
 function localStartGame() {
-    renderLocalThemeList();
-    showScreen('localThemeSelectScreen');
+    showSharedThemeSelect();
 }
 
-function renderLocalThemeList() {
-    const container = document.getElementById('localThemeList');
-    container.innerHTML = themes.map((t, i) => `
-        <div class="card" style="cursor:pointer;transition:border-color 0.15s;" id="localThemeItem_${i}"
-             onclick="localSelectTheme(${i})">
-            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">${escapeHtml(t.text)}</div>
-        </div>
-    `).join('');
-}
-
-let localSelectedThemeIdx = -1;
-
-function localSelectTheme(idx) {
-    localSelectedThemeIdx = idx;
-    document.querySelectorAll('#localThemeList .card').forEach((el, i) => {
-        el.style.borderColor = i === idx ? 'var(--text-primary)' : 'var(--border)';
-    });
-    const theme = themes[idx];
-    const preview = document.getElementById('localSelectedThemePreview');
-    preview.style.display = 'flex';
-    renderThemeCard(theme.text, theme.pack || 'basic', preview);
-    document.getElementById('localConfirmThemeBtn').disabled = false;
-}
-
-function localConfirmTheme() {
-    if (localSelectedThemeIdx < 0) return;
-    localGame.theme = themes[localSelectedThemeIdx];
-    localGame.currentRankingPlayerIdx = 0;
-    localStartRankingInput();
-}
-
+// ランキング入力: 共通画面を使用
 function localStartRankingInput() {
     const player = localGame.players[localGame.currentRankingPlayerIdx];
-    document.getElementById('localInputPlayerName').textContent = `${player.name}さんの番`;
-
-    // テーマカード描画
-    const card = document.getElementById('localInputThemeCard');
-    renderThemeCard(localGame.theme.text, localGame.theme.pack || 'basic', card);
-
-    // 入力フォーム
-    const list = document.getElementById('localRankInputList');
-    list.innerHTML = [1,2,3,4,5].map(rank => `
-        <div class="rank-item">
-            <div class="rank-badge">${rank}st</div>
-            <textarea class="rank-input" rows="1" placeholder="${rank}位を入力" id="localInput_${rank}"
-                oninput="localOnRankInput(this); autoResize(this)"></textarea>
-        </div>
-    `).join('');
-
-    document.getElementById('localSubmitRankingBtn').disabled = true;
-    showScreen('localRankingInputScreen');
+    showSharedRankingInput(player.name);
 }
 
-function localOnRankInput() {
-    const allFilled = [1,2,3,4,5].every(r => {
-        const el = document.getElementById(`localInput_${r}`);
-        return el && el.value.trim().length > 0;
-    });
-    document.getElementById('localSubmitRankingBtn').disabled = !allFilled;
-}
-
-function autoResize(el) {
-    el.style.height = 'auto';
-    el.style.height = el.scrollHeight + 'px';
-}
-
-function localSubmitRanking() {
+// local専用: ランキング送信処理（game-pair.jsのsubmitRankingから呼ばれる）
+function localHandleSubmitRanking() {
     const player = localGame.players[localGame.currentRankingPlayerIdx];
     const ranking = {};
-    [1,2,3,4,5].forEach(r => {
-        ranking[r] = document.getElementById(`localInput_${r}`).value.trim();
-    });
+    const items = document.querySelectorAll('#rankInputList .rank-item');
+    for (let i = 0; i < items.length; i++) {
+        const input = items[i].querySelector('.rank-input');
+        const val = input ? input.value.trim() : '';
+        if (!val) { showToast(`${i+1}位を入力してください`, 'error'); return; }
+        ranking[String(i + 1)] = val;
+    }
     localGame.rankings[player.id] = ranking;
 
     const nextIdx = localGame.currentRankingPlayerIdx + 1;
     if (nextIdx < localGame.players.length) {
-        // 次の人へ受け渡し
         const nextPlayer = localGame.players[nextIdx];
         document.getElementById('localHandoffTitle').textContent = `次は${nextPlayer.name}さんの番です`;
         document.getElementById('localHandoffMessage').textContent = `${nextPlayer.name}さんが\n以下のボタンを押してください`;
@@ -165,7 +110,6 @@ function localSubmitRanking() {
         };
         showScreen('localHandoffScreen');
     } else {
-        // 全員入力完了 → 予想フェーズへ
         localGame.currentGuessPlayerIdx = 0;
         localGame.currentGuessTargetIdx = 0;
         localStartGuessPhase();
@@ -417,9 +361,7 @@ function localPlayAgain() {
     localGame.currentRankingPlayerIdx = 0;
     localGame.currentGuessPlayerIdx = 0;
     localGame.currentGuessTargetIdx = 0;
-    localSelectedThemeIdx = -1;
-    renderLocalThemeList();
-    showScreen('localThemeSelectScreen');
+    showSharedThemeSelect();
 }
 
 function localChangeTheme() {

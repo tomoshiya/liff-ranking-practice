@@ -24,6 +24,7 @@ const AVATAR_COLORS_ONLINE = ['#5C6BC0','#26A69A','#EF5350','#FFA726','#66BB6A',
 // ========================================
 
 function startPairMode() {
+    App.currentMode = 'pair';
     room.mode = 'pair';
     document.getElementById('roomSelectModeLabel').textContent = 'ふたりであそぶ';
     prefillJoinName();
@@ -31,6 +32,7 @@ function startPairMode() {
 }
 
 function startMultiMode() {
+    App.currentMode = 'multi';
     room.mode = 'multi';
     document.getElementById('roomSelectModeLabel').textContent = 'みんなであそぶ';
     prefillJoinName();
@@ -355,19 +357,20 @@ async function hostStartGame() {
 }
 
 // ========================================
-// テーマ選択（ホスト）
+// テーマ選択（全モード共通）
 // ========================================
 
-let onlineSelectedThemeIdx = -1;
+let sharedSelectedThemeIdx = -1;
 
-function renderThemeSelectScreen() {
-    onlineSelectedThemeIdx = -1;
+// 全モード共通: テーマ選択画面を表示
+function showSharedThemeSelect() {
+    sharedSelectedThemeIdx = -1;
     document.getElementById('selectedThemePreview').style.display = 'none';
     document.getElementById('confirmThemeBtn').disabled = true;
 
     document.getElementById('themeList').innerHTML = themes.map((t, i) => `
-        <div class="card" style="cursor:pointer;transition:border-color 0.15s;" id="onlineThemeItem_${i}"
-             onclick="onlineSelectTheme(${i})">
+        <div class="card" style="cursor:pointer;transition:border-color 0.15s;" id="themeItem_${i}"
+             onclick="selectTheme(${i})">
             <div style="font-size:14px;font-weight:700;color:var(--text-primary);">${escapeHtml(t.text)}</div>
             ${t.pack ? `<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${escapeHtml(t.pack)}</div>` : ''}
         </div>
@@ -376,8 +379,14 @@ function renderThemeSelectScreen() {
     showScreen('themeSelectScreen');
 }
 
-function onlineSelectTheme(idx) {
-    onlineSelectedThemeIdx = idx;
+// onlineホスト用（Firebase listenerから呼ばれる）
+function renderThemeSelectScreen() {
+    showSharedThemeSelect();
+}
+
+// 全モード共通: テーマを選択
+function selectTheme(idx) {
+    sharedSelectedThemeIdx = idx;
     document.querySelectorAll('#themeList .card').forEach((el, i) => {
         el.style.borderColor = i === idx ? 'var(--text-primary)' : 'var(--border)';
     });
@@ -388,9 +397,19 @@ function onlineSelectTheme(idx) {
     document.getElementById('confirmThemeBtn').disabled = false;
 }
 
+// 全モード共通: テーマ確定（モードで処理を分岐）
 async function confirmTheme() {
-    if (onlineSelectedThemeIdx < 0 || room.role !== 'host') return;
-    const theme = themes[onlineSelectedThemeIdx];
+    if (sharedSelectedThemeIdx < 0) return;
+    const theme = themes[sharedSelectedThemeIdx];
+
+    if (App.currentMode === 'local') {
+        localGame.theme = theme;
+        localGame.currentRankingPlayerIdx = 0;
+        localStartRankingInput();
+        return;
+    }
+
+    if (room.role !== 'host') return;
     try {
         await database.ref('gameRooms/' + room.roomId).update({
             status: 'inputting',
@@ -407,63 +426,92 @@ async function confirmTheme() {
 }
 
 // ========================================
-// ランキング入力
+// ランキング入力（全モード共通）
 // ========================================
 
+// online Firebase listenerから呼ばれる
 function renderRankingInputScreen(data) {
-    // テーマカード
     renderThemeCard(data.theme, data.themePack || 'basic', document.getElementById('inputThemeCard'));
-
-    // 進捗
     updateInputProgress(data);
 
-    // 送信済みチェック
     const alreadySubmitted = data.rankings?.[App.userProfile.userId];
     document.getElementById('inputSubmittedBanner').style.display = alreadySubmitted ? 'flex' : 'none';
     document.getElementById('rankingInputForm').style.display = alreadySubmitted ? 'none' : 'block';
 
-    if (!alreadySubmitted) {
-        renderRankInputList();
-    }
+    // online時: プレイヤー名非表示、進捗表示
+    document.getElementById('inputPlayerName').style.display = 'none';
+    document.getElementById('inputProgressArea').style.display = 'block';
 
+    if (!alreadySubmitted) renderRankInputList();
     showScreen('rankingInputScreen');
 }
 
+// 全モード共通: ランキング入力画面を表示（localモード用エントリー）
+function showSharedRankingInput(playerName = null) {
+    const isLocal = App.currentMode === 'local';
+
+    // プレイヤー名表示切替
+    const nameEl = document.getElementById('inputPlayerName');
+    if (playerName) {
+        nameEl.textContent = `${playerName}さんの番`;
+        nameEl.style.display = 'block';
+    } else {
+        nameEl.style.display = 'none';
+    }
+
+    // 進捗ピル: onlineのみ表示
+    document.getElementById('inputProgressArea').style.display = isLocal ? 'none' : 'block';
+
+    // 送信バナーリセット
+    document.getElementById('inputSubmittedBanner').style.display = 'none';
+    document.getElementById('rankingInputForm').style.display = 'block';
+
+    // テーマカード
+    if (isLocal && localGame.theme) {
+        renderThemeCard(localGame.theme.text, localGame.theme.pack || 'basic', document.getElementById('inputThemeCard'));
+    }
+
+    renderRankInputList();
+    showScreen('rankingInputScreen');
+}
+
+// 全モード共通: 入力リスト描画
 function renderRankInputList() {
     const badges = ['1st','2nd','3rd','4th','5th'];
     document.getElementById('rankInputList').innerHTML = badges.map((b, i) => `
         <div class="rank-item">
             <div class="rank-badge">${b}</div>
-            <textarea class="rank-input" rows="1" id="onlineInput_${i+1}"
+            <textarea class="rank-input" rows="1" id="rankInput_${i+1}"
                 placeholder="${i+1}位を入力"
-                oninput="onOnlineRankInput(); autoResize(this)"></textarea>
+                oninput="onRankInput(); autoResize(this)"></textarea>
             <div class="rank-drag-handle">⋮⋮</div>
         </div>
     `).join('');
 
-    // Bug4修正: handleをrank-drag-handleに変更（textareaとの競合を解消）
     if (inputSortable) { inputSortable.destroy(); inputSortable = null; }
     inputSortable = Sortable.create(document.getElementById('rankInputList'), {
         animation: 150,
         handle: '.rank-drag-handle',
-        onEnd: updateOnlineInputBadges
+        onEnd: updateInputBadges
     });
 
     document.getElementById('submitRankingBtn').disabled = true;
-    setTimeout(() => document.getElementById('onlineInput_1')?.focus(), 100);
+    setTimeout(() => document.getElementById('rankInput_1')?.focus(), 100);
 }
 
-function updateOnlineInputBadges() {
+// 全モード共通: ドラッグ後バッジ更新
+function updateInputBadges() {
     const badges = ['1st','2nd','3rd','4th','5th'];
     document.querySelectorAll('#rankInputList .rank-badge').forEach((el, i) => {
         el.textContent = badges[i] || `${i+1}位`;
     });
-    onOnlineRankInput();
+    onRankInput();
 }
 
-function onOnlineRankInput() {
+// 全モード共通: 入力バリデーション
+function onRankInput() {
     const all = [1,2,3,4,5].every(r => {
-        const el = document.getElementById(`onlineInput_${r}`);
+        const el = document.getElementById(`rankInput_${r}`);
         return el && el.value.trim().length > 0;
     });
     document.getElementById('submitRankingBtn').disabled = !all;
@@ -474,7 +522,17 @@ function autoResize(el) {
     el.style.height = el.scrollHeight + 'px';
 }
 
-async function submitRanking() {
+// 全モード共通: 送信ボタンのディスパッチャー
+function submitRanking() {
+    if (App.currentMode === 'local') {
+        localHandleSubmitRanking();
+    } else {
+        onlineHandleSubmitRanking();
+    }
+}
+
+// online専用: Firebase送信処理
+async function onlineHandleSubmitRanking() {
     if (!room.roomId) return;
 
     const rankingData = {};
@@ -498,7 +556,6 @@ async function submitRanking() {
             lastActivityAt: Date.now()
         });
 
-        // 全員送信済みチェック
         const snap = await ref.once('value');
         const d = snap.val();
         const allSubmitted = Object.keys(d.players || {}).every(id => d.rankings?.[id]);
