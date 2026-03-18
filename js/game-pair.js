@@ -1050,10 +1050,13 @@ async function doSubmitGuess(data, targets) {
     }
 }
 
-// 予想の修正（Firebaseから撤回、ドラフトリセットして再描画）
+// 予想の修正（Firebaseから撤回、確定済み順番を保持して再描画）
 async function editMyGuess() {
+    const userId = App.userProfile?.userId;
+    // Firebase削除前に送信済みデータを保存（順番保持のため）
+    const prevGuesses = room.data?.guesses?.[userId] || {};
     try {
-        await database.ref(`gameRooms/${room.roomId}/guesses/${App.userProfile.userId}`).remove();
+        await database.ref(`gameRooms/${room.roomId}/guesses/${userId}`).remove();
     } catch (err) {
         showToast('修正の準備に失敗しました', 'error');
         return;
@@ -1062,8 +1065,8 @@ async function editMyGuess() {
     const lockedPreview = document.getElementById('guessLockedPreview');
     if (lockedPreview) { lockedPreview.innerHTML = ''; lockedPreview.style.display = 'none'; }
     document.getElementById('guessPersonArea').style.display = 'block';
-    // ドラフトをリセット → 再シャッフルして再描画
-    guessDraft = {};
+    // 確定済みの順番をドラフトに復元（再シャッフルしない）
+    guessDraft = { ...prevGuesses };
     if (guessCurrentTargetId) renderGuessSortList(guessCurrentTargetId);
     const btn = document.getElementById('submitGuessBtn');
     btn.style.display = 'block';
@@ -1159,23 +1162,25 @@ function renderOnlineResultScreen(data) {
                 <div style="position:absolute;top:50%;right:0;width:calc(100% - 48px);transform:translateY(-50%);padding:0 10px 0 4px;font-size:12px;font-weight:700;color:#1A1917;line-height:1.4;z-index:10;">${escapeHtml(data.theme)}</div>
             </div>
         </div>
-        <div style="font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;">総合ランキング</div>
+        <div style="font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;">ランキング</div>
         <div style="display:flex;flex-direction:column;gap:4px;">
             ${sorted.map((p, i) => {
-                const rankBadgeBg = p.rank===1 ? '#F59E0B' : p.rank===2 ? 'rgba(255,255,255,0.2)' : p.rank===3 ? 'rgba(180,100,30,0.45)' : 'rgba(255,255,255,0.08)';
+                const is1st = p.rank === 1;
+                const rankBadgeBg = is1st ? '#F59E0B' : p.rank===2 ? 'rgba(255,255,255,0.2)' : p.rank===3 ? 'rgba(180,100,30,0.45)' : 'rgba(255,255,255,0.08)';
                 const rankBadgeColor = p.rank<=3 ? '#fff' : 'rgba(255,255,255,0.4)';
-                const scoreColor = p.rank===1 ? '#F59E0B' : 'rgba(255,255,255,0.7)';
-                const nameSz = p.rank===1 ? '14px' : '12px';
-                const scoreSz = p.rank===1 ? '18px' : '14px';
-                const rankLabel = p.rank <= 3 && i > 0 && sorted[i-1].rank === p.rank ? `同${p.rank}位` : `${p.rank}位`;
-                // 内訳テキスト
+                const rankBadgeShadow = is1st ? 'box-shadow:0 0 0 3px rgba(245,158,11,0.35),0 0 14px rgba(245,158,11,0.5);' : '';
+                const rankBadgeSize = is1st ? '24px' : '20px';
+                const scoreColor = is1st ? '#F59E0B' : 'rgba(255,255,255,0.7)';
+                const nameSz = is1st ? '14px' : '12px';
+                const scoreSz = is1st ? '18px' : '14px';
+                // 内訳テキスト（はずれ除く）
                 const bd = p.breakdown || {};
-                const bdText = `あたり×${bd[0]||0} おしい×${bd[1]||0} ちかい×${bd[2]||0} かすり×${bd[3]||0} はずれ×${bd.miss||0}`;
+                const bdText = `あたり×${bd[0]||0} おしい×${bd[1]||0} ちかい×${bd[2]||0} かすり×${bd[3]||0}`;
                 // 下位から上位の順にアニメーション（最後のアイテムが先に表示）
                 const delay = (sorted.length - 1 - i) * 0.10;
-                return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;animation:su 0.4s ${delay}s both;">
-                    <div style="display:flex;flex-direction:column;align-items:center;min-width:30px;flex-shrink:0;">
-                        <div style="width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:9px;font-weight:900;font-style:italic;background:${rankBadgeBg};color:${rankBadgeColor};">${p.rank}</div>
+                return `<div style="display:flex;align-items:center;gap:8px;padding:${is1st?'9px':'7px'} 10px;border-radius:8px;animation:su 0.4s ${delay}s both;">
+                    <div style="display:flex;flex-direction:column;align-items:center;min-width:${is1st?'32px':'28px'};flex-shrink:0;">
+                        <div style="width:${rankBadgeSize};height:${rankBadgeSize};border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:${is1st?'11px':'9px'};font-weight:900;font-style:italic;background:${rankBadgeBg};color:${rankBadgeColor};${rankBadgeShadow}">${p.rank}</div>
                     </div>
                     <div style="flex:1;min-width:0;">
                         <div style="font-size:${nameSz};font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.name)}</div>
@@ -1249,9 +1254,9 @@ function showOnlinePersonResult(targetId) {
 
     let html = `<div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正解ランク＆予想</div>`;
 
+    const SUFFIXES = ['st','nd','rd','th','th'];
     for (let rank = 1; rank <= 5; rank++) {
         const item = correct[String(rank)];
-        const SUFFIXES = ['st','nd','rd','th','th'];
         html += `<div class="card" style="margin-bottom:6px;">
             <div style="display:flex;align-items:center;margin-bottom:8px;gap:8px;">
                 <span style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:900;font-style:italic;color:var(--text-primary);min-width:28px;">${rank}<span style="font-size:10px;">${SUFFIXES[rank-1]}</span></span>
@@ -1263,14 +1268,16 @@ function showOnlinePersonResult(targetId) {
                     let gRank = 0;
                     if (guess) for (let r = 1; r <= 5; r++) { if (guess[String(r)] === item) { gRank = r; break; } }
                     const diff = gRank > 0 ? Math.abs(gRank - rank) : 99;
-                    const { icon, label, color } = gRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ', color: 'var(--text-muted)' };
+                    const { icon, label, color } = gRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ', color: '#334155' };
                     const pt = gRank > 0 ? calcItemScore(diff) : 0;
-                    // 順番: 誰が予想 → 何位と予想 → 結果ラベル → 得点（アイコンは右側）
+                    const rankDisplay = gRank > 0 ? `${gRank}${SUFFIXES[gRank-1]}` : '-';
+                    const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
+                    // 順番: 名前（左・flex:1）→ 何位と予想 → ラベル → +pt（全部右寄せ）
                     return `<div style="display:flex;align-items:center;font-size:12px;gap:6px;">
                         <span style="flex:1;color:var(--text-secondary);">${escapeHtml(g.displayName)}</span>
-                        <span style="color:var(--text-muted);font-size:11px;">${gRank > 0 ? gRank + '位' : '-'}</span>
+                        <span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;font-style:italic;color:var(--text-primary);">${rankDisplay}</span>
                         <span style="color:${color};font-weight:700;font-size:11px;">${icon} ${label}</span>
-                        <span style="color:${color};font-weight:700;min-width:28px;text-align:right;">${pt}pt</span>
+                        <span style="color:${color};font-weight:800;min-width:36px;text-align:right;">${ptDisplay}</span>
                     </div>`;
                 }).join('')}
             </div>

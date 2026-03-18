@@ -533,17 +533,14 @@ input, textarea { font-family: inherit; }
 /* テーマカード横スクロール */
 .theme-cards-scroll {
   display: flex; gap: 12px; flex-shrink: 0;
-  overflow-x: auto; padding: 10px 0 6px;
+  overflow-x: auto; padding: 10px 20px 6px;
+  /* scroll-padding-left: snap時もpaddingを考慮させることで左端に貼り付かなくなる */
+  scroll-padding-left: 20px;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 .theme-cards-scroll::-webkit-scrollbar { display: none; }
-/* 左右の余白をpseudo要素で確保（webkit padding-leftの挙動不安定対策） */
-.theme-cards-scroll::before,
-.theme-cards-scroll::after {
-  content: ''; flex-shrink: 0; width: 20px;
-}
 .theme-card-item {
   position: relative; width: 200px; height: 114px;
   border-radius: 14px; overflow: hidden;
@@ -654,6 +651,9 @@ input, textarea { font-family: inherit; }
   font-size: 10px; font-weight: 700; color: var(--text-muted);
   flex-shrink: 0; min-width: 32px; text-align: right;
 }
+/* カスタムテーマ文字数の色変化（rank-char-countと同様） */
+.custom-char-lbl.rank-char-count--warn { color: #D97706; }
+.custom-char-lbl.rank-char-count--over { color: #DC2626; font-weight: 800; }
 .custom-char-hint {
   font-size: 11px; color: var(--text-secondary); line-height: 1.6;
   margin-top: 12px; padding: 10px 12px;
@@ -661,20 +661,29 @@ input, textarea { font-family: inherit; }
 }
 
 /* ========================================
-   結果画面: 全体スクロール（ヒーローも含めてスクロール）
+   全体スクロール画面（ヒーローも含めてスクロール）
+   ランク入力・ランク予想・結果発表
    ======================================== */
+#rankingInputScreen,
+#rankingGuessScreen,
 #resultScreen {
   overflow-y: auto;
   display: none;
   flex-direction: column;
   height: 100dvh;
 }
+#rankingInputScreen.screen--active,
+#rankingGuessScreen.screen--active,
 #resultScreen.screen--active {
   display: block;
 }
+#rankingInputScreen .hero,
+#rankingGuessScreen .hero,
 #resultScreen .hero {
   position: relative;
 }
+#rankingInputScreen .content,
+#rankingGuessScreen .content,
 #resultScreen .content {
   overflow-y: visible;
   flex: none;
