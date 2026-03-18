@@ -125,11 +125,11 @@ function calcItemScore(diff) {
     return 0;
 }
 
-// スコアラベル（5色: 金/銀/銅/ブルー/ネイビー）
+// スコアラベル（5色: 赤系/グレー/青系）
 function getScoreLabel(diff) {
-    if (diff === 0) return { label: 'あたり', icon: '◎', color: '#F59E0B' }; // 金・アンバー
-    if (diff === 1) return { label: 'おしい', icon: '○', color: '#8B9BAD' }; // 銀・グレー
-    if (diff === 2) return { label: 'ちかい', icon: '△', color: '#9B6A40' }; // 銅・ブラウン
-    if (diff === 3) return { label: 'かすり', icon: '▽', color: '#60A5FA' }; // ブルー
-    return { label: 'はずれ', icon: '×', color: '#334155' };               // ネイビー
+    if (diff === 0) return { label: 'あたり', icon: '◎', color: '#EF4444' }; // 赤
+    if (diff === 1) return { label: 'おしい', icon: '○', color: '#F87171' }; // 薄い赤
+    if (diff === 2) return { label: 'ちかい', icon: '△', color: '#9CA3AF' }; // グレー
+    if (diff === 3) return { label: 'かすり', icon: '▽', color: '#60A5FA' }; // 薄い青
+    return { label: 'はずれ', icon: '×', color: '#1D4ED8' };               // 濃い青
 }

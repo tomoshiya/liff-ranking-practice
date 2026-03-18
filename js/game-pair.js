@@ -619,12 +619,12 @@ function showSharedRankingInput(playerName = null) {
     showScreen('rankingInputScreen');
 }
 
-const DRAG_HANDLE_SVG = `<svg width="12" height="18" viewBox="0 0 12 18" fill="currentColor" style="display:block;"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="8.5" cy="3.5" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="14.5" r="1.6"/><circle cx="8.5" cy="14.5" r="1.6"/></svg>`;
+const DRAG_HANDLE_SVG = `<svg width="14" height="20" viewBox="0 0 12 18" fill="currentColor" style="display:block;"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="8.5" cy="3.5" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="14.5" r="1.6"/><circle cx="8.5" cy="14.5" r="1.6"/></svg>`;
 
 // 全モード共通: 入力リスト描画（オプションで事前データを挿入）
 function renderRankInputList(prefillData = null) {
     const SUFFIXES = ['st','nd','rd','th','th'];
-    document.getElementById('rankInputList').innerHTML = [1,2,3,4,5].map(r => `
+    document.getElementById('rankInputList').innerHTML = `<div class="rank-caption">My rank is...</div>` + [1,2,3,4,5].map(r => `
         <div class="rank-item">
             <div class="rank-badge-area">
                 <div class="rank-badge"><span style="font-size:17px;line-height:1;">${r}</span><span style="font-size:9px;opacity:0.6;">${SUFFIXES[r-1]}</span></div>
@@ -657,6 +657,7 @@ function renderRankInputList(prefillData = null) {
     inputSortable = Sortable.create(document.getElementById('rankInputList'), {
         animation: 150,
         handle: '.rank-drag-handle',
+        draggable: '.rank-item',
         onEnd: updateInputBadges
     });
 
@@ -918,7 +919,7 @@ function renderGuessSortList(targetId) {
         : shuffleArray([...items]);
 
     const SUFFIXES = ['st','nd','rd','th','th'];
-    document.getElementById('guessSortList').innerHTML = shuffled.map((item, i) => `
+    document.getElementById('guessSortList').innerHTML = `<div class="rank-caption">Your rank is...</div>` + shuffled.map((item, i) => `
         <div class="rank-item" data-item="${escapeHtml(item)}" style="cursor:grab;">
             <div class="rank-badge-area">
                 <div class="rank-badge"><span style="font-size:17px;line-height:1;">${i+1}</span><span style="font-size:9px;opacity:0.6;">${SUFFIXES[i]}</span></div>
@@ -932,6 +933,7 @@ function renderGuessSortList(targetId) {
     guessSortables[targetId] = Sortable.create(document.getElementById('guessSortList'), {
         animation: 150,
         handle: '.rank-drag-handle',
+        draggable: '.rank-item',
         onEnd: () => updateGuessBadges()
     });
 }
@@ -1254,7 +1256,7 @@ function showOnlinePersonResult(targetId) {
 
     const guessers = Object.entries(data.players || {}).filter(([id]) => id !== targetId);
 
-    let html = `<div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正解ランク＆予想</div>`;
+    let html = `<div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正しいランク＆参加者の予想</div>`;
 
     const SUFFIXES = ['st','nd','rd','th','th'];
     for (let rank = 1; rank <= 5; rank++) {
@@ -1274,9 +1276,9 @@ function showOnlinePersonResult(targetId) {
                     const pt = gRank > 0 ? calcItemScore(diff) : 0;
                     const rankDisplay = gRank > 0 ? `${gRank}${SUFFIXES[gRank-1]}` : '-';
                     const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
-                    // 順番: 名前（左・flex:1）→ 何位と予想 → ラベル → +pt（全部右寄せ）
-                    return `<div style="display:flex;align-items:center;font-size:12px;gap:6px;">
-                        <span style="flex:1;color:var(--text-secondary);">${escapeHtml(g.displayName)}</span>
+                    // 全要素右寄せ: 名前 → 何位と予想 → ラベル → +pt
+                    return `<div style="display:flex;align-items:center;justify-content:flex-end;font-size:12px;gap:6px;">
+                        <span style="font-weight:700;color:var(--text-primary);">${escapeHtml(g.displayName)}</span>
                         <span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;font-style:italic;color:var(--text-primary);">${rankDisplay}</span>
                         <span style="color:${color};font-weight:700;font-size:11px;">${icon} ${label}</span>
                         <span style="color:${color};font-weight:800;min-width:36px;text-align:right;">${ptDisplay}</span>

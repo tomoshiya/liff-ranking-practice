@@ -175,6 +175,7 @@ input, textarea { font-family: inherit; }
   width: var(--card-w); height: var(--card-h);
   border-radius: 14px; position: relative; overflow: hidden;
   flex-shrink: 0;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.25);
 }
 .theme-card__white {
   position: absolute;
@@ -332,7 +333,18 @@ input, textarea { font-family: inherit; }
 .rank-drag-handle {
   color: var(--text-secondary); cursor: grab;
   flex-shrink: 0; align-self: center;
-  display: flex; align-items: center; padding: 4px 2px;
+  display: flex; align-items: center;
+  /* ヒットエリアを広げてスワイプしやすく */
+  padding: 10px 6px 10px 14px;
+  margin-right: -6px;
+}
+
+/* --- ランク入力/予想 キャプション（My rank is... / Your rank is...） --- */
+.rank-caption {
+  font-size: 10px; font-weight: 700;
+  color: rgba(0,0,0,0.18);
+  letter-spacing: 0.06em;
+  margin-bottom: 6px; padding-left: 2px;
 }
 
 /* --- 参加者アバター --- */
@@ -496,7 +508,9 @@ input, textarea { font-family: inherit; }
 /* --- フッター固定ボタンエリア（sticky: 他画面への漏洩防止） --- */
 .bottom-bar {
   position: sticky; bottom: 0;
-  background: var(--bg); padding: 12px 20px 28px;
+  background: var(--bg);
+  padding: 12px 20px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
   z-index: 20;
 }
