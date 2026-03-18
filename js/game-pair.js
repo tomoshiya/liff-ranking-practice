@@ -440,10 +440,11 @@ function renderThemeCards(pack) {
         return `<div class="theme-card-item" id="themeCardItem_${origIdx}"
                      onclick="selectTheme(${origIdx})"
                      style="background:${color};">
-            <div class="theme-card-white"></div>
+            <div class="theme-card__white">
+                <span class="theme-card__text">${escapeHtml(t.text)}</span>
+            </div>
             <div class="theme-card-check"><div class="theme-card-check-circle">✓</div></div>
-            <div class="theme-card-pack-label">${escapeHtml(packLabel)}</div>
-            <div class="theme-card-text">${escapeHtml(t.text)}</div>
+            <span class="theme-card__pack">${escapeHtml(packLabel.toUpperCase())}</span>
         </div>`;
     }).join('');
 

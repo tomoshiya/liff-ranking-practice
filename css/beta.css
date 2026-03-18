@@ -21,9 +21,11 @@
   --score-close: #FF9800;
   --score-near: #FFB74D;
   --score-touch: #BDBDBD;
-  /* テーマカード統一サイズ（全画面共通規格） */
+  /* テーマカード統一規格（全画面共通） */
   --card-w: 200px;
   --card-h: 114px;
+  --card-text-size: 12px;
+  --card-pack-size: 7px;
 }
 
 /* --- リセット（user-select:none を全体に適用） --- */
@@ -182,14 +184,14 @@ input, textarea { font-family: inherit; }
   padding: 8px 12px 8px 68px;
 }
 .theme-card__text {
-  font-size: 12px; font-weight: 700;
+  font-size: var(--card-text-size); font-weight: 700;
   color: #1A1917; line-height: 1.4;
   word-break: break-all;
 }
 .theme-card__pack {
   position: absolute; bottom: 8px; left: 12px;
   font-family: 'DM Sans', sans-serif;
-  font-size: 7px; font-weight: 800;
+  font-size: var(--card-pack-size); font-weight: 800;
   color: rgba(255,255,255,0.42);
   text-transform: uppercase; letter-spacing: 0.08em;
   writing-mode: vertical-rl; transform: rotate(180deg);
@@ -577,25 +579,6 @@ input, textarea { font-family: inherit; }
   content: ''; position: absolute; inset: 0;
   border-radius: 14px; border: 2.5px solid rgba(255,255,255,0.7);
   pointer-events: none; z-index: 20;
-}
-.theme-card-white {
-  position: absolute; inset: 0; background: rgba(255,255,255,0.92);
-  clip-path: polygon(56px 0%, 100% 0%, 100% 100%, 37px 100%);
-}
-.theme-card-pack-label {
-  position: absolute; bottom: 8px; left: 10px;
-  font-size: 6px; font-weight: 800;
-  color: rgba(255,255,255,0.42);
-  text-transform: uppercase; letter-spacing: 0.12em;
-  writing-mode: vertical-rl; transform: rotate(180deg);
-  z-index: 5;
-}
-.theme-card-text {
-  position: absolute; top: 50%; right: 0;
-  width: calc(100% - 50px); transform: translateY(-50%);
-  padding: 0 12px 0 4px;
-  font-size: 12px; font-weight: 700; color: #1A1917;
-  line-height: 1.45; z-index: 10;
 }
 .theme-card-check {
   position: absolute; top: 8px; left: 0; width: 46px;
