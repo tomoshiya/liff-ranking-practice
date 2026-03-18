@@ -271,7 +271,7 @@ input, textarea { font-family: inherit; }
 
 /* --- ランキング入力アイテム --- */
 .rank-item {
-  display: flex; align-items: flex-start; gap: 10px;
+  display: flex; align-items: center; gap: 10px;
   padding: 10px 10px 10px 12px;
   background: var(--surface); border: 1.5px solid var(--border);
   border-radius: 12px; margin-bottom: 6px;
@@ -281,7 +281,8 @@ input, textarea { font-family: inherit; }
 /* バッジ＋文字数をまとめた左カラム */
 .rank-badge-area {
   display: flex; flex-direction: column; align-items: center;
-  min-width: 42px; flex-shrink: 0; padding-top: 2px; gap: 3px;
+  min-width: 42px; flex-shrink: 0; gap: 3px;
+  align-self: stretch; justify-content: center;
 }
 .rank-badge {
   font-family: 'DM Sans', sans-serif;
@@ -464,14 +465,14 @@ input, textarea { font-family: inherit; }
   margin-bottom: 12px;
 }
 .submitted-banner__text { font-size: 13px; font-weight: 700; color: #16A34A; }
-.submitted-banner__edit { font-size: 12px; color: var(--text-muted); cursor: pointer; }
+.submitted-banner__edit { font-size: 12px; color: var(--text-muted); cursor: pointer; white-space: nowrap; flex-shrink: 0; margin-left: 8px; }
 
-/* --- フッター固定ボタンエリア --- */
+/* --- フッター固定ボタンエリア（sticky: 他画面への漏洩防止） --- */
 .bottom-bar {
-  position: fixed; bottom: 0; left: 0; right: 0;
+  position: sticky; bottom: 0;
   background: var(--bg); padding: 12px 20px 28px;
   border-top: 1px solid var(--border);
-  z-index: 200;
+  z-index: 20;
 }
 
 /* --- スクロールバー非表示 --- */
@@ -532,12 +533,17 @@ input, textarea { font-family: inherit; }
 /* テーマカード横スクロール */
 .theme-cards-scroll {
   display: flex; gap: 12px; flex-shrink: 0;
-  overflow-x: auto; padding: 10px 20px 6px;
+  overflow-x: auto; padding: 10px 0 6px;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 .theme-cards-scroll::-webkit-scrollbar { display: none; }
+/* 左右の余白をpseudo要素で確保（webkit padding-leftの挙動不安定対策） */
+.theme-cards-scroll::before,
+.theme-cards-scroll::after {
+  content: ''; flex-shrink: 0; width: 20px;
+}
 .theme-card-item {
   position: relative; width: 200px; height: 114px;
   border-radius: 14px; overflow: hidden;
@@ -652,4 +658,33 @@ input, textarea { font-family: inherit; }
   font-size: 11px; color: var(--text-secondary); line-height: 1.6;
   margin-top: 12px; padding: 10px 12px;
   background: var(--surface-2); border-radius: 8px;
+}
+
+/* ========================================
+   結果画面: 全体スクロール（ヒーローも含めてスクロール）
+   ======================================== */
+#resultScreen {
+  overflow-y: auto;
+  display: none;
+  flex-direction: column;
+  height: 100dvh;
+}
+#resultScreen.screen--active {
+  display: block;
+}
+#resultScreen .hero {
+  position: relative;
+}
+#resultScreen .content {
+  overflow-y: visible;
+  flex: none;
+  height: auto;
+}
+
+/* ゲームカード統一サイズ（テーマ選択基準: 200×114px） */
+.theme-card {
+  width: 200px !important;
+  height: 114px !important;
+  max-width: none !important;
+  aspect-ratio: unset !important;
 }

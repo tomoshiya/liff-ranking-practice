@@ -327,14 +327,14 @@
       <div class="step-sep"></div>
       <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
     </div>
-    <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.7);">テーマを選ぼう</div>
+    <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.7);">テーマ選択</div>
     <button class="help-btn" onclick="openHelpSheet()">?</button>
   </div>
 
   <!-- モード切替 -->
   <div class="theme-mode-toggle">
     <button class="theme-mode-btn theme-mode-btn--active" onclick="setThemeInputMode('pack')">パックから選ぶ</button>
-    <button class="theme-mode-btn" onclick="setThemeInputMode('custom')">自分で作る</button>
+    <button class="theme-mode-btn" onclick="setThemeInputMode('custom')">自分でつくる</button>
   </div>
 
   <!-- パックモード -->
@@ -393,8 +393,9 @@
       <div class="step-sep"></div>
       <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
     </div>
+    <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:4px;">ランク入力</div>
     <!-- 1台モード用プレイヤー名（online時は非表示） -->
-    <div id="inputPlayerName" style="display:none;font-size:18px;font-weight:900;color:#fff;margin-bottom:6px;"></div>
+    <div id="inputPlayerName" style="display:none;font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;"></div>
     <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px;">あなたのTOP5を入力・完成させてください</div>
     <div class="hero__theme" id="inputThemeCard"></div>
     <!-- 進捗（onlineモードのみ表示） -->
@@ -410,14 +411,14 @@
     <div id="inputStatusMsg" style="font-size:12px;color:var(--text-muted);margin-bottom:12px;"></div>
     <!-- 送信完了バナー（送信後に表示） -->
     <div class="submitted-banner" id="inputSubmittedBanner" style="display:none;">
-      <span class="submitted-banner__text">送信完了！他の人を待っています</span>
+      <span class="submitted-banner__text">入力完了！他の人を待っています</span>
       <span class="submitted-banner__edit" onclick="editMyRanking()">修正する</span>
     </div>
     <!-- 送信後ランキングプレビュー -->
     <div id="submittedRankingPreview" style="display:none;margin-bottom:12px;"></div>
     <!-- 入力フォーム -->
     <div id="rankingInputForm">
-      <div id="rankInputList" style="margin-bottom:80px;"></div>
+      <div id="rankInputList" style="margin-bottom:12px;"></div>
       <div class="bottom-bar">
         <button id="submitRankingBtn" class="btn btn--primary" onclick="submitRanking()" disabled>あなたのTOP5を確定する</button>
       </div>
@@ -441,19 +442,21 @@
       <div class="step-sep"></div>
       <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
     </div>
+    <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:4px;">ランク予想</div>
     <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px;">正しい順番を予想して並べ替えてください</div>
     <div class="hero__theme" id="guessThemeCard"></div>
-    <div style="margin-top:10px;">
-      <div class="progress-pill">
-        <span class="progress-pill__text" id="guessProgressText">0 / ? 人が送信完了</span>
+    <div style="margin-top:10px;position:relative;">
+      <div class="progress-pill" onclick="toggleGuessProgressDropdown()">
+        <span class="progress-pill__text" id="guessProgressText">0 / ? 人が予想完了</span>
         <span class="progress-pill__arrow">▼</span>
       </div>
+      <div class="progress-dropdown" id="guessProgressDropdown"></div>
     </div>
   </div>
   <div class="content">
     <!-- 確定完了バナー（コンテンツ上部） -->
     <div class="submitted-banner" id="guessSubmittedBanner" style="display:none;">
-      <span class="submitted-banner__text">予想を確定しました！全員の予想完了を待っています</span>
+      <span class="submitted-banner__text">予想完了！他の人を待っています</span>
       <span class="submitted-banner__edit" onclick="editMyGuess()">修正する</span>
     </div>
     <!-- 確定後のロック表示 -->
@@ -578,7 +581,7 @@
 <div id="rankConfirmModal" class="modal-overlay">
   <div class="modal">
     <div class="modal__title">このTOP5で確定しますか？</div>
-    <div class="modal__desc">送信後も「修正する」で変更できます。</div>
+    <div class="modal__desc">確定後も「修正する」で変更できます。</div>
     <div id="rankConfirmList" style="margin-bottom:20px;"></div>
     <button id="rankConfirmOkBtn" class="btn btn--primary" style="margin-bottom:8px;">確定する</button>
     <button class="btn btn--outline" onclick="document.getElementById('rankConfirmModal').classList.remove('modal-overlay--active')">キャンセル</button>

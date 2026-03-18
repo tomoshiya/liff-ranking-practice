@@ -701,12 +701,10 @@ function updateInputBadges() {
     onRankInput();
 }
 
-// 全モード共通: 入力バリデーション
+// 全モード共通: 入力バリデーション（DOM順で全件確認）
 function onRankInput() {
-    const all = [1,2,3,4,5].every(r => {
-        const el = document.getElementById(`rankInput_${r}`);
-        return el && el.value.trim().length > 0;
-    });
+    const inputs = document.querySelectorAll('#rankInputList .rank-input');
+    const all = inputs.length === 5 && Array.from(inputs).every(el => el.value.trim().length > 0);
     document.getElementById('submitRankingBtn').disabled = !all;
 }
 
@@ -716,15 +714,17 @@ function autoResize(el) {
 }
 
 // 全モード共通: 送信ボタンのディスパッチャー（カスタム確認モーダル）
+// ※ ID順でなくDOM(視覚)順で読む（ドラッグ後の不整合バグ対策）
 function submitRanking() {
     const items = {};
+    const domItems = document.querySelectorAll('#rankInputList .rank-item');
     let allFilled = true;
-    for (let r = 1; r <= 5; r++) {
-        const el = document.getElementById(`rankInput_${r}`);
-        const val = el ? el.value.trim() : '';
-        if (!val) { allFilled = false; break; }
-        items[r] = val;
-    }
+    domItems.forEach((el, i) => {
+        const input = el.querySelector('.rank-input');
+        const val = input ? input.value.trim() : '';
+        if (!val) allFilled = false;
+        items[i + 1] = val;
+    });
     if (!allFilled) { showToast('全ての順位を入力してください', 'error'); return; }
 
     showRankConfirmModal(items, () => {
@@ -916,12 +916,14 @@ function renderGuessSortList(targetId) {
         ? Object.values(guessDraft[targetId])
         : shuffleArray([...items]);
 
-    const badges = ['1st','2nd','3rd','4th','5th'];
+    const SUFFIXES = ['st','nd','rd','th','th'];
     document.getElementById('guessSortList').innerHTML = shuffled.map((item, i) => `
         <div class="rank-item" data-item="${escapeHtml(item)}" style="cursor:grab;">
-            <div class="rank-badge">${badges[i]}</div>
-            <div style="flex:1;font-size:14px;font-weight:500;">${escapeHtml(item)}</div>
-            <div class="rank-drag-handle">⋮⋮</div>
+            <div class="rank-badge-area">
+                <div class="rank-badge"><span style="font-size:17px;line-height:1;">${i+1}</span><span style="font-size:9px;opacity:0.6;">${SUFFIXES[i]}</span></div>
+            </div>
+            <div style="flex:1;font-size:14px;font-weight:500;padding:1px 0;">${escapeHtml(item)}</div>
+            <div class="rank-drag-handle">${DRAG_HANDLE_SVG}</div>
         </div>
     `).join('');
 
@@ -934,9 +936,9 @@ function renderGuessSortList(targetId) {
 }
 
 function updateGuessBadges() {
-    const badges = ['1st','2nd','3rd','4th','5th'];
+    const SUFFIXES = ['st','nd','rd','th','th'];
     document.querySelectorAll('#guessSortList .rank-badge').forEach((el, i) => {
-        el.textContent = badges[i] || `${i+1}位`;
+        el.innerHTML = `<span style="font-size:17px;line-height:1;">${i+1}</span><span style="font-size:9px;opacity:0.6;">${SUFFIXES[i]}</span>`;
     });
 }
 
@@ -1048,7 +1050,7 @@ async function doSubmitGuess(data, targets) {
     }
 }
 
-// 予想の修正（Firebaseから撤回）
+// 予想の修正（Firebaseから撤回、ドラフトリセットして再描画）
 async function editMyGuess() {
     try {
         await database.ref(`gameRooms/${room.roomId}/guesses/${App.userProfile.userId}`).remove();
@@ -1057,17 +1059,39 @@ async function editMyGuess() {
         return;
     }
     document.getElementById('guessSubmittedBanner').style.display = 'none';
+    const lockedPreview = document.getElementById('guessLockedPreview');
+    if (lockedPreview) { lockedPreview.innerHTML = ''; lockedPreview.style.display = 'none'; }
     document.getElementById('guessPersonArea').style.display = 'block';
+    // ドラフトをリセット → 再シャッフルして再描画
+    guessDraft = {};
+    if (guessCurrentTargetId) renderGuessSortList(guessCurrentTargetId);
     const btn = document.getElementById('submitGuessBtn');
     btn.style.display = 'block';
     btn.disabled = false;
-    btn.textContent = '予想を送信する';
+    btn.textContent = '予想を確定する';
 }
 
 function updateGuessProgress(data) {
-    const players = Object.keys(data.players || {});
-    const guessed = players.filter(id => data.guesses?.[id]).length;
+    const players = Object.entries(data.players || {});
+    const guessed = players.filter(([id]) => data.guesses?.[id]).length;
     document.getElementById('guessProgressText').textContent = `${guessed} / ${players.length} 人が予想完了`;
+
+    const dropdown = document.getElementById('guessProgressDropdown');
+    if (dropdown) {
+        dropdown.innerHTML = players.map(([id, p]) => {
+            const done = !!data.guesses?.[id];
+            return `<div class="progress-dropdown__item">
+                <span style="color:${done ? 'var(--success)' : 'var(--text-muted)'};">${done ? '✓' : '○'}</span>
+                <span style="color:var(--text-primary);font-weight:700;">${escapeHtml(p.displayName)}</span>
+                <span style="color:var(--text-muted);font-size:10px;margin-left:auto;">${done ? '予想済' : '未予想'}</span>
+            </div>`;
+        }).join('');
+    }
+}
+
+function toggleGuessProgressDropdown() {
+    const dropdown = document.getElementById('guessProgressDropdown');
+    if (dropdown) dropdown.classList.toggle('progress-dropdown--open');
 }
 
 // ========================================
@@ -1077,10 +1101,11 @@ function updateGuessProgress(data) {
 function renderOnlineResultScreen(data) {
     const players = Object.entries(data.players || {});
 
-    // スコア計算
+    // スコア計算（内訳も集計）
     const scores = {};
     players.forEach(([guesserId]) => {
         let totalScore = 0;
+        const breakdown = { 0: 0, 1: 0, 2: 0, 3: 0, miss: 0 };
         players.forEach(([targetId]) => {
             if (targetId === guesserId) return;
             const correct = data.rankings?.[targetId];
@@ -1092,55 +1117,71 @@ function renderOnlineResultScreen(data) {
                 for (let r = 1; r <= 5; r++) {
                     if (guess[String(r)] === item) { gRank = r; break; }
                 }
-                if (gRank > 0) totalScore += calcItemScore(Math.abs(gRank - rank));
+                if (gRank > 0) {
+                    const diff = Math.abs(gRank - rank);
+                    totalScore += calcItemScore(diff);
+                    if (diff <= 3) breakdown[diff]++;
+                    else breakdown.miss++;
+                } else {
+                    breakdown.miss++;
+                }
             }
         });
-        scores[guesserId] = { totalScore };
+        scores[guesserId] = { totalScore, breakdown };
     });
 
     const sorted = [...players]
-        .map(([id, p]) => ({ id, name: p.displayName, score: scores[id]?.totalScore || 0 }))
+        .map(([id, p]) => ({ id, name: p.displayName, score: scores[id]?.totalScore || 0, breakdown: scores[id]?.breakdown || {} }))
         .sort((a, b) => b.score - a.score);
+
+    // 順位付け（同点=同立対応）
+    sorted.forEach((p, i) => {
+        if (i === 0) p.rank = 1;
+        else if (p.score === sorted[i - 1].score) p.rank = sorted[i - 1].rank;
+        else p.rank = i + 1;
+    });
+
     const targetCount = players.length - 1;
     const maxScore = targetCount * 50;
     const packColor = PACK_COLORS[data.themePack] || DEFAULT_PACK_COLOR;
     const isHost = room.role === 'host';
 
-    // ヒーロー描画（ワイヤーフレームv5ベース）
+    // ヒーロー描画（テーマカード中央配置、参加人数・最大PT削除）
     const heroEl = document.getElementById('resultHero');
     heroEl.innerHTML = `
         <div class="hero__bubble hero__bubble--1"></div>
         <div class="hero__bubble hero__bubble--2"></div>
-        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;">
-            <div style="position:relative;width:130px;height:74px;border-radius:10px;overflow:hidden;flex-shrink:0;background:${packColor};box-shadow:0 4px 16px rgba(0,0,0,0.4);">
-                <div style="position:absolute;inset:0;background:rgba(255,255,255,0.92);clip-path:polygon(42px 0%,100% 0%,100% 100%,27px 100%);"></div>
-                <div style="position:absolute;bottom:6px;left:8px;font-size:6px;font-weight:800;color:rgba(255,255,255,0.42);text-transform:uppercase;letter-spacing:0.12em;writing-mode:vertical-rl;transform:rotate(180deg);">${escapeHtml(data.themePack || 'basic')}</div>
-                <div style="position:absolute;top:50%;right:0;width:calc(100% - 38px);transform:translateY(-50%);padding:0 8px 0 3px;font-size:10px;font-weight:700;color:#1A1917;line-height:1.4;z-index:10;">${escapeHtml(data.theme)}</div>
-            </div>
-            <div style="flex:1;padding-top:2px;display:flex;flex-direction:column;gap:8px;">
-                <div>
-                    <div style="font-size:9px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.3);">参加人数</div>
-                    <div style="font-size:16px;font-weight:900;color:#fff;">${players.length}人</div>
-                </div>
-                <div>
-                    <div style="font-size:9px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.3);">最大pt</div>
-                    <div style="font-size:16px;font-weight:900;color:#fff;">${maxScore}pt</div>
-                </div>
+        <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:12px;">結果発表</div>
+        <div style="display:flex;justify-content:center;margin-bottom:16px;">
+            <div style="position:relative;width:200px;height:114px;border-radius:10px;overflow:hidden;background:${packColor};box-shadow:0 4px 16px rgba(0,0,0,0.4);">
+                <div style="position:absolute;inset:0;background:rgba(255,255,255,0.92);clip-path:polygon(54px 0%,100% 0%,100% 100%,36px 100%);"></div>
+                <div style="position:absolute;bottom:8px;left:10px;font-size:7px;font-weight:800;color:rgba(255,255,255,0.42);text-transform:uppercase;letter-spacing:0.12em;writing-mode:vertical-rl;transform:rotate(180deg);">${escapeHtml(data.themePack || 'basic')}</div>
+                <div style="position:absolute;top:50%;right:0;width:calc(100% - 48px);transform:translateY(-50%);padding:0 10px 0 4px;font-size:12px;font-weight:700;color:#1A1917;line-height:1.4;z-index:10;">${escapeHtml(data.theme)}</div>
             </div>
         </div>
         <div style="font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;">総合ランキング</div>
         <div style="display:flex;flex-direction:column;gap:4px;">
             ${sorted.map((p, i) => {
-                const bgOpacity = i === 0 ? '0.15' : i <= 2 ? '0.08' : '0.05';
-                const scoreColor = i === 0 ? '#F59E0B' : 'rgba(255,255,255,0.7)';
-                const nameSz = i === 0 ? '14px' : '12px';
-                const scoreSz = i === 0 ? '20px' : '15px';
-                return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(255,255,255,${bgOpacity});border-radius:8px;animation:su 0.4s ${i*0.08}s both;">
-                    <div style="width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:9px;font-weight:900;font-style:italic;flex-shrink:0;
-                        background:${i===0?'#F59E0B':i===1?'rgba(255,255,255,0.2)':i===2?'rgba(180,100,30,0.45)':'rgba(255,255,255,0.08)'};
-                        color:${i<=2?'#fff':'rgba(255,255,255,0.4)'};">${i+1}</div>
-                    <span style="flex:1;font-size:${nameSz};font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.name)}</span>
-                    <span style="font-family:'DM Sans',sans-serif;font-size:${scoreSz};font-weight:900;font-style:italic;color:${scoreColor};">${p.score}<span style="font-size:10px;opacity:0.5;">/${maxScore}</span></span>
+                const rankBadgeBg = p.rank===1 ? '#F59E0B' : p.rank===2 ? 'rgba(255,255,255,0.2)' : p.rank===3 ? 'rgba(180,100,30,0.45)' : 'rgba(255,255,255,0.08)';
+                const rankBadgeColor = p.rank<=3 ? '#fff' : 'rgba(255,255,255,0.4)';
+                const scoreColor = p.rank===1 ? '#F59E0B' : 'rgba(255,255,255,0.7)';
+                const nameSz = p.rank===1 ? '14px' : '12px';
+                const scoreSz = p.rank===1 ? '18px' : '14px';
+                const rankLabel = p.rank <= 3 && i > 0 && sorted[i-1].rank === p.rank ? `同${p.rank}位` : `${p.rank}位`;
+                // 内訳テキスト
+                const bd = p.breakdown || {};
+                const bdText = `あたり×${bd[0]||0} おしい×${bd[1]||0} ちかい×${bd[2]||0} かすり×${bd[3]||0} はずれ×${bd.miss||0}`;
+                // 下位から上位の順にアニメーション（最後のアイテムが先に表示）
+                const delay = (sorted.length - 1 - i) * 0.10;
+                return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;animation:su 0.4s ${delay}s both;">
+                    <div style="display:flex;flex-direction:column;align-items:center;min-width:30px;flex-shrink:0;">
+                        <div style="width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:9px;font-weight:900;font-style:italic;background:${rankBadgeBg};color:${rankBadgeColor};">${p.rank}</div>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:${nameSz};font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.name)}</div>
+                        <div style="font-size:9px;color:rgba(255,255,255,0.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${bdText}</div>
+                    </div>
+                    <span style="font-family:'DM Sans',sans-serif;font-size:${scoreSz};font-weight:900;font-style:italic;color:${scoreColor};flex-shrink:0;">${p.score}<span style="font-size:9px;opacity:0.5;">/${maxScore}pt</span></span>
                 </div>`;
             }).join('')}
         </div>`;
@@ -1148,21 +1189,17 @@ function renderOnlineResultScreen(data) {
     // コンテンツ描画
     const contentEl = document.getElementById('resultContent');
     contentEl.innerHTML = `
-        <div style="padding:14px 20px 8px;">
-            <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;font-weight:600;color:var(--text-secondary);">
-                <span>◎ あたり 10pt</span>
-                <span>○ おしい 6pt</span>
-                <span>△ ちかい 3pt</span>
-                <span>▽ かすり 1pt</span>
-                <span>× はずれ 0pt</span>
+        <div style="padding:10px 20px 6px;">
+            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);white-space:nowrap;overflow-x:auto;">
+                あたり(±0):10pt&emsp;おしい(±1):6pt&emsp;ちかい(±2):3pt&emsp;かすり(±3):1pt&emsp;はずれ(±4):0pt
             </div>
         </div>
         <div style="padding:8px 20px;">
-            <div class="section-label">個人詳細</div>
+            <div style="font-size:16px;font-weight:900;color:var(--text-primary);margin-bottom:8px;">個人詳細</div>
             <div class="person-tabs" id="resultTabs" style="margin-bottom:12px;"></div>
             <div id="resultPersonDetail"></div>
         </div>
-        <div style="padding:0 20px;margin-top:8px;display:flex;flex-direction:column;gap:8px;padding-bottom:40px;">
+        <div style="padding:0 20px;margin-top:8px;display:flex;flex-direction:column;gap:8px;padding-bottom:60px;">
             ${isHost ? `<button class="btn btn--primary" onclick="if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()">テーマを変えてもう一度あそぶ</button>` : ''}
             <button class="btn btn--outline" onclick="confirmGoHome()">HOMEにもどる</button>
         </div>`;
@@ -1210,27 +1247,29 @@ function showOnlinePersonResult(targetId) {
 
     const guessers = Object.entries(data.players || {}).filter(([id]) => id !== targetId);
 
-    let html = `<div style="margin-bottom:12px;font-size:13px;font-weight:700;">${escapeHtml(target.displayName)}さんの正解ランキング</div>`;
+    let html = `<div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正解ランク＆予想</div>`;
 
     for (let rank = 1; rank <= 5; rank++) {
         const item = correct[String(rank)];
+        const SUFFIXES = ['st','nd','rd','th','th'];
         html += `<div class="card" style="margin-bottom:6px;">
-            <div style="display:flex;align-items:center;margin-bottom:8px;">
-                <span style="background:var(--text-primary);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;margin-right:8px;">${rank}位</span>
-                <span style="font-size:13px;font-weight:700;">${escapeHtml(item)}</span>
+            <div style="display:flex;align-items:center;margin-bottom:8px;gap:8px;">
+                <span style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:900;font-style:italic;color:var(--text-primary);min-width:28px;">${rank}<span style="font-size:10px;">${SUFFIXES[rank-1]}</span></span>
+                <span style="font-size:14px;font-weight:700;">${escapeHtml(item)}</span>
             </div>
-            <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border);padding-top:6px;">
                 ${guessers.map(([gId, g]) => {
                     const guess = data.guesses?.[gId]?.[targetId];
                     let gRank = 0;
                     if (guess) for (let r = 1; r <= 5; r++) { if (guess[String(r)] === item) { gRank = r; break; } }
                     const diff = gRank > 0 ? Math.abs(gRank - rank) : 99;
-                    const { icon, color } = gRank > 0 ? getScoreLabel(diff) : { icon: '×', color: 'var(--text-muted)' };
+                    const { icon, label, color } = gRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ', color: 'var(--text-muted)' };
                     const pt = gRank > 0 ? calcItemScore(diff) : 0;
+                    // 順番: 誰が予想 → 何位と予想 → 結果ラベル → 得点（アイコンは右側）
                     return `<div style="display:flex;align-items:center;font-size:12px;gap:6px;">
-                        <span style="color:${color};font-weight:700;min-width:14px;text-align:center;">${icon}</span>
                         <span style="flex:1;color:var(--text-secondary);">${escapeHtml(g.displayName)}</span>
-                        <span style="color:var(--text-muted);">${gRank > 0 ? gRank + '位' : '-'}</span>
+                        <span style="color:var(--text-muted);font-size:11px;">${gRank > 0 ? gRank + '位' : '-'}</span>
+                        <span style="color:${color};font-weight:700;font-size:11px;">${icon} ${label}</span>
                         <span style="color:${color};font-weight:700;min-width:28px;text-align:right;">${pt}pt</span>
                     </div>`;
                 }).join('')}
