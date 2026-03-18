@@ -16,6 +16,7 @@ let inputSortable = null;   // ランキング入力SortableJS
 let guessSortables = {};    // 予想SortableJS { targetId: Sortable }
 let guessCurrentTargetId = null;
 let guessDraft = {};        // { targetId: { '1': item, ... } }
+let visitedGuessTabs = new Set(); // 訪問済みタブ（全員分訪問でボタン解除）
 
 const AVATAR_COLORS_ONLINE = ['#5C6BC0','#26A69A','#EF5350','#FFA726','#66BB6A','#AB47BC','#78909C','#8D6E63'];
 
@@ -243,6 +244,7 @@ function cleanupRoom() {
     guessSortables = {};
     guessDraft = {};
     guessCurrentTargetId = null;
+    visitedGuessTabs = new Set();
     room = { roomId: null, role: null, mode: null, data: null };
 }
 
@@ -342,6 +344,12 @@ function renderWaitingRoomHost(data) {
     if (startBtn) {
         startBtn.disabled = isMulti ? players.length < 2 : true; // pairは自動遷移
         startBtn.style.display = isMulti ? 'block' : 'none';
+    }
+
+    // ダミー追加ボタン（multiのみ・上限未達時のみ表示）
+    const dummyArea = document.getElementById('dummyBtnArea');
+    if (dummyArea) {
+        dummyArea.style.display = (isMulti && players.length < data.maxPlayers) ? 'block' : 'none';
     }
 }
 
@@ -877,12 +885,14 @@ function renderGuessScreen(data) {
              id="guessTab_${id}" onclick="onlineSwitchGuessTab('${id}')">${escapeHtml(p.displayName)}</div>
     `).join('');
 
-    // 最初のターゲットを表示
+    // 最初のターゲットを表示（訪問済みタブをリセット）
     guessDraft = {};
     guessCurrentTargetId = null;
-    onlineSwitchGuessTab(targets[0][0]);
+    visitedGuessTabs = new Set();
+    onlineSwitchGuessTab(targets[0][0]); // ← ここで最初のタブを訪問済みに記録
 
-    document.getElementById('submitGuessBtn').disabled = false;
+    // ボタン状態: 全タブ訪問済みのときのみ解除（1人なら即解除）
+    updateGuessSubmitBtnState(targets);
 
     // 送信済みチェック
     const alreadyGuessed = data.guesses?.[App.userProfile.userId];
@@ -901,11 +911,19 @@ function onlineSwitchGuessTab(targetId) {
     }
 
     guessCurrentTargetId = targetId;
+    visitedGuessTabs.add(targetId); // 訪問済みとして記録
 
     document.querySelectorAll('#guessTabs .person-tab').forEach(el => el.classList.remove('person-tab--active'));
     document.getElementById(`guessTab_${targetId}`)?.classList.add('person-tab--active');
 
     renderGuessSortList(targetId);
+
+    // 全タブを訪問済みならボタン解除
+    const data = room.data;
+    if (data) {
+        const targets = Object.entries(data.players || {}).filter(([id]) => id !== App.userProfile?.userId);
+        updateGuessSubmitBtnState(targets);
+    }
 }
 
 function renderGuessSortList(targetId) {
@@ -1093,6 +1111,15 @@ function updateGuessProgress(data) {
             </div>`;
         }).join('');
     }
+
+}
+
+// 全タブ訪問済みのときのみ「予想を確定する」を解除
+function updateGuessSubmitBtnState(targets) {
+    const submitBtn = document.getElementById('submitGuessBtn');
+    if (!submitBtn || submitBtn.style.display === 'none') return;
+    const allVisited = targets.every(([id]) => visitedGuessTabs.has(id));
+    submitBtn.disabled = !allVisited;
 }
 
 function toggleGuessProgressDropdown() {
@@ -1333,4 +1360,101 @@ function shuffleArray(arr) {
         [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr;
+}
+
+// ========================================
+// ダミープレイヤー（テスト用）
+// ========================================
+const DUMMY_NAMES = ['テスト太郎', 'テスト花子', 'テスト次郎', 'テスト三郎', 'テスト春子'];
+let dummyCount = 0;
+
+async function addDummyPlayer() {
+    if (!room.roomId) return;
+    const roomRef = database.ref('gameRooms/' + room.roomId);
+    const snap = await roomRef.once('value');
+    const data = snap.val();
+    const playerCount = Object.keys(data.players || {}).length;
+    if (playerCount >= data.maxPlayers) {
+        showToast('最大人数に達しています', 'error');
+        return;
+    }
+    const dummyId = 'dummy_' + Date.now() + '_' + dummyCount;
+    const name = DUMMY_NAMES[dummyCount % DUMMY_NAMES.length];
+    dummyCount++;
+    await roomRef.update({
+        ['players/' + dummyId]: { displayName: name, status: 'waiting', isDummy: true },
+        lastActivityAt: Date.now()
+    });
+    startDummyListener(dummyId, roomRef);
+}
+
+function startDummyListener(dummyId, roomRef) {
+    roomRef.on('value', async (snapshot) => {
+        if (!snapshot.exists()) return;
+        const data = snapshot.val();
+        if (!data.players || !data.players[dummyId]) return;
+
+        if (data.status === 'inputting' && !(data.rankings && data.rankings[dummyId])) {
+            await dummySubmitRanking(dummyId, roomRef, data);
+        }
+        if (data.status === 'guessing' && !(data.guesses && data.guesses[dummyId])) {
+            await dummySubmitGuess(dummyId, roomRef, data);
+        }
+    });
+}
+
+async function dummySubmitRanking(dummyId, roomRef, data) {
+    const items = ['テスト①', 'テスト②', 'テスト③', 'テスト④', 'テスト⑤'];
+    shuffleArray(items);
+    const ranking = {};
+    items.forEach((item, i) => { ranking[String(i + 1)] = item; });
+
+    setTimeout(async () => {
+        try {
+            await roomRef.update({
+                ['rankings/' + dummyId]: ranking,
+                ['players/' + dummyId + '/status']: 'completed',
+                lastActivityAt: Date.now()
+            });
+            // 全員提出済みならguessingへ
+            const snap = await roomRef.once('value');
+            const d = snap.val();
+            const allPlayers = Object.keys(d.players || {});
+            if (allPlayers.every(id => d.rankings && d.rankings[id])) {
+                await roomRef.update({ status: 'guessing', lastActivityAt: Date.now() });
+            }
+        } catch (e) { console.error('ダミーランキング提出エラー:', e); }
+    }, 1500 + Math.random() * 2000);
+}
+
+async function dummySubmitGuess(dummyId, roomRef, data) {
+    const allPlayers = Object.keys(data.players || {});
+    const targets = allPlayers.filter(id => id !== dummyId);
+    const guessData = {};
+    targets.forEach(targetId => {
+        const correct = data.rankings?.[targetId];
+        if (!correct) return;
+        const items = Object.values(correct);
+        shuffleArray(items);
+        const guess = {};
+        items.forEach((item, i) => { guess[String(i + 1)] = item; });
+        guessData[targetId] = guess;
+    });
+
+    setTimeout(async () => {
+        try {
+            await roomRef.update({
+                ['guesses/' + dummyId]: guessData,
+                ['players/' + dummyId + '/status']: 'guessed',
+                lastActivityAt: Date.now()
+            });
+            // 全員提出済みならfinishedへ
+            const snap = await roomRef.once('value');
+            const d = snap.val();
+            const allPlayers2 = Object.keys(d.players || {});
+            if (allPlayers2.every(id => d.guesses && d.guesses[id])) {
+                await roomRef.update({ status: 'finished', finishedAt: Date.now(), lastActivityAt: Date.now() });
+            }
+        } catch (e) { console.error('ダミー予想提出エラー:', e); }
+    }, 1500 + Math.random() * 2000);
 }

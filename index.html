@@ -244,7 +244,15 @@
   <div class="content">
     <div class="section-label">参加中のメンバー</div>
     <div id="waitingRoomPlayerList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
-    <div id="waitingRoomCount" style="font-size:12px;color:var(--text-muted);margin-bottom:16px;"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div id="waitingRoomCount" style="font-size:12px;color:var(--text-muted);"></div>
+      <div id="dummyBtnArea" style="display:none;">
+        <button onclick="addDummyPlayer()"
+          style="font-size:11px;font-weight:700;color:var(--text-muted);border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;background:var(--surface);">
+          ＋ ダミー追加
+        </button>
+      </div>
+    </div>
     <div class="bottom-bar" style="display:flex;flex-direction:column;gap:8px;">
       <button id="startGameBtn" class="btn btn--primary" onclick="hostStartGame()" disabled>このメンバーでゲームを始める</button>
       <button class="btn btn--danger" onclick="closeRoom()">部屋を閉じる</button>
