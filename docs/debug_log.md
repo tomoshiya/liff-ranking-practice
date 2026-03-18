@@ -331,6 +331,84 @@
 
 ---
 
+## β版デバッグ第4回（2026-03-18）
+
+### [FIXED] .bottom-bar position:fixed による白バー漏洩
+- **現象**: ランク予想画面などで、他の画面のfixed bottom-barが重なって「予想を確定する」ボタンが隠れる
+- **原因**: `.bottom-bar { position: fixed }` はdisplay:noneの親内でも他画面のz-index上に表示される（環境によって異なるブラウザ挙動）
+- **修正**: `position: fixed` → `position: sticky; z-index: 20` に変更。コンテナを超えて漏洩しなくなる
+- **関連ファイル**: `css/beta.css`
+
+### [FIXED] submitRanking()がID順でモーダル表示（ドラッグ後に並び順が変わらないバグ）
+- **現象**: ランク入力でドラッグ並び替え後に「TOP5を確定する」→確認ポップアップが前の並び順で表示される
+- **原因**: `submitRanking()`が `document.getElementById('rankInput_1')` 等ID順で値を取得していた。一方`onlineHandleSubmitRanking()`はDOM順で取得しており不一致。
+- **修正**: `submitRanking()` を `querySelectorAll('.rank-item')` によるDOM（視覚）順の読み取りに変更。`onRankInput()`のバリデーションも同様に修正。
+- **関連ファイル**: `js/game-pair.js`
+- **教訓**: IDで要素を取得する場合、SortableJSによる並び替え後はIDとDOM位置が乖離することに注意
+
+### [FIXED] editMyGuess()で予想ロック表示と入力エリアが2重表示
+- **現象**: 予想確定後「修正する」ボタンを押すと、確定済みのロック表示と入力エリアが同時に表示される
+- **原因**: `editMyGuess()`が`guessLockedPreview`を非表示にする処理がなく、`guessPersonArea`のみ再表示していた。また`guessDraft`が残っているため古い並び順が表示される
+- **修正**: `editMyGuess()`でlockedPreviewを空にして非表示にし、`guessDraft={}`でリセット後に`renderGuessSortList()`を呼び再シャッフル
+- **関連ファイル**: `js/game-pair.js`
+
+### [FIXED] 予想進捗ピルのドロップダウンが表示されない
+- **現象**: ランク予想画面の「0/2人が予想完了▼」をタップしても何も表示されない
+- **原因**: `#guessProgressDropdown`要素がHTMLになく、`toggleGuessProgressDropdown()`関数も未実装だった
+- **修正**: index.htmlに`#guessProgressDropdown`追加、`toggleGuessProgressDropdown()`関数実装、`updateGuessProgress()`にドロップダウン内容更新処理追加
+- **関連ファイル**: `js/game-pair.js`, `index.html`
+
+### [FIXED] ランク予想の並び替えバッジが小さい・SVGハンドルがない
+- **修正**: `renderGuessSortList()`のHTMLをランク入力画面と同一構造（`rank-badge-area` + 17px数字 + SVGハンドル）に統一
+- **関連ファイル**: `js/game-pair.js`
+
+### [FIXED] ランク入力カードの縦配置（1行入力時に上寄り）
+- **修正**: `.rank-item { align-items: center }` に変更。`.rank-badge-area { justify-content: center }` を追加
+- **関連ファイル**: `css/beta.css`
+
+### [FIXED] 修正ボタンが2行になる
+- **修正**: `.submitted-banner__edit { white-space: nowrap; flex-shrink: 0; margin-left: 8px }` を追加
+- **関連ファイル**: `css/beta.css`
+
+### [FIXED] テーマカード左端にくっつく（長年の懸案）
+- **原因**: flexbox横スクロール内の `padding-left` はWebKit系ブラウザでスクロール時に無視されることがある
+- **修正**: `padding: 10px 0 6px` に変更し、`::before`/`::after` の疑似要素（width:20px）でスペーサーを追加
+- **関連ファイル**: `css/beta.css`
+
+### [FIXED] 各種文言修正
+- 確認モーダル説明：「送信後も」→「確定後も」
+- 入力バナー：「送信完了！」→「入力完了！」
+- 予想バナー：「予想を確定しました！全員の予想完了を待っています」→「予想完了！他の人を待っています」
+- テーマ選択タイトル：「テーマを選ぼう」→「テーマ選択」
+- モード切替ボタン：「自分で作る」→「自分でつくる」
+- 予想進捗ピルデフォルト：「人が送信完了」→「人が予想完了」
+- 各ヒーローにページタイトル追加（ランク入力/ランク予想/結果発表）
+
+### [FIXED] 結果発表 全体スクロール化・ヒーロー改修
+- **修正**: `#resultScreen { display:block; overflow-y:auto }` で全体スクロール化。ヒーロー内のテーマカードを200×114px中央配置に変更。参加人数・最大PTを削除。
+- **関連ファイル**: `js/game-pair.js`, `css/beta.css`
+
+### [FIXED] 結果発表 総合ランキング改修
+- 背景削除（`background:rgba(255,255,255,...)` を除去）
+- 名前下に内訳テキスト（あたり×N おしい×N...）追加
+- アニメーション：下位（最終順位）から上位（1位）の順に順次表示されるよう`delay`を逆順化
+- 同立順位対応：同じスコアは`同N位`相当の順位を付与
+- スコア表記：`25/50pt`形式に変更
+- **関連ファイル**: `js/game-pair.js`
+
+### [FIXED] 結果発表 スコア説明1行・個人詳細フォーマット変更
+- スコア説明：「あたり(±0):10pt おしい(±1):6pt ちかい(±2):3pt かすり(±3):1pt はずれ(±4):0pt」の1行表示
+- 「個人詳細」ラベルを大きく（16px/bold）に変更
+- 「〇〇さんの正解ランキング」→「〇〇さんの正解ランク＆予想」（小さく・薄く）
+- 予想結果の表示順：「名前→何位と予想→結果ラベル（icon付き色付き）→得点」に変更
+- **関連ファイル**: `js/game-pair.js`
+
+### [FIXED] テーマカードサイズをCSS変数で統一（200×114px）
+- `.theme-card { width:200px; height:114px; max-width:none; aspect-ratio:unset }` を追加
+- **関連ファイル**: `css/beta.css`
+
+---
+
 ## 未解決・ペンディング事項
 
 | ID | 内容 | 優先度 | 備考 |
@@ -345,6 +423,8 @@
 | P-08 | 「ふたりであそぶ」でゲームから途中退出する方法がない | 高 | 退出時の部屋クローズロジック実装 |
 | P-09 | 「みんなであそぶ」で3名以下になったら部屋を閉じる | 中 | プレイヤー数監視ロジック |
 | P-10 | 結果発表：ズレ幅・正解した率・正解され率タブ切替 | 低 | 現状は総合ランキングのみ実装 |
+| P-11 | テーマ選択：最後のカードから最初に戻るループUI | 低 | 30枚超えた際の操作性。先頭に戻るボタンまたは無限スクロール |
+| P-12 | 「自分でつくる」のカード直接入力体験 | 中 | カード上にtextareaを重ねて直接入力するUI（画像14参照） |
 
 ---
 
