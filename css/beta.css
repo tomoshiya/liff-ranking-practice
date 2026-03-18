@@ -21,6 +21,9 @@
   --score-close: #FF9800;
   --score-near: #FFB74D;
   --score-touch: #BDBDBD;
+  /* テーマカード統一サイズ（全画面共通規格） */
+  --card-w: 200px;
+  --card-h: 114px;
 }
 
 /* --- リセット（user-select:none を全体に適用） --- */
@@ -123,6 +126,27 @@ input, textarea { font-family: inherit; }
 }
 .logo-catch { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.4); line-height: 1.6; }
 
+/* --- ヒーロー内：タイトル・説明文（全画面共通） --- */
+.hero-title {
+  font-size: 18px; font-weight: 900; color: #fff;
+  margin-bottom: 4px; position: relative; z-index: 10;
+}
+.hero-desc {
+  font-size: 12px; color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8px; position: relative; z-index: 10;
+}
+
+/* --- ヒーロー内：← もどるボタン（ゲーム画面共通） --- */
+.hero-back-btn {
+  display: inline-flex; align-items: center;
+  font-size: 12px; color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px; padding: 6px 14px;
+  background: transparent; cursor: pointer;
+  margin-bottom: 16px; font-family: inherit;
+  position: relative; z-index: 10;
+}
+
 /* --- ステップインジケーター --- */
 .step-indicator {
   display: flex; gap: 4px; align-items: center;
@@ -146,7 +170,7 @@ input, textarea { font-family: inherit; }
   margin-top: 12px;
 }
 .theme-card {
-  width: 75%; max-width: 280px; aspect-ratio: 16/9;
+  width: var(--card-w); height: var(--card-h);
   border-radius: 14px; position: relative; overflow: hidden;
   flex-shrink: 0;
 }
@@ -542,7 +566,7 @@ input, textarea { font-family: inherit; }
 }
 .theme-cards-scroll::-webkit-scrollbar { display: none; }
 .theme-card-item {
-  position: relative; width: 200px; height: 114px;
+  position: relative; width: var(--card-w); height: var(--card-h);
   border-radius: 14px; overflow: hidden;
   flex-shrink: 0; scroll-snap-align: start;
   cursor: pointer; box-shadow: 0 3px 12px rgba(0,0,0,0.12);
@@ -690,10 +714,3 @@ input, textarea { font-family: inherit; }
   height: auto;
 }
 
-/* ゲームカード統一サイズ（テーマ選択基準: 200×114px） */
-.theme-card {
-  width: 200px !important;
-  height: 114px !important;
-  max-width: none !important;
-  aspect-ratio: unset !important;
-}

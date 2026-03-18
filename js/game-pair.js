@@ -1154,12 +1154,13 @@ function renderOnlineResultScreen(data) {
     heroEl.innerHTML = `
         <div class="hero__bubble hero__bubble--1"></div>
         <div class="hero__bubble hero__bubble--2"></div>
-        <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:12px;">結果発表</div>
-        <div style="display:flex;justify-content:center;margin-bottom:16px;">
-            <div style="position:relative;width:200px;height:114px;border-radius:10px;overflow:hidden;background:${packColor};box-shadow:0 4px 16px rgba(0,0,0,0.4);">
-                <div style="position:absolute;inset:0;background:rgba(255,255,255,0.92);clip-path:polygon(54px 0%,100% 0%,100% 100%,36px 100%);"></div>
-                <div style="position:absolute;bottom:8px;left:10px;font-size:7px;font-weight:800;color:rgba(255,255,255,0.42);text-transform:uppercase;letter-spacing:0.12em;writing-mode:vertical-rl;transform:rotate(180deg);">${escapeHtml(data.themePack || 'basic')}</div>
-                <div style="position:absolute;top:50%;right:0;width:calc(100% - 48px);transform:translateY(-50%);padding:0 10px 0 4px;font-size:12px;font-weight:700;color:#1A1917;line-height:1.4;z-index:10;">${escapeHtml(data.theme)}</div>
+        <div class="hero-title" style="margin-bottom:12px;">結果発表</div>
+        <div class="hero__theme" style="margin-bottom:16px;">
+            <div class="theme-card" style="background:${packColor};box-shadow:0 4px 16px rgba(0,0,0,0.4);">
+                <div class="theme-card__white">
+                    <span class="theme-card__text">${escapeHtml(data.theme)}</span>
+                </div>
+                <span class="theme-card__pack">${escapeHtml((data.themePack || 'basic').toUpperCase())}</span>
             </div>
         </div>
         <div style="font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;">ランキング</div>

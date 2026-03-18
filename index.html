@@ -156,7 +156,7 @@
 <div id="roomSelectScreen" class="screen">
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
-    <button class="btn btn--outline" style="width:auto;padding:6px 14px;font-size:12px;color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.2);margin-bottom:16px;" onclick="showScreen('topScreen')">← もどる</button>
+    <button class="hero-back-btn" onclick="showScreen('topScreen')">← もどる</button>
     <div class="logo-area">
       <div class="logo-sub" id="roomSelectModeLabel">みんなであそぶ</div>
       <div style="font-size:20px;font-weight:900;color:#fff;margin-top:4px;">部屋を選ぶ</div>
@@ -205,7 +205,7 @@
 <div id="roomJoinScreen" class="screen">
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
-    <button class="btn btn--outline" style="width:auto;padding:6px 14px;font-size:12px;color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.2);margin-bottom:16px;" onclick="showScreen('roomSelectScreen')">← もどる</button>
+    <button class="hero-back-btn" onclick="showScreen('roomSelectScreen')">← もどる</button>
     <div style="font-size:20px;font-weight:900;color:#fff;">部屋に入る</div>
   </div>
   <div class="content" style="gap:16px;">
@@ -327,8 +327,8 @@
       <div class="step-sep"></div>
       <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
     </div>
-    <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:4px;">テーマ選択</div>
-    <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px;">盛り上がるテーマをみんなで相談して決めてください</div>
+    <div class="hero-title">テーマ選択</div>
+    <div class="hero-desc">盛り上がるテーマをみんなで相談して決めてください</div>
     <button class="help-btn" onclick="openHelpSheet()">?</button>
   </div>
 
@@ -394,10 +394,10 @@
       <div class="step-sep"></div>
       <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
     </div>
-    <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:4px;">ランク入力</div>
+    <div class="hero-title">ランク入力</div>
     <!-- 1台モード用プレイヤー名（online時は非表示） -->
     <div id="inputPlayerName" style="display:none;font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;"></div>
-    <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px;">テーマをもとに自分のランクを完成させてください</div>
+    <div class="hero-desc">テーマをもとに自分のランクを完成させてください</div>
     <div class="hero__theme" id="inputThemeCard"></div>
     <!-- 進捗（onlineモードのみ表示） -->
     <div id="inputProgressArea" style="margin-top:10px;position:relative;">
@@ -443,8 +443,8 @@
       <div class="step-sep"></div>
       <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
     </div>
-    <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:4px;">ランク予想</div>
-    <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px;">バラバラな順番の他の参加者のランクを正しく並び替えてください</div>
+    <div class="hero-title">ランク予想</div>
+    <div class="hero-desc">バラバラな順番の他の参加者のランクを正しく並び替えてください</div>
     <div class="hero__theme" id="guessThemeCard"></div>
     <div style="margin-top:10px;position:relative;">
       <div class="progress-pill" onclick="toggleGuessProgressDropdown()">
@@ -488,7 +488,7 @@
 <div id="localSetupScreen" class="screen">
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
-    <button class="btn btn--outline" style="width:auto;padding:6px 14px;font-size:12px;color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.2);margin-bottom:16px;" onclick="showScreen('topScreen')">← もどる</button>
+    <button class="hero-back-btn" onclick="showScreen('topScreen')">← もどる</button>
     <div style="font-size:20px;font-weight:900;color:#fff;">1台であそぶ</div>
     <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">参加者の名前を入力してください</div>
   </div>
