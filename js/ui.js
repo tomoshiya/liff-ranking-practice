@@ -125,11 +125,11 @@ function calcItemScore(diff) {
     return 0;
 }
 
-// スコアラベル
+// スコアラベル（ユーザー確定仕様: ◎○△▽×）
 function getScoreLabel(diff) {
-    if (diff === 0) return { label: 'あたり！', icon: '○', color: '#50C878' };
-    if (diff === 1) return { label: 'おしい！', icon: '△', color: '#FF9800' };
-    if (diff === 2) return { label: 'かすり',  icon: '▽', color: '#FFB74D' };
-    if (diff === 3) return { label: 'ちかい',  icon: '▼', color: '#BDBDBD' };
-    return { label: 'はずれ', icon: '×', color: '#E0E0E0' };
+    if (diff === 0) return { label: 'あたり', icon: '◎', color: '#10B981' };
+    if (diff === 1) return { label: 'おしい', icon: '○', color: '#F59E0B' };
+    if (diff === 2) return { label: 'ちかい', icon: '△', color: '#FB923C' };
+    if (diff === 3) return { label: 'かすり', icon: '▽', color: '#94A3B8' };
+    return { label: 'はずれ', icon: '×', color: '#CBD5E1' };
 }

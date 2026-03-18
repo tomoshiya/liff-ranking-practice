@@ -27,6 +27,10 @@ function startPairMode() {
     App.currentMode = 'pair';
     room.mode = 'pair';
     document.getElementById('roomSelectModeLabel').textContent = 'ふたりであそぶ';
+    const ci = document.getElementById('roomCodeInput');
+    if (ci) { ci.maxLength = 4; ci.placeholder = '1234'; }
+    const lbl = document.getElementById('roomCodeLabel');
+    if (lbl) lbl.textContent = '部屋番号（4桁）';
     prefillJoinName();
     showScreen('roomSelectScreen');
 }
@@ -35,6 +39,10 @@ function startMultiMode() {
     App.currentMode = 'multi';
     room.mode = 'multi';
     document.getElementById('roomSelectModeLabel').textContent = 'みんなであそぶ';
+    const ci = document.getElementById('roomCodeInput');
+    if (ci) { ci.maxLength = 5; ci.placeholder = '12345'; }
+    const lbl = document.getElementById('roomCodeLabel');
+    if (lbl) lbl.textContent = '部屋番号（5桁）';
     prefillJoinName();
     showScreen('roomSelectScreen');
 }
@@ -102,7 +110,8 @@ async function createRoom() {
 }
 
 function generateRoomCode() {
-    return String(Math.floor(1000 + Math.random() * 9000));
+    if (room.mode === 'multi') return String(Math.floor(10000 + Math.random() * 90000)); // 5桁
+    return String(Math.floor(1000 + Math.random() * 9000)); // 4桁
 }
 
 // ========================================
@@ -110,16 +119,18 @@ function generateRoomCode() {
 // ========================================
 
 function onRoomCodeInput(input) {
+    const minLen = room.mode === 'multi' ? 5 : 4;
     const nameInput = document.getElementById('joinNameInput');
     const btn = document.getElementById('joinRoomBtn');
-    btn.disabled = input.value.length < 4 || !nameInput.value.trim();
+    btn.disabled = input.value.length < minLen || !nameInput.value.trim();
 }
 
 function onJoinNameInput() {
+    const minLen = room.mode === 'multi' ? 5 : 4;
     const codeInput = document.getElementById('roomCodeInput');
     const nameInput = document.getElementById('joinNameInput');
     const btn = document.getElementById('joinRoomBtn');
-    btn.disabled = codeInput.value.length < 4 || !nameInput.value.trim();
+    btn.disabled = codeInput.value.length < minLen || !nameInput.value.trim();
 }
 
 async function joinRoom() {
@@ -131,7 +142,8 @@ async function joinRoom() {
     const roomId = document.getElementById('roomCodeInput').value.trim();
     const guestName = document.getElementById('joinNameInput').value.trim();
 
-    if (!roomId || roomId.length < 4) {
+    const minLen = room.mode === 'multi' ? 5 : 4;
+    if (!roomId || roomId.length < minLen) {
         showToast('部屋番号を入力してください', 'error');
         return;
     }
@@ -550,11 +562,30 @@ function renderRankingInputScreen(data) {
     document.getElementById('inputSubmittedBanner').style.display = alreadySubmitted ? 'flex' : 'none';
     document.getElementById('rankingInputForm').style.display = alreadySubmitted ? 'none' : 'block';
 
+    // 2回目ゲーム対策: 前ゲームのプレビューを必ずクリア
+    const preview = document.getElementById('submittedRankingPreview');
+    if (preview) { preview.innerHTML = ''; preview.style.display = 'none'; }
+
     // online時: プレイヤー名非表示、進捗表示
     document.getElementById('inputPlayerName').style.display = 'none';
     document.getElementById('inputProgressArea').style.display = 'block';
 
     if (!alreadySubmitted) renderRankInputList();
+    else {
+        // 送信済みの場合もプレビューを再表示
+        const rankingData = data.rankings[App.userProfile.userId];
+        if (rankingData && preview) {
+            const SUFFIXES = ['st','nd','rd','th','th'];
+            preview.innerHTML = Object.entries(rankingData)
+                .sort(([a],[b]) => parseInt(a)-parseInt(b))
+                .map(([r, v]) => `
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 12px;background:#fff;border:1px solid var(--border);border-radius:10px;margin-bottom:5px;">
+                        <span style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:900;font-style:italic;color:var(--text-secondary);min-width:30px;">${parseInt(r)}<span style="font-size:9px;">${SUFFIXES[parseInt(r)-1]}</span></span>
+                        <span style="font-size:13px;font-weight:700;">${escapeHtml(v)}</span>
+                    </div>`).join('');
+            preview.style.display = 'block';
+        }
+    }
     showScreen('rankingInputScreen');
 }
 
@@ -587,19 +618,23 @@ function showSharedRankingInput(playerName = null) {
     showScreen('rankingInputScreen');
 }
 
+const DRAG_HANDLE_SVG = `<svg width="12" height="18" viewBox="0 0 12 18" fill="currentColor" style="display:block;"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="8.5" cy="3.5" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="14.5" r="1.6"/><circle cx="8.5" cy="14.5" r="1.6"/></svg>`;
+
 // 全モード共通: 入力リスト描画（オプションで事前データを挿入）
 function renderRankInputList(prefillData = null) {
     const SUFFIXES = ['st','nd','rd','th','th'];
     document.getElementById('rankInputList').innerHTML = [1,2,3,4,5].map(r => `
         <div class="rank-item">
-            <div class="rank-badge"><span style="font-size:17px;line-height:1;">${r}</span><span style="font-size:9px;opacity:0.6;">${SUFFIXES[r-1]}</span></div>
+            <div class="rank-badge-area">
+                <div class="rank-badge"><span style="font-size:17px;line-height:1;">${r}</span><span style="font-size:9px;opacity:0.6;">${SUFFIXES[r-1]}</span></div>
+                <span class="rank-char-count" id="rankCharCount_${r}">0/50</span>
+            </div>
             <textarea class="rank-input" rows="1" id="rankInput_${r}"
                 placeholder="${r}位を入力"
                 maxlength="50"
                 oninput="onRankInput(); autoResize(this); updateRankCharCount(${r}, this.value)"
                 onkeydown="onRankKeydown(event, ${r})"></textarea>
-            <span class="rank-char-count" id="rankCharCount_${r}">0/50</span>
-            <div class="rank-drag-handle">⋮⋮</div>
+            <div class="rank-drag-handle">${DRAG_HANDLE_SVG}</div>
         </div>
     `).join('');
 
@@ -633,14 +668,13 @@ function renderRankInputList(prefillData = null) {
     if (!prefillData) setTimeout(() => document.getElementById('rankInput_1')?.focus(), 100);
 }
 
-// エンターキーで次フィールドへ
+// エンターキーで次フィールドへ（ドラッグ後の視覚順で移動）
 function onRankKeydown(e, rank) {
     if (e.key === 'Enter') {
         e.preventDefault();
-        if (rank < 5) {
-            const next = document.getElementById(`rankInput_${rank + 1}`);
-            if (next) next.focus();
-        }
+        const allInputs = Array.from(document.querySelectorAll('#rankInputList .rank-input'));
+        const idx = allInputs.findIndex(el => el === e.target);
+        if (idx >= 0 && idx < allInputs.length - 1) allInputs[idx + 1].focus();
         return false;
     }
 }
@@ -654,11 +688,15 @@ function updateRankCharCount(rank, value) {
     el.className = 'rank-char-count' + (len >= 50 ? ' rank-char-count--over' : len >= 40 ? ' rank-char-count--warn' : '');
 }
 
-// 全モード共通: ドラッグ後バッジ更新
+// 全モード共通: ドラッグ後バッジ更新（サイズ・スタイルを維持）
 function updateInputBadges() {
-    const badges = ['1st','2nd','3rd','4th','5th'];
+    const SUFFIXES = ['st','nd','rd','th','th'];
     document.querySelectorAll('#rankInputList .rank-badge').forEach((el, i) => {
-        el.textContent = badges[i] || `${i+1}位`;
+        el.innerHTML = `<span style="font-size:17px;line-height:1;">${i+1}</span><span style="font-size:9px;opacity:0.6;">${SUFFIXES[i]}</span>`;
+    });
+    // プレースホルダーも視覚順で更新
+    document.querySelectorAll('#rankInputList .rank-input').forEach((el, i) => {
+        el.placeholder = `${i+1}位を入力`;
     });
     onRankInput();
 }
@@ -820,6 +858,14 @@ function renderGuessScreen(data) {
     renderThemeCard(data.theme, data.themePack || 'basic', document.getElementById('guessThemeCard'));
     updateGuessProgress(data);
 
+    // 2回目ゲーム対策: guessエリアをリセット
+    document.getElementById('guessSubmittedBanner').style.display = 'none';
+    document.getElementById('guessPersonArea').style.display = 'block';
+    const lockedPreview = document.getElementById('guessLockedPreview');
+    if (lockedPreview) { lockedPreview.innerHTML = ''; lockedPreview.style.display = 'none'; }
+    const submitBtn = document.getElementById('submitGuessBtn');
+    if (submitBtn) { submitBtn.style.display = 'block'; submitBtn.disabled = true; submitBtn.textContent = '予想を確定する'; }
+
     const players = Object.entries(data.players || {});
     const targets = players.filter(([id]) => id !== App.userProfile.userId);
 
@@ -932,8 +978,8 @@ function showGuessConfirmModal(data, targets, onConfirm) {
     targets.forEach(tid => {
         const draft = guessDraft[tid] || {};
         const targetName = data.players[tid]?.displayName || '不明';
-        html += `<div style="margin-bottom:12px;">
-            <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:6px;">${escapeHtml(targetName)}さんの予想</div>
+        html += `<div style="margin-bottom:14px;">
+            <div style="font-size:12px;font-weight:800;color:var(--text-muted);margin-bottom:8px;">${escapeHtml(targetName)}さんのランク予想</div>
             ${[1,2,3,4,5].map(r => `
                 <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">
                     <span style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:900;font-style:italic;color:var(--text-secondary);min-width:28px;">${r}<span style="font-size:8px;">${SUFFIXES[r-1]}</span></span>
@@ -973,6 +1019,27 @@ async function doSubmitGuess(data, targets) {
         document.getElementById('guessPersonArea').style.display = 'none';
         btn.style.display = 'none';
 
+        // 予想内容をロック表示（guessSortListの内容をread-onlyで再描画）
+        const lockedPreview = document.getElementById('guessLockedPreview');
+        if (lockedPreview) {
+            const SUFFIXES = ['st','nd','rd','th','th'];
+            let previewHtml = '';
+            targets.forEach(tid => {
+                const draft = guessDraft[tid] || {};
+                const targetName = data.players[tid]?.displayName || '';
+                previewHtml += `<div style="margin-bottom:10px;">
+                    <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:6px;">${escapeHtml(targetName)}さんへの予想</div>
+                    ${[1,2,3,4,5].map(r => `
+                        <div style="display:flex;align-items:center;gap:10px;padding:7px 12px;background:#fff;border:1px solid var(--border);border-radius:10px;margin-bottom:4px;">
+                            <span style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:900;font-style:italic;color:var(--text-secondary);min-width:30px;">${r}<span style="font-size:9px;">${SUFFIXES[r-1]}</span></span>
+                            <span style="font-size:13px;font-weight:700;">${escapeHtml(draft[String(r)] || '')}</span>
+                        </div>`).join('')}
+                </div>`;
+            });
+            lockedPreview.innerHTML = previewHtml;
+            lockedPreview.style.display = 'block';
+        }
+
     } catch (err) {
         console.error('予想送信エラー:', err);
         showToast('送信に失敗しました', 'error');
@@ -1000,7 +1067,7 @@ async function editMyGuess() {
 function updateGuessProgress(data) {
     const players = Object.keys(data.players || {});
     const guessed = players.filter(id => data.guesses?.[id]).length;
-    document.getElementById('guessProgressText').textContent = `${guessed} / ${players.length} 人が送信完了`;
+    document.getElementById('guessProgressText').textContent = `${guessed} / ${players.length} 人が予想完了`;
 }
 
 // ========================================
@@ -1081,13 +1148,22 @@ function renderOnlineResultScreen(data) {
     // コンテンツ描画
     const contentEl = document.getElementById('resultContent');
     contentEl.innerHTML = `
-        <div style="padding:16px 20px 8px;">
+        <div style="padding:14px 20px 8px;">
+            <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;font-weight:600;color:var(--text-secondary);">
+                <span>◎ あたり 10pt</span>
+                <span>○ おしい 6pt</span>
+                <span>△ ちかい 3pt</span>
+                <span>▽ かすり 1pt</span>
+                <span>× はずれ 0pt</span>
+            </div>
+        </div>
+        <div style="padding:8px 20px;">
             <div class="section-label">個人詳細</div>
             <div class="person-tabs" id="resultTabs" style="margin-bottom:12px;"></div>
             <div id="resultPersonDetail"></div>
         </div>
         <div style="padding:0 20px;margin-top:8px;display:flex;flex-direction:column;gap:8px;padding-bottom:40px;">
-            ${isHost ? `<button class="btn btn--primary" onclick="playAgain()">テーマを変えてもう一度あそぶ</button>` : ''}
+            ${isHost ? `<button class="btn btn--primary" onclick="if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()">テーマを変えてもう一度あそぶ</button>` : ''}
             <button class="btn btn--outline" onclick="confirmGoHome()">HOMEにもどる</button>
         </div>`;
 

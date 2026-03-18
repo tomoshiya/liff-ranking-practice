@@ -210,7 +210,7 @@
   </div>
   <div class="content" style="gap:16px;">
     <div>
-      <div class="input-label">部屋番号（4桁）</div>
+      <div class="input-label" id="roomCodeLabel">部屋番号（4桁）</div>
       <input type="tel" id="roomCodeInput" class="input-field" maxlength="4" placeholder="1234"
         style="font-family:'DM Sans',sans-serif;font-size:32px;font-weight:900;font-style:italic;text-align:center;letter-spacing:0.1em;"
         oninput="onRoomCodeInput(this)">
@@ -451,19 +451,21 @@
     </div>
   </div>
   <div class="content">
-    <!-- 送信完了バナー（コンテンツ上部） -->
+    <!-- 確定完了バナー（コンテンツ上部） -->
     <div class="submitted-banner" id="guessSubmittedBanner" style="display:none;">
-      <span class="submitted-banner__text">予想を送信しました！結果発表を待っています</span>
+      <span class="submitted-banner__text">予想を確定しました！全員の予想完了を待っています</span>
       <span class="submitted-banner__edit" onclick="editMyGuess()">修正する</span>
     </div>
+    <!-- 確定後のロック表示 -->
+    <div id="guessLockedPreview" style="display:none;margin-bottom:12px;"></div>
     <!-- 予想エリア -->
     <div id="guessPersonArea">
       <!-- 人物タブ -->
       <div class="person-tabs" id="guessTabs"></div>
       <!-- ソートリスト -->
       <div id="guessSortList" style="margin-bottom:16px;"></div>
-      <!-- 送信ボタン（非固定・コンテンツ末尾） -->
-      <button id="submitGuessBtn" class="btn btn--primary" onclick="submitGuess()" disabled style="margin-bottom:40px;">予想を送信する</button>
+      <!-- 確定ボタン（非固定・コンテンツ末尾） -->
+      <button id="submitGuessBtn" class="btn btn--primary" onclick="submitGuess()" disabled style="margin-bottom:40px;">予想を確定する</button>
     </div>
   </div>
 </div>
@@ -578,7 +580,7 @@
     <div class="modal__title">このTOP5で確定しますか？</div>
     <div class="modal__desc">送信後も「修正する」で変更できます。</div>
     <div id="rankConfirmList" style="margin-bottom:20px;"></div>
-    <button id="rankConfirmOkBtn" class="btn btn--primary" style="margin-bottom:8px;">確定して送信する</button>
+    <button id="rankConfirmOkBtn" class="btn btn--primary" style="margin-bottom:8px;">確定する</button>
     <button class="btn btn--outline" onclick="document.getElementById('rankConfirmModal').classList.remove('modal-overlay--active')">キャンセル</button>
   </div>
 </div>
@@ -588,10 +590,10 @@
      ======================================== -->
 <div id="guessConfirmModal" class="modal-overlay">
   <div class="modal" style="max-height:80dvh;overflow-y:auto;">
-    <div class="modal__title">この予想で送信しますか？</div>
-    <div class="modal__desc">送信後も「修正する」で変更できます。</div>
+    <div class="modal__title">この予想で確定しますか？</div>
+    <div class="modal__desc">確定後も「修正する」で変更できます。</div>
     <div id="guessConfirmList" style="margin-bottom:20px;"></div>
-    <button id="guessConfirmOkBtn" class="btn btn--primary" style="margin-bottom:8px;">確定して送信する</button>
+    <button id="guessConfirmOkBtn" class="btn btn--primary" style="margin-bottom:8px;">確定する</button>
     <button class="btn btn--outline" onclick="document.getElementById('guessConfirmModal').classList.remove('modal-overlay--active')">キャンセル</button>
   </div>
 </div>
