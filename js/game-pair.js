@@ -634,7 +634,7 @@ const DRAG_HANDLE_SVG = `<svg width="14" height="20" viewBox="0 0 12 18" fill="c
 // 全モード共通: 入力リスト描画（オプションで事前データを挿入）
 function renderRankInputList(prefillData = null) {
     const SUFFIXES = ['st','nd','rd','th','th'];
-    document.getElementById('rankInputList').innerHTML = `<div class="rank-caption">My rank is...</div>` + [1,2,3,4,5].map(r => `
+    document.getElementById('rankInputList').innerHTML = [1,2,3,4,5].map(r => `
         <div class="rank-item">
             <div class="rank-badge-area">
                 <div class="rank-badge"><span style="font-size:17px;line-height:1;">${r}</span><span style="font-size:9px;opacity:0.6;">${SUFFIXES[r-1]}</span></div>
@@ -940,7 +940,7 @@ function renderGuessSortList(targetId) {
         : shuffleArray([...items]);
 
     const SUFFIXES = ['st','nd','rd','th','th'];
-    document.getElementById('guessSortList').innerHTML = `<div class="rank-caption">Your rank is...</div>` + shuffled.map((item, i) => `
+    document.getElementById('guessSortList').innerHTML = shuffled.map((item, i) => `
         <div class="rank-item" data-item="${escapeHtml(item)}" style="cursor:grab;">
             <div class="rank-badge-area">
                 <div class="rank-badge"><span style="font-size:17px;line-height:1;">${i+1}</span><span style="font-size:9px;opacity:0.6;">${SUFFIXES[i]}</span></div>
@@ -950,7 +950,9 @@ function renderGuessSortList(targetId) {
         </div>
     `).join('');
 
-    if (guessSortables[targetId]) { try { guessSortables[targetId].destroy(); } catch(e) {} }
+    // 同じDOMに複数インスタンスが重複しないよう全て破棄してから1つ生成
+    Object.values(guessSortables).forEach(s => { try { s.destroy(); } catch(e) {} });
+    guessSortables = {};
     guessSortables[targetId] = Sortable.create(document.getElementById('guessSortList'), {
         animation: 150,
         handle: '.rank-drag-handle',
