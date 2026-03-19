@@ -342,11 +342,39 @@ input, textarea { font-family: inherit; }
 }
 
 /* --- ランク入力/予想 キャプション（My rank is... / Your rank is...） --- */
+/* ※ text-transformなし：英文法に沿った大文字小文字を保持 */
 .rank-caption {
   font-size: 9px; font-weight: 800;
-  text-transform: uppercase; letter-spacing: 0.1em;
+  letter-spacing: 0.1em;
   color: var(--text-muted);
   margin-bottom: 8px; padding-left: 2px;
+}
+
+/* --- ランクアイテム共通テキスト（確定プレビュー・予想ポップアップ・ロック表示・結果詳細） --- */
+.rank-num {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 900; font-style: italic;
+  color: var(--text-secondary);
+  min-width: 30px; flex-shrink: 0;
+}
+.rank-num--sm { font-size: 12px; min-width: 26px; }
+.rank-text {
+  font-size: 13px; font-weight: 700;
+  color: var(--text-primary);
+  flex: 1; min-width: 0;
+  word-break: break-all; overflow-wrap: break-word;
+}
+.rank-text--sm { font-size: 12px; }
+/* ランクアイテム行の共通ラッパー */
+.rank-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+}
+.rank-row--card {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 7px 12px; margin-bottom: 5px;
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 10px;
 }
 
 /* --- 参加者アバター --- */

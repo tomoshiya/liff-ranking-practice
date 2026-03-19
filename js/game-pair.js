@@ -343,7 +343,7 @@ function renderWaitingRoomHost(data) {
 
     const startBtn = document.getElementById('startGameBtn');
     if (startBtn) {
-        startBtn.disabled = isMulti ? players.length < 2 : true; // pairは自動遷移
+        startBtn.disabled = isMulti ? players.length < 3 : true; // pairは自動遷移、multiは3人以上必須
         startBtn.style.display = isMulti ? 'block' : 'none';
     }
 
@@ -667,7 +667,6 @@ function renderRankInputList(prefillData = null) {
     inputSortable = Sortable.create(document.getElementById('rankInputList'), {
         animation: 150,
         handle: '.rank-drag-handle',
-        draggable: '.rank-item',
         onEnd: updateInputBadges
     });
 
@@ -803,9 +802,9 @@ async function onlineHandleSubmitRanking() {
             preview.innerHTML = Object.entries(rankingData)
                 .sort(([a],[b]) => parseInt(a)-parseInt(b))
                 .map(([r, v]) => `
-                    <div style="display:flex;align-items:center;gap:10px;padding:7px 12px;background:#fff;border:1px solid var(--border);border-radius:10px;margin-bottom:5px;">
-                        <span style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:900;font-style:italic;color:var(--text-secondary);min-width:30px;">${parseInt(r)}<span style="font-size:9px;">${SUFFIXES[parseInt(r)-1]}</span></span>
-                        <span style="font-size:13px;font-weight:700;">${escapeHtml(v)}</span>
+                    <div class="rank-row--card">
+                        <span class="rank-num">${parseInt(r)}<span style="font-size:9px;">${SUFFIXES[parseInt(r)-1]}</span></span>
+                        <span class="rank-text">${escapeHtml(v)}</span>
                     </div>`).join('');
             preview.style.display = 'block';
         }
@@ -887,7 +886,9 @@ function renderGuessScreen(data) {
              id="guessTab_${id}" onclick="onlineSwitchGuessTab('${id}')">${escapeHtml(p.displayName)}</div>
     `).join('');
 
-    // 最初のターゲットを表示（訪問済みタブをリセット）
+    // 最初のターゲットを表示（訪問済みタブをリセット、Sortable全破棄）
+    Object.values(guessSortables).forEach(s => { try { s.destroy(); } catch(e) {} });
+    guessSortables = {};
     guessDraft = {};
     guessCurrentTargetId = null;
     visitedGuessTabs = new Set();
@@ -949,11 +950,10 @@ function renderGuessSortList(targetId) {
         </div>
     `).join('');
 
-    if (guessSortables[targetId]) { guessSortables[targetId].destroy(); }
+    if (guessSortables[targetId]) { try { guessSortables[targetId].destroy(); } catch(e) {} }
     guessSortables[targetId] = Sortable.create(document.getElementById('guessSortList'), {
         animation: 150,
         handle: '.rank-drag-handle',
-        draggable: '.rank-item',
         onEnd: () => updateGuessBadges()
     });
 }
@@ -1006,9 +1006,9 @@ function showGuessConfirmModal(data, targets, onConfirm) {
         html += `<div style="margin-bottom:14px;">
             <div style="font-size:12px;font-weight:800;color:var(--text-muted);margin-bottom:8px;">${escapeHtml(targetName)}さんのランク予想</div>
             ${[1,2,3,4,5].map(r => `
-                <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">
-                    <span style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:900;font-style:italic;color:var(--text-secondary);min-width:28px;">${r}<span style="font-size:8px;">${SUFFIXES[r-1]}</span></span>
-                    <span style="font-size:12px;font-weight:700;">${escapeHtml(draft[String(r)] || '')}</span>
+                <div class="rank-row">
+                    <span class="rank-num rank-num--sm">${r}<span style="font-size:8px;">${SUFFIXES[r-1]}</span></span>
+                    <span class="rank-text rank-text--sm">${escapeHtml(draft[String(r)] || '')}</span>
                 </div>`).join('')}
         </div>`;
     });
@@ -1055,9 +1055,9 @@ async function doSubmitGuess(data, targets) {
                 previewHtml += `<div style="margin-bottom:10px;">
                     <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:6px;">${escapeHtml(targetName)}さんへの予想</div>
                     ${[1,2,3,4,5].map(r => `
-                        <div style="display:flex;align-items:center;gap:10px;padding:7px 12px;background:#fff;border:1px solid var(--border);border-radius:10px;margin-bottom:4px;">
-                            <span style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:900;font-style:italic;color:var(--text-secondary);min-width:30px;">${r}<span style="font-size:9px;">${SUFFIXES[r-1]}</span></span>
-                            <span style="font-size:13px;font-weight:700;">${escapeHtml(draft[String(r)] || '')}</span>
+                        <div class="rank-row--card">
+                            <span class="rank-num">${r}<span style="font-size:9px;">${SUFFIXES[r-1]}</span></span>
+                            <span class="rank-text">${escapeHtml(draft[String(r)] || '')}</span>
                         </div>`).join('')}
                 </div>`;
             });
