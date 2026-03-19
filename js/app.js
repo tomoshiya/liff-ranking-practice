@@ -3,7 +3,7 @@
 // ========================================
 
 const LIFF_ID = window.location.hostname.includes('beta--dashing-granita')
-    ? '2008911809-x8vw37eD'   // beta環境 (Netlify beta)
+    ? '2009531665-WfL81Nvy'   // 公開beta環境 (Netlify beta) ← 新チャンネル
     : window.location.hostname.includes('netlify.app')
     ? '2008911809-43mMnuKh'   // 開発環境 (Netlify develop)
     : '2008911809-CBLKsbT1';  // 本番環境 (GitHub Pages)
