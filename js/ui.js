@@ -87,12 +87,13 @@ function renderThemeCard(themeText, packId = 'basic', container) {
     };
     const color = PACK_COLORS[packId] || PACK_COLORS.basic;
 
+    const packLabel = packId === 'custom' ? 'ORIGINAL' : packId.toUpperCase();
     container.innerHTML = `
         <div class="theme-card" style="background:${color};">
             <div class="theme-card__white">
                 <span class="theme-card__text">${escapeHtml(themeText)}</span>
             </div>
-            <span class="theme-card__pack">${packId.toUpperCase()}</span>
+            <span class="theme-card__pack">${packLabel}</span>
         </div>
     `;
 }

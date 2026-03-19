@@ -326,7 +326,8 @@ function startRoomListener(roomId) {
 
 function renderWaitingRoomHost(data) {
     document.getElementById('waitingRoomCode').textContent = data.roomId;
-    const players = Object.entries(data.players || {});
+    const players = Object.entries(data.players || {})
+        .sort(([a], [b]) => a === data.hostId ? -1 : b === data.hostId ? 1 : 0);
     const isMulti = data.gameMode === 'multi';
 
     document.getElementById('waitingRoomPlayerList').innerHTML = players.map(([uid, p], i) => `
@@ -355,7 +356,8 @@ function renderWaitingRoomHost(data) {
 
 function renderWaitingRoomGuest(data) {
     document.getElementById('waitingRoomCodeGuest').textContent = data.roomId;
-    const players = Object.entries(data.players || {});
+    const players = Object.entries(data.players || {})
+        .sort(([a], [b]) => a === data.hostId ? -1 : b === data.hostId ? 1 : 0);
 
     document.getElementById('waitingRoomPlayerListGuest').innerHTML = players.map(([uid, p], i) => `
         <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;">
@@ -444,7 +446,7 @@ function renderThemeCards(pack) {
     scroll.innerHTML = filtered.map(t => {
         const origIdx = themes.indexOf(t);
         const color = PACK_COLORS[t.pack] || DEFAULT_PACK_COLOR;
-        const packLabel = t.pack || 'BASIC';
+        const packLabel = t.pack === 'custom' ? 'ORIGINAL' : (t.pack || 'BASIC');
         return `<div class="theme-card-item" id="themeCardItem_${origIdx}"
                      onclick="selectTheme(${origIdx})"
                      style="background:${color};">
@@ -747,9 +749,9 @@ function submitRanking() {
 function showRankConfirmModal(items, onConfirm) {
     const SUFFIXES = ['st','nd','rd','th','th'];
     document.getElementById('rankConfirmList').innerHTML = [1,2,3,4,5].map(r => `
-        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">
-            <span style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:900;font-style:italic;color:var(--text-secondary);min-width:32px;">${r}<span style="font-size:9px;">${SUFFIXES[r-1]}</span></span>
-            <span style="font-size:13px;font-weight:700;color:var(--text-primary);">${escapeHtml(items[r] || '')}</span>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">
+            <span style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:900;font-style:italic;color:var(--text-secondary);min-width:32px;flex-shrink:0;">${r}<span style="font-size:9px;">${SUFFIXES[r-1]}</span></span>
+            <span style="font-size:13px;font-weight:700;color:var(--text-primary);flex:1;min-width:0;word-break:break-all;overflow-wrap:break-word;">${escapeHtml(items[r] || '')}</span>
         </div>
     `).join('');
     document.getElementById('rankConfirmModal').classList.add('modal-overlay--active');
@@ -942,7 +944,7 @@ function renderGuessSortList(targetId) {
             <div class="rank-badge-area">
                 <div class="rank-badge"><span style="font-size:17px;line-height:1;">${i+1}</span><span style="font-size:9px;opacity:0.6;">${SUFFIXES[i]}</span></div>
             </div>
-            <div style="flex:1;font-size:14px;font-weight:500;padding:1px 0;">${escapeHtml(item)}</div>
+            <div style="flex:1;min-width:0;font-size:14px;font-weight:500;padding:1px 0;word-break:break-all;overflow-wrap:break-word;">${escapeHtml(item)}</div>
             <div class="rank-drag-handle">${DRAG_HANDLE_SVG}</div>
         </div>
     `).join('');
@@ -1190,7 +1192,7 @@ function renderOnlineResultScreen(data) {
                 <div class="theme-card__white">
                     <span class="theme-card__text">${escapeHtml(data.theme)}</span>
                 </div>
-                <span class="theme-card__pack">${escapeHtml((data.themePack || 'basic').toUpperCase())}</span>
+                <span class="theme-card__pack">${escapeHtml(data.themePack === 'custom' ? 'ORIGINAL' : (data.themePack || 'basic').toUpperCase())}</span>
             </div>
         </div>
         <div style="font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;">ランキング</div>
@@ -1291,7 +1293,7 @@ function showOnlinePersonResult(targetId) {
         html += `<div class="card" style="margin-bottom:6px;">
             <div style="display:flex;align-items:center;margin-bottom:8px;gap:8px;">
                 <span style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:900;font-style:italic;color:var(--text-primary);min-width:28px;">${rank}<span style="font-size:10px;">${SUFFIXES[rank-1]}</span></span>
-                <span style="font-size:14px;font-weight:700;">${escapeHtml(item)}</span>
+                <span style="font-size:14px;font-weight:700;word-break:break-all;overflow-wrap:break-word;">${escapeHtml(item)}</span>
             </div>
             <div style="display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border);padding-top:6px;">
                 ${guessers.map(([gId, g]) => {
