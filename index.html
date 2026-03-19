@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>RankIs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Sans:ital,opsz,wght@0,9..40,700;0,9..40,900;1,9..40,900&display=swap" rel="stylesheet">
-  <!-- ★ FONT TEST (一時的) - 確認後に削除 -->
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,700;1,700&family=IBM+Plex+Mono:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Sans:ital,opsz,wght@0,9..40,700;0,9..40,900;1,9..40,900&family=IBM+Plex+Mono:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/beta.css">
 
   <!-- Firebase -->
@@ -67,49 +65,6 @@
     <button class="help-btn" onclick="openHelpSheet()">?</button>
   </div>
 
-  <!-- ★ FONT TEST BLOCK vol.4 (一時的) - 確認後に削除 ★ -->
-  <div style="background:#0f1923;padding:20px 24px 28px;border-top:1px solid rgba(255,255,255,0.08);">
-    <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:rgba(255,255,255,0.25);text-transform:uppercase;margin-bottom:14px;">★ フォント比較 vol.4</div>
-    <div style="display:flex;flex-direction:column;gap:0;">
-
-      <div style="padding:12px 0;display:flex;align-items:center;gap:12px;">
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:700;color:#fff;letter-spacing:-0.01em;line-height:1;flex:1;">RankIs</div>
-        <div style="font-size:9px;color:rgba(255,255,255,0.35);white-space:nowrap;">D<br>そのまま</div>
-      </div>
-
-      <div style="border-top:1px solid rgba(255,255,255,0.07);padding:12px 0;display:flex;align-items:center;gap:12px;">
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:700;font-style:oblique 10deg;color:#fff;letter-spacing:-0.01em;line-height:1;flex:1;">RankIs</div>
-        <div style="font-size:9px;color:rgba(255,255,255,0.35);white-space:nowrap;">D oblique<br>10°（人工）</div>
-      </div>
-
-      <div style="border-top:1px solid rgba(255,255,255,0.07);padding:12px 0;display:flex;align-items:center;gap:12px;">
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:700;font-style:oblique 14deg;color:#fff;letter-spacing:-0.01em;line-height:1;flex:1;">RankIs</div>
-        <div style="font-size:9px;color:rgba(255,255,255,0.35);white-space:nowrap;">D oblique<br>14°（人工）</div>
-      </div>
-
-      <div style="border-top:1px solid rgba(255,255,255,0.07);padding:12px 0;display:flex;align-items:center;gap:12px;">
-        <div style="font-family:'DM Sans',sans-serif;font-size:38px;font-weight:900;font-style:italic;color:#fff;letter-spacing:-0.03em;line-height:1;flex:1;">RankIs</div>
-        <div style="font-size:9px;color:rgba(255,255,255,0.35);white-space:nowrap;">現在<br>DM Sans</div>
-      </div>
-
-      <div style="border-top:1px solid rgba(255,255,255,0.07);padding:12px 0;display:flex;align-items:center;gap:12px;">
-        <div style="font-family:'DM Sans',sans-serif;font-size:38px;font-weight:900;font-style:italic;color:#fff;letter-spacing:-0.03em;line-height:1;flex:1;">Rank<span style="margin:0 2px;font-size:0.6em;vertical-align:middle;opacity:0.75;">-</span>is</div>
-        <div style="font-size:9px;color:rgba(255,255,255,0.35);white-space:nowrap;">現在<br>Rank-is<br>ミニ・小文字</div>
-      </div>
-
-      <div style="border-top:1px solid rgba(255,255,255,0.07);padding:12px 0;display:flex;align-items:center;gap:12px;">
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:700;color:#fff;letter-spacing:-0.01em;line-height:1;flex:1;">Rank<span style="margin:0 3px;opacity:0.7;">-</span>is</div>
-        <div style="font-size:9px;color:rgba(255,255,255,0.35);white-space:nowrap;">D<br>Rank-is<br>小文字・間隔あり</div>
-      </div>
-
-      <div style="border-top:1px solid rgba(255,255,255,0.07);padding:12px 0;display:flex;align-items:center;gap:12px;">
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:700;font-style:oblique 12deg;color:#fff;letter-spacing:-0.01em;line-height:1;flex:1;">Rank<span style="margin:0 3px;opacity:0.7;">-</span>is</div>
-        <div style="font-size:9px;color:rgba(255,255,255,0.35);white-space:nowrap;">D oblique<br>Rank-is<br>小文字・間隔あり</div>
-      </div>
-
-    </div>
-  </div>
-  <!-- ★ FONT TEST BLOCK END ★ -->
 
   <!-- 履歴FAB -->
   <button class="history-fab" id="historyFab" onclick="openHistorySheet()" title="履歴" style="display:none;">

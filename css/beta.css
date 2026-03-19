@@ -113,10 +113,11 @@ input, textarea { font-family: inherit; }
 .logo-area { position: relative; z-index: 10; }
 .logo-sub { font-size: 10px; color: rgba(255,255,255,0.35); margin-bottom: 6px; letter-spacing: 0.06em; }
 .logo-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+/* ロゴフォント: IBM Plex Mono bold（Iに横棒が明確なモノスペースフォント） */
 .logo-main {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 44px; font-weight: 900; font-style: italic;
-  color: #fff; letter-spacing: -0.03em; line-height: 1;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 40px; font-weight: 700;
+  color: #fff; letter-spacing: -0.01em; line-height: 1;
 }
 .logo-beta {
   font-family: 'DM Sans', sans-serif;
