@@ -338,10 +338,14 @@
     <div class="hero-title">テーマ選択</div>
     <div class="hero-desc">盛り上がるテーマをみんなで相談して決めてください</div>
     <button class="help-btn" onclick="openHelpSheet()">?</button>
+    <!-- ゲスト閲覧モード用バナー（通常は非表示） -->
+    <div id="themeGuestBanner" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(255,255,255,0.12);border-radius:8px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.75);line-height:1.5;">
+      ホストと同じテーマ一覧を表示中です。テーマ選びの参考にしてください。
+    </div>
   </div>
 
   <!-- モード切替 -->
-  <div class="theme-mode-toggle">
+  <div id="themeModeToggle" class="theme-mode-toggle">
     <button class="theme-mode-btn theme-mode-btn--active" onclick="setThemeInputMode('pack')">パックから選ぶ</button>
     <button class="theme-mode-btn" onclick="setThemeInputMode('custom')">自分でつくる</button>
   </div>

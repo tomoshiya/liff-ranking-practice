@@ -293,7 +293,7 @@ function startRoomListener(roomId) {
                 if (room.role === 'host') {
                     if (activeId !== 'themeSelectScreen') renderThemeSelectScreen();
                 } else {
-                    if (activeId !== 'themeWaitingScreen') showScreen('themeWaitingScreen');
+                    if (activeId !== 'themeSelectScreen') showGuestThemeBrowse();
                 }
                 break;
 
@@ -388,6 +388,7 @@ let sharedSelectedThemeIdx = -1;
 let themeInputMode = 'pack'; // 'pack' | 'custom'
 let currentPackFilter = 'all';
 let customThemeText = '';
+let isGuestReadOnlyTheme = false;
 
 const PACK_COLORS = {
     'basic': '#2C3E50',
@@ -401,13 +402,18 @@ const PACK_COLORS = {
 };
 const DEFAULT_PACK_COLOR = '#2C3E50';
 
-// 全モード共通: テーマ選択画面を表示
+// 全モード共通: テーマ選択画面を表示（ホスト用）
 function showSharedThemeSelect() {
+    isGuestReadOnlyTheme = false;
     sharedSelectedThemeIdx = -1;
     customThemeText = '';
     currentPackFilter = 'all';
     themeInputMode = 'pack';
     document.getElementById('confirmThemeBtn').disabled = true;
+
+    document.getElementById('themeGuestBanner').style.display = 'none';
+    document.getElementById('themeModeToggle').style.display = '';
+    document.querySelector('#themeSelectScreen .bottom-bar').style.display = '';
 
     renderPackTabs();
     renderThemeCards('all');
@@ -419,6 +425,25 @@ function showSharedThemeSelect() {
 // onlineホスト用（Firebase listenerから呼ばれる）
 function renderThemeSelectScreen() {
     showSharedThemeSelect();
+}
+
+// ゲスト用：読み取り専用でテーマ一覧を表示
+function showGuestThemeBrowse() {
+    isGuestReadOnlyTheme = true;
+    sharedSelectedThemeIdx = -1;
+    customThemeText = '';
+    currentPackFilter = 'all';
+    themeInputMode = 'pack';
+
+    document.getElementById('themeGuestBanner').style.display = 'block';
+    document.getElementById('themeModeToggle').style.display = 'none';
+    document.querySelector('#themeSelectScreen .bottom-bar').style.display = 'none';
+
+    renderPackTabs();
+    renderThemeCards('all');
+    setThemeInputMode('pack');
+
+    showScreen('themeSelectScreen');
 }
 
 // パックタブ描画
@@ -435,8 +460,10 @@ function renderPackTabs() {
 function switchPackFilter(pack) {
     currentPackFilter = pack;
     sharedSelectedThemeIdx = -1;
-    document.getElementById('confirmThemeBtn').disabled = true;
-    document.getElementById('themeInfoPanel').style.display = 'none';
+    if (!isGuestReadOnlyTheme) {
+        document.getElementById('confirmThemeBtn').disabled = true;
+        document.getElementById('themeInfoPanel').style.display = 'none';
+    }
     renderPackTabs();
     renderThemeCards(pack);
 }
@@ -484,6 +511,7 @@ function onThemeCardsScroll() {
 
 // テーマ選択
 function selectTheme(idx) {
+    if (isGuestReadOnlyTheme) return;
     sharedSelectedThemeIdx = idx;
     document.querySelectorAll('.theme-card-item').forEach(el => el.classList.remove('theme-card-item--selected'));
     document.getElementById(`themeCardItem_${idx}`)?.classList.add('theme-card-item--selected');
@@ -1138,7 +1166,311 @@ function toggleGuessProgressDropdown() {
 // 結果画面
 // ========================================
 
+// みんなモード用グローバル状態
+let multiResultScores = null;
+let multiResultPlayers = null;
+let multiResultTab = 'total';
+
+// みんなモード スコア計算（ヨミpt / ミエpt / 総合 / gap）
+function calcMultiScores(data) {
+    const players = Object.entries(data.players || {});
+    const scores = {};
+    players.forEach(([id, p]) => {
+        scores[id] = { id, name: p.displayName, yomi: 0, mie: 0, breakdown: { 0:0, 1:0, 2:0, 3:0, miss:0 } };
+    });
+    players.forEach(([targetId]) => {
+        const correct = data.rankings?.[targetId];
+        if (!correct) return;
+        players.forEach(([guesserId]) => {
+            if (guesserId === targetId) return;
+            const guess = data.guesses?.[guesserId]?.[targetId];
+            if (!guess) return;
+            for (let rank = 1; rank <= 5; rank++) {
+                const item = correct[String(rank)];
+                let gRank = 0;
+                for (let r = 1; r <= 5; r++) {
+                    if (guess[String(r)] === item) { gRank = r; break; }
+                }
+                if (gRank > 0) {
+                    const diff = Math.abs(gRank - rank);
+                    const pt = calcItemScore(diff);
+                    scores[guesserId].yomi += pt;
+                    scores[targetId].mie += pt;
+                    if (diff <= 3) scores[guesserId].breakdown[diff]++;
+                    else scores[guesserId].breakdown.miss++;
+                } else {
+                    scores[guesserId].breakdown.miss++;
+                }
+            }
+        });
+    });
+    Object.values(scores).forEach(s => {
+        s.total = s.yomi + s.mie;
+        s.gap = Math.abs(s.yomi - s.mie);
+    });
+    return scores;
+}
+
+// 理解度ランキング：targetIdのランクを当てた合計ptで各参加者をソート
+function calcUnderstandingRanking(targetId, data, allPlayers) {
+    const correct = data.rankings?.[targetId];
+    if (!correct) return [];
+    const result = [];
+    allPlayers.forEach(([guesserId, p]) => {
+        if (guesserId === targetId) return;
+        const guess = data.guesses?.[guesserId]?.[targetId];
+        if (!guess) return;
+        let pts = 0;
+        for (let rank = 1; rank <= 5; rank++) {
+            const item = correct[String(rank)];
+            for (let r = 1; r <= 5; r++) {
+                if (guess[String(r)] === item) {
+                    pts += calcItemScore(Math.abs(r - rank));
+                    break;
+                }
+            }
+        }
+        result.push({ id: guesserId, name: p.displayName, pts });
+    });
+    return result.sort((a, b) => b.pts - a.pts);
+}
+
+// みんなモード 結果画面レンダリング
+function renderMultiResultScreen(data) {
+    const players = Object.entries(data.players || {})
+        .sort(([,a],[,b]) => (a.joinedAt||0) - (b.joinedAt||0));
+
+    multiResultScores = calcMultiScores(data);
+    multiResultPlayers = players;
+    multiResultTab = 'total';
+
+    const n = players.length;
+    const maxYomiMie = (n - 1) * 50;
+    const maxTotal = (n - 1) * 100;
+    const packColor = PACK_COLORS[data.themePack] || DEFAULT_PACK_COLOR;
+    const isHost = room.role === 'host';
+
+    const heroEl = document.getElementById('resultHero');
+    heroEl.innerHTML = `
+        <div class="hero__bubble hero__bubble--1"></div>
+        <div class="hero__bubble hero__bubble--2"></div>
+        <div class="hero-title" style="margin-bottom:12px;">結果発表</div>
+        <div class="hero__theme" style="margin-bottom:14px;">
+            <div class="theme-card" style="background:${packColor};box-shadow:0 4px 16px rgba(0,0,0,0.4);">
+                <div class="theme-card__white">
+                    <span class="theme-card__text">${escapeHtml(data.theme)}</span>
+                </div>
+                <span class="theme-card__pack">${escapeHtml(data.themePack === 'custom' ? 'ORIGINAL' : (data.themePack || 'basic').toUpperCase())}</span>
+            </div>
+        </div>
+        <div class="result-type-tabs" id="resultTypeTabs">
+            <button class="result-type-tab result-type-tab--active" onclick="switchMultiResultTab('total')">総合</button>
+            <button class="result-type-tab" onclick="switchMultiResultTab('yomi')">ヨミpt</button>
+            <button class="result-type-tab" onclick="switchMultiResultTab('mie')">ミエpt</button>
+            <button class="result-type-tab" onclick="switchMultiResultTab('gap')">ヨミミエgap</button>
+        </div>
+        <div id="multiTabDesc" style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:8px;">ヨミpt＋ミエpt の合計で競います</div>
+        <div id="multiRankingList" style="display:flex;flex-direction:column;gap:4px;"></div>`;
+
+    const contentEl = document.getElementById('resultContent');
+    contentEl.innerHTML = `
+        <div style="padding:10px 20px 6px;">
+            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);white-space:nowrap;overflow-x:auto;">
+                あたり(±0):10pt&emsp;おしい(±1):6pt&emsp;ちかい(±2):3pt&emsp;かすり(±3):1pt&emsp;はずれ(±4):0pt
+            </div>
+        </div>
+        <div style="padding:8px 20px;">
+            <div style="font-size:16px;font-weight:900;color:var(--text-primary);margin-bottom:8px;">個人詳細</div>
+            <div class="person-tabs" id="resultTabs" style="margin-bottom:12px;"></div>
+            <div id="resultPersonDetail"></div>
+        </div>
+        <div style="padding:0 20px;margin-top:8px;display:flex;flex-direction:column;gap:8px;padding-bottom:60px;">
+            ${isHost ? `<button class="btn btn--primary" onclick="if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()">テーマを変えてもう一度あそぶ</button>` : ''}
+            <button class="btn btn--outline" onclick="confirmGoHome()">HOMEにもどる</button>
+        </div>`;
+
+    document.getElementById('resultTabs').innerHTML = players.map(([id, p], i) => `
+        <div class="person-tab${i === 0 ? ' person-tab--active' : ''}"
+             id="resultTab_${id}" onclick="showMultiPersonResult('${id}')">${escapeHtml(p.displayName)}</div>
+    `).join('');
+
+    renderMultiRankingList('total', maxYomiMie, maxTotal);
+    showMultiPersonResult(players[0][0]);
+
+    const myId = App.userProfile.userId;
+    saveGameHistory(createHistoryEntry({
+        themeId: data.themeId || '',
+        themeText: data.theme,
+        mode: data.gameMode,
+        players: players.map(([id, p]) => ({ lineUserId: id, displayName: p.displayName })),
+        myLineUserId: myId,
+        myScore: multiResultScores[myId]?.total || 0,
+        maxScore: maxTotal,
+        totalScore: players.reduce((s, [id]) => s + (multiResultScores[id]?.total || 0), 0),
+        totalMaxScore: maxTotal * players.length,
+        answers: data.rankings || {}
+    }));
+
+    showScreen('resultScreen');
+}
+
+// ランキング種別タブ切替
+function switchMultiResultTab(type) {
+    if (!multiResultPlayers) return;
+    multiResultTab = type;
+    const n = multiResultPlayers.length;
+    const maxYomiMie = (n - 1) * 50;
+    const maxTotal = (n - 1) * 100;
+
+    document.querySelectorAll('#resultTypeTabs .result-type-tab').forEach((btn, i) => {
+        btn.classList.toggle('result-type-tab--active', ['total','yomi','mie','gap'][i] === type);
+    });
+
+    const descs = {
+        total: 'ヨミpt＋ミエpt の合計で競います',
+        yomi: '他の参加者のランクを当てたポイント',
+        mie: '自分のランクが当てられたポイント',
+        gap: 'ヨミptとミエptの差が大きいほど上位（偏りの大きさ）'
+    };
+    const descEl = document.getElementById('multiTabDesc');
+    if (descEl) descEl.textContent = descs[type] || '';
+
+    renderMultiRankingList(type, maxYomiMie, maxTotal);
+}
+
+// ランキングリスト描画（タブ種別に応じた表示）
+function renderMultiRankingList(type, maxYomiMie, maxTotal) {
+    const listEl = document.getElementById('multiRankingList');
+    if (!listEl || !multiResultScores || !multiResultPlayers) return;
+
+    const isGap = type === 'gap';
+    const getVal = s => type === 'total' ? s.total : type === 'yomi' ? s.yomi : type === 'mie' ? s.mie : s.gap;
+    const maxVal = type === 'total' ? maxTotal : maxYomiMie;
+
+    const sorted = [...multiResultPlayers]
+        .map(([id]) => multiResultScores[id])
+        .filter(Boolean)
+        .sort((a, b) => getVal(b) - getVal(a));
+
+    if (!isGap) {
+        sorted.forEach((p, i) => {
+            if (i === 0) p._rank = 1;
+            else if (getVal(p) === getVal(sorted[i-1])) p._rank = sorted[i-1]._rank;
+            else p._rank = i + 1;
+        });
+    }
+
+    listEl.innerHTML = sorted.map((p, i) => {
+        const val = getVal(p);
+        const delay = (sorted.length - 1 - i) * 0.10;
+
+        if (isGap) {
+            const gapColor = val >= maxYomiMie * 0.6 ? '#F87171' : val >= maxYomiMie * 0.3 ? '#FBBF24' : 'rgba(255,255,255,0.45)';
+            const gapLabel = val >= maxYomiMie * 0.6 ? '偏り大' : val >= maxYomiMie * 0.3 ? '偏り中' : '偏り小';
+            return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;animation:su 0.4s ${delay}s both;">
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.name)}</div>
+                    <div style="font-size:9px;color:rgba(255,255,255,0.35);">ヨミ${p.yomi}pt・ミエ${p.mie}pt</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                    <div style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:900;font-style:italic;color:${gapColor};">${val}<span style="font-size:9px;opacity:0.6;">pt差</span></div>
+                    <div style="font-size:9px;font-weight:700;color:${gapColor};">${gapLabel}</div>
+                </div>
+            </div>`;
+        }
+
+        const rank = p._rank;
+        const is1st = rank === 1;
+        const rankBadgeBg = is1st ? '#F59E0B' : rank===2 ? 'rgba(255,255,255,0.2)' : rank===3 ? 'rgba(180,100,30,0.45)' : 'rgba(255,255,255,0.08)';
+        const rankBadgeColor = rank<=3 ? '#fff' : 'rgba(255,255,255,0.4)';
+        const rankBadgeShadow = is1st ? 'box-shadow:0 0 0 3px rgba(245,158,11,0.35),0 0 14px rgba(245,158,11,0.5);' : '';
+        const rankBadgeSize = is1st ? '24px' : '20px';
+        const scoreColor = is1st ? '#F59E0B' : 'rgba(255,255,255,0.7)';
+        const nameSz = is1st ? '14px' : '12px';
+        const scoreSz = is1st ? '18px' : '14px';
+        const sub = type === 'total' ? `ヨミ${p.yomi}pt・ミエ${p.mie}pt` : '';
+
+        return `<div style="display:flex;align-items:center;gap:8px;padding:${is1st?'9px':'7px'} 10px;border-radius:8px;animation:su 0.4s ${delay}s both;">
+            <div style="display:flex;flex-direction:column;align-items:center;min-width:${is1st?'32px':'28px'};flex-shrink:0;">
+                <div style="width:${rankBadgeSize};height:${rankBadgeSize};border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:${is1st?'11px':'9px'};font-weight:900;font-style:italic;background:${rankBadgeBg};color:${rankBadgeColor};${rankBadgeShadow}">${rank}</div>
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:${nameSz};font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.name)}</div>
+                ${sub ? `<div style="font-size:9px;color:rgba(255,255,255,0.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sub}</div>` : ''}
+            </div>
+            <span style="font-family:'DM Sans',sans-serif;font-size:${scoreSz};font-weight:900;font-style:italic;color:${scoreColor};flex-shrink:0;">${val}<span style="font-size:9px;opacity:0.5;">/${maxVal}pt</span></span>
+        </div>`;
+    }).join('');
+}
+
+// みんなモード 個人詳細（理解度ランキング付き）
+function showMultiPersonResult(targetId) {
+    document.querySelectorAll('#resultTabs .person-tab').forEach(el => el.classList.remove('person-tab--active'));
+    document.getElementById(`resultTab_${targetId}`)?.classList.add('person-tab--active');
+
+    const data = room.data;
+    const target = data.players?.[targetId];
+    const correct = data.rankings?.[targetId];
+    if (!correct || !target) return;
+
+    const allPlayers = multiResultPlayers || Object.entries(data.players || {});
+    const understanding = calcUnderstandingRanking(targetId, data, allPlayers);
+    const SUFFIXES = ['st','nd','rd','th','th'];
+    const maxPtPerPerson = 50;
+
+    let html = `<div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正しいランク＆参加者の予想</div>`;
+
+    if (understanding.length > 0) {
+        html += `<div style="margin-bottom:14px;padding:10px 12px;background:#f8f9fa;border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:11px;font-weight:800;color:var(--text-secondary);margin-bottom:8px;">${escapeHtml(target.displayName)}さんの理解度ランキング</div>
+            ${understanding.map((u, i) => {
+                const ptColor = i === 0 ? '#F59E0B' : i === 1 ? 'var(--text-secondary)' : 'var(--text-muted)';
+                return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;${i < understanding.length-1 ? 'border-bottom:1px solid var(--border);' : ''}">
+                    <span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:900;font-style:italic;color:var(--text-muted);min-width:20px;">${i+1}</span>
+                    <span style="font-size:12px;font-weight:700;color:var(--text-primary);flex:1;">${escapeHtml(u.name)}</span>
+                    <span style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:900;font-style:italic;color:${ptColor};">${u.pts}<span style="font-size:9px;opacity:0.6;">/${maxPtPerPerson}pt</span></span>
+                </div>`;
+            }).join('')}
+        </div>`;
+    }
+
+    const guessers = understanding.map(u => [u.id, data.players[u.id]]).filter(([,g]) => g);
+
+    for (let rank = 1; rank <= 5; rank++) {
+        const item = correct[String(rank)];
+        html += `<div class="card" style="margin-bottom:6px;">
+            <div style="display:flex;align-items:center;margin-bottom:8px;gap:8px;">
+                <span style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:900;font-style:italic;color:var(--text-primary);min-width:28px;">${rank}<span style="font-size:10px;">${SUFFIXES[rank-1]}</span></span>
+                <span style="font-size:14px;font-weight:700;word-break:break-all;overflow-wrap:break-word;">${escapeHtml(item)}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border);padding-top:6px;">
+                ${guessers.map(([gId, g]) => {
+                    const guess = data.guesses?.[gId]?.[targetId];
+                    let gRank = 0;
+                    if (guess) for (let r = 1; r <= 5; r++) { if (guess[String(r)] === item) { gRank = r; break; } }
+                    const diff = gRank > 0 ? Math.abs(gRank - rank) : 99;
+                    const { icon, label, color } = gRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ', color: '#334155' };
+                    const pt = gRank > 0 ? calcItemScore(diff) : 0;
+                    const rankDisplay = gRank > 0 ? `${gRank}${SUFFIXES[gRank-1]}` : '-';
+                    const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
+                    return `<div style="display:flex;align-items:center;justify-content:flex-end;font-size:12px;gap:6px;">
+                        <span style="font-weight:700;color:var(--text-primary);">${escapeHtml(g.displayName)}</span>
+                        <span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;font-style:italic;color:var(--text-primary);">${rankDisplay}</span>
+                        <span style="color:${color};font-weight:700;font-size:11px;">${icon} ${label}</span>
+                        <span style="color:${color};font-weight:800;min-width:36px;text-align:right;">${ptDisplay}</span>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
+    }
+    document.getElementById('resultPersonDetail').innerHTML = html;
+}
+
 function renderOnlineResultScreen(data) {
+    if (data.gameMode === 'multi') {
+        renderMultiResultScreen(data);
+        return;
+    }
     const players = Object.entries(data.players || {});
 
     // スコア計算（内訳も集計）

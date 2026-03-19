@@ -562,6 +562,22 @@ input, textarea { font-family: inherit; }
 /* --- 結果発表アニメーション --- */
 @keyframes su { to { opacity: 1; transform: translateY(0); } }
 
+/* --- みんなモード結果：ランキング種別タブ --- */
+.result-type-tabs {
+  display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+  margin-bottom: 6px;
+}
+.result-type-tab {
+  flex-shrink: 0; padding: 4px 12px;
+  border: 1.5px solid rgba(255,255,255,0.35); border-radius: 20px;
+  background: transparent; color: rgba(255,255,255,0.55);
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  transition: all 0.15s;
+}
+.result-type-tab--active {
+  border-color: #fff; background: #fff; color: var(--text-primary);
+}
+
 /* ==========================================
    テーマ選択画面 専用スタイル
    ========================================== */
