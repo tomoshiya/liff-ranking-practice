@@ -29,7 +29,7 @@ function startPairMode() {
     room.mode = 'pair';
     document.getElementById('roomSelectModeLabel').textContent = 'ふたりであそぶ';
     const ci = document.getElementById('roomCodeInput');
-    if (ci) { ci.maxLength = 4; ci.placeholder = '1234'; }
+    if (ci) { ci.maxLength = 4; ci.placeholder = '1234'; ci.value = ''; }
     const lbl = document.getElementById('roomCodeLabel');
     if (lbl) lbl.textContent = '部屋番号（4桁）';
     prefillJoinName();
@@ -41,7 +41,7 @@ function startMultiMode() {
     room.mode = 'multi';
     document.getElementById('roomSelectModeLabel').textContent = 'みんなであそぶ';
     const ci = document.getElementById('roomCodeInput');
-    if (ci) { ci.maxLength = 5; ci.placeholder = '12345'; }
+    if (ci) { ci.maxLength = 5; ci.placeholder = '12345'; ci.value = ''; }
     const lbl = document.getElementById('roomCodeLabel');
     if (lbl) lbl.textContent = '部屋番号（5桁）';
     prefillJoinName();
@@ -94,7 +94,8 @@ async function createRoom() {
         roomData.players[App.userProfile.userId] = {
             displayName: App.displayName,
             firebaseUid: firebase.auth().currentUser.uid,
-            status: 'waiting'
+            status: 'waiting',
+            joinedAt: Date.now()
         };
 
         await roomsRef.child(roomId).set(roomData);
@@ -192,7 +193,8 @@ async function joinRoom() {
                 [`players/${App.userProfile.userId}`]: {
                     displayName: guestName,
                     firebaseUid: firebase.auth().currentUser.uid,
-                    status: 'waiting'
+                    status: 'waiting',
+                    joinedAt: Date.now()
                 },
                 lastActivityAt: Date.now()
             });
@@ -877,10 +879,11 @@ function renderGuessScreen(data) {
     const submitBtn = document.getElementById('submitGuessBtn');
     if (submitBtn) { submitBtn.style.display = 'block'; submitBtn.disabled = true; submitBtn.textContent = '予想を確定する'; }
 
-    const players = Object.entries(data.players || {});
+    const players = Object.entries(data.players || {})
+        .sort(([,a],[,b]) => (a.joinedAt || 0) - (b.joinedAt || 0));
     const targets = players.filter(([id]) => id !== App.userProfile.userId);
 
-    // タブ（Bug3修正: 関数名を直接記述）
+    // タブ（参加順にソート済み）
     document.getElementById('guessTabs').innerHTML = targets.map(([id, p], i) => `
         <div class="person-tab${i === 0 ? ' person-tab--active' : ''}"
              id="guessTab_${id}" onclick="onlineSwitchGuessTab('${id}')">${escapeHtml(p.displayName)}</div>

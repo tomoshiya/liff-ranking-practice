@@ -72,6 +72,11 @@ async function onLiffReady() {
         initTopScreen();
         showScreen('topScreen');
 
+        // 9. 初回訪問（LocalStorageに名前がない）なら名前入力を強制
+        if (!savedName) {
+            openFirstTimeNameModal();
+        }
+
     } catch (err) {
         console.error('初期化エラー:', err);
         hideLoading();
@@ -133,8 +138,23 @@ function initTopScreen() {
 // ========================================
 
 function openNameModal() {
+    const modal = document.getElementById('nameModal');
+    modal.querySelector('.modal__title').textContent = 'ゲーム内の名前';
+    modal.querySelector('.modal__desc').textContent = 'ゲーム内で他の参加者に表示されます。後からトップ画面で変更できます。';
+    document.getElementById('nameCancelBtn').style.display = 'block';
     document.getElementById('nameModalInput').value = App.displayName || '';
-    document.getElementById('nameModal').classList.add('modal-overlay--active');
+    modal.classList.add('modal-overlay--active');
+    setTimeout(() => document.getElementById('nameModalInput').focus(), 100);
+}
+
+// 初回訪問時：キャンセル不可の強制入力モーダル
+function openFirstTimeNameModal() {
+    const modal = document.getElementById('nameModal');
+    modal.querySelector('.modal__title').textContent = 'ニックネームを設定してください';
+    modal.querySelector('.modal__desc').textContent = 'ゲーム内で表示される名前です。10文字以内で入力してください。';
+    document.getElementById('nameCancelBtn').style.display = 'none';
+    document.getElementById('nameModalInput').value = App.userProfile?.displayName || '';
+    modal.classList.add('modal-overlay--active');
     setTimeout(() => document.getElementById('nameModalInput').focus(), 100);
 }
 
