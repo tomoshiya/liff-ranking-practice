@@ -142,9 +142,9 @@ todos:
 ```
 【完了】Phase 1〜4: α版機能の実装
     ↓
-【進行中】Phase 5: バックエンド基盤整備（β公開の前提条件）
+【完了】Phase 5: バックエンド基盤整備（β公開の前提条件）
     ↓
-【予定】Phase 6: フロントエンドUX改善（ワイヤーフレームから設計）
+【進行中】Phase 6: β版リビルド・UX実装（betaブランチで友人公開中）
     ↓
 【将来】Phase 7: マネタイズ基盤（有料テーマパック・決済）
 ```
@@ -165,7 +165,7 @@ todos:
 |---|---|---|---|
 | `main` | 本番リリース | GitHub Pages | RankQuest（α版）`2008911809-CBLKsbT1` |
 | `develop` | α版の開発・テスト用 | Netlify (develop) | RankQuest Dev `2008911809-43mMnuKh` |
-| `beta` | β版リビルド専用 | Netlify (beta) | Rank-Q beta `2008911809-x8vw37eD` |
+| `beta` | β版リビルド専用 | Netlify (beta) | RankIs β公開用 `2009531665-WfL81Nvy` |
 
 ### 開発フロー
 
@@ -185,6 +185,8 @@ developブランチで開発
 | 本番LIFF | `https://liff.line.me/2008911809-CBLKsbT1` |
 | 開発アプリ | `https://dashing-granita-b6aef3.netlify.app/` |
 | 開発LIFF | `https://liff.line.me/2008911809-43mMnuKh` |
+| β版アプリ | `https://beta--dashing-granita-b6aef3.netlify.app/` |
+| β版LIFF（公開） | `https://liff.line.me/2009531665-WfL81Nvy` |
 
 ---
 
@@ -376,6 +378,25 @@ beta      ← β版リビルドブランチ（新規作成）
 | ふたりであそぶ | Firebase gameRooms使用 |
 | みんなであそぶ | Firebase gameRooms使用 |
 | 1台であそぶ | ローカル処理のみ |
+
+### β版 実装済み機能（2026-03-20時点）
+
+| 機能 | 状態 | 備考 |
+|------|------|------|
+| ふたりであそぶ（オンライン） | ✅ 完了 | Firebase gameRooms使用 |
+| みんなであそぶ（3人以上） | ✅ 完了 | Firebase gameRooms使用・3人以上必須 |
+| 1台であそぶ（ローカル） | ✅ 完了 | Firebase不使用 |
+| テーマFirebase管理 | ✅ 完了 | Firebase Consoleで追加・管理可能 |
+| LocalStorageゲーム履歴 | ✅ 完了 | プレイ履歴の保存・表示 |
+| 初回ニックネーム強制入力 | ✅ 完了 | 初回ログイン時にモーダル表示 |
+| テーマ選択：ゲスト閲覧 | ✅ 完了 | read-onlyでホストと同じ一覧を表示 |
+| みんなモード結果発表4タブ | ✅ 完了 | 総合/ヨミpt/ミエpt/ヨミミエgap |
+| 理解度ランキング（個人詳細） | ✅ 完了 | 誰がAさんをどれだけ理解しているか |
+| 公開β LIFF（友人向け） | ✅ 完了 | 新LINEチャンネル `2009531665-WfL81Nvy` |
+| IBM Plex Mono ロゴフォント | ✅ 完了 | RankIs ロゴに適用 |
+| テーマ途中退出フロー | ⬜ 未着手 | P-08：優先度高 |
+| テーマパック説明・タグ | ⬜ 未着手 | P-06 |
+| 「自分でつくる」直接入力 | ⬜ 未着手 | P-12 |
 
 ### 確定済みスコアリング（2026年3月）
 
