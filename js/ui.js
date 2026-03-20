@@ -77,17 +77,9 @@ function hideBottomSheet(sheetId) {
 
 // テーマカード描画
 function renderThemeCard(themeText, packId = 'basic', container) {
-    const PACK_COLORS = {
-        basic:  '#2C3E50',
-        love:   '#8B3A52',
-        secret: '#3A2D6B',
-        work:   '#1C3D2E',
-        if:     '#5C3A1E',
-        myself: '#1C3A5C'
-    };
-    const color = PACK_COLORS[packId] || PACK_COLORS.basic;
-
-    const packLabel = packId === 'custom' ? 'ORIGINAL' : packId.toUpperCase();
+    // パック色・ラベルは themes.js の getPackColor() / getPackLabel() で一元管理
+    const color = getPackColor(packId);
+    const packLabel = getPackLabel(packId);
     container.innerHTML = `
         <div class="theme-card" style="background:${color};">
             <div class="theme-card__white">
