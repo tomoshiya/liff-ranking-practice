@@ -165,7 +165,7 @@ todos:
 |---|---|---|---|
 | `main` | 本番リリース | GitHub Pages | RankQuest（α版）`2008911809-CBLKsbT1` |
 | `develop` | α版の開発・テスト用 | Netlify (develop) | RankQuest Dev `2008911809-43mMnuKh` |
-| `beta` | β版リビルド専用 | Netlify (beta) | RankIs β公開用 `2009531665-WfL81Nvy` |
+| `beta` | β版リビルド専用 | Netlify (beta) | RankNow β公開用 `2009531665-WfL81Nvy` |
 
 ### 開発フロー
 
@@ -393,7 +393,7 @@ beta      ← β版リビルドブランチ（新規作成）
 | みんなモード結果発表4タブ | ✅ 完了 | 総合/ヨミpt/ミエpt/ヨミミエgap |
 | 理解度ランキング（個人詳細） | ✅ 完了 | 誰がAさんをどれだけ理解しているか |
 | 公開β LIFF（友人向け） | ✅ 完了 | 新LINEチャンネル `2009531665-WfL81Nvy` |
-| IBM Plex Mono ロゴフォント | ✅ 完了 | RankIs ロゴに適用 |
+| DM Sans italic ロゴフォント | ✅ 完了 | RankNow ロゴに適用（旧Rank-Qスタイルの斜め太字） |
 | テーマ途中退出フロー | ⬜ 未着手 | P-08：優先度高 |
 | テーマパック説明・タグ | ⬜ 未着手 | P-06 |
 | 「自分でつくる」直接入力 | ⬜ 未着手 | P-12 |
