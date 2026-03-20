@@ -390,17 +390,7 @@ let currentPackFilter = 'all';
 let customThemeText = '';
 let isGuestReadOnlyTheme = false;
 
-const PACK_COLORS = {
-    'basic': '#2C3E50',
-    'ベーシック': '#2C3E50',
-    'love': '#8B3A52',
-    'ラブ': '#8B3A52',
-    'secret': '#3A2D6B',
-    'シークレット': '#3A2D6B',
-    'work': '#1C3D2E',
-    'ワーク': '#1C3D2E',
-};
-const DEFAULT_PACK_COLOR = '#2C3E50';
+// パック色・ラベルは themes.js の getPackColor() / getPackLabel() から取得（Firebase管理）
 
 // 全モード共通: テーマ選択画面を表示（ホスト用）
 function showSharedThemeSelect() {
@@ -448,12 +438,19 @@ function showGuestThemeBrowse() {
 
 // パックタブ描画
 function renderPackTabs() {
-    const packs = ['all', ...new Set(themes.filter(t => t.pack).map(t => t.pack))];
-    const PACK_LABELS = { all: 'すべて', basic: 'ベーシック', ベーシック: 'ベーシック', love: 'ラブ', ラブ: 'ラブ', secret: 'シークレット', シークレット: 'シークレット', work: 'ワーク', ワーク: 'ワーク' };
-    document.getElementById('packTabsRow').innerHTML = packs.map(p => `
-        <div class="pack-tab-item ${p === currentPackFilter ? 'pack-tab-item--active' : ''}"
-             onclick="switchPackFilter('${p}')">${PACK_LABELS[p] || p}</div>
-    `).join('');
+    // packMetaのorder順でパックを並べる
+    const usedPacks = [...new Set(themes.filter(t => t.pack).map(t => t.pack))];
+    const sortedPacks = usedPacks.sort((a, b) => {
+        const oa = packMeta[a]?.order ?? 99;
+        const ob = packMeta[b]?.order ?? 99;
+        return oa - ob;
+    });
+    const packs = ['all', ...sortedPacks];
+    document.getElementById('packTabsRow').innerHTML = packs.map(p => {
+        const label = p === 'all' ? 'すべて' : (packMeta[p]?.label || p);
+        return `<div class="pack-tab-item ${p === currentPackFilter ? 'pack-tab-item--active' : ''}"
+             onclick="switchPackFilter('${p}')">${label}</div>`;
+    }).join('');
 }
 
 // パックフィルター切替
@@ -474,8 +471,8 @@ function renderThemeCards(pack) {
     const scroll = document.getElementById('themeCardsScroll');
     scroll.innerHTML = filtered.map(t => {
         const origIdx = themes.indexOf(t);
-        const color = PACK_COLORS[t.pack] || DEFAULT_PACK_COLOR;
-        const packLabel = t.pack === 'custom' ? 'ORIGINAL' : (t.pack || 'BASIC');
+        const color = getPackColor(t.pack);
+        const packLabel = getPackLabel(t.pack);
         return `<div class="theme-card-item" id="themeCardItem_${origIdx}"
                      onclick="selectTheme(${origIdx})"
                      style="background:${color};">
@@ -483,7 +480,7 @@ function renderThemeCards(pack) {
                 <span class="theme-card__text">${escapeHtml(t.text)}</span>
             </div>
             <div class="theme-card-check"><div class="theme-card-check-circle">✓</div></div>
-            <span class="theme-card__pack">${escapeHtml(packLabel.toUpperCase())}</span>
+            <span class="theme-card__pack">${escapeHtml(packLabel)}</span>
         </div>`;
     }).join('');
 
@@ -1247,7 +1244,7 @@ function renderMultiResultScreen(data) {
     const n = players.length;
     const maxYomiMie = (n - 1) * 50;
     const maxTotal = (n - 1) * 100;
-    const packColor = PACK_COLORS[data.themePack] || DEFAULT_PACK_COLOR;
+    const packColor = getPackColor(data.themePack);
     const isHost = room.role === 'host';
 
     const heroEl = document.getElementById('resultHero');
@@ -1260,7 +1257,7 @@ function renderMultiResultScreen(data) {
                 <div class="theme-card__white">
                     <span class="theme-card__text">${escapeHtml(data.theme)}</span>
                 </div>
-                <span class="theme-card__pack">${escapeHtml(data.themePack === 'custom' ? 'ORIGINAL' : (data.themePack || 'basic').toUpperCase())}</span>
+                <span class="theme-card__pack">${escapeHtml(getPackLabel(data.themePack))}</span>
             </div>
         </div>
         <div class="result-type-tabs" id="resultTypeTabs">
@@ -1515,7 +1512,7 @@ function renderOnlineResultScreen(data) {
 
     const targetCount = players.length - 1;
     const maxScore = targetCount * 50;
-    const packColor = PACK_COLORS[data.themePack] || DEFAULT_PACK_COLOR;
+    const packColor = getPackColor(data.themePack);
     const isHost = room.role === 'host';
 
     // ヒーロー描画（テーマカード中央配置、参加人数・最大PT削除）
@@ -1529,7 +1526,7 @@ function renderOnlineResultScreen(data) {
                 <div class="theme-card__white">
                     <span class="theme-card__text">${escapeHtml(data.theme)}</span>
                 </div>
-                <span class="theme-card__pack">${escapeHtml(data.themePack === 'custom' ? 'ORIGINAL' : (data.themePack || 'basic').toUpperCase())}</span>
+                <span class="theme-card__pack">${escapeHtml(getPackLabel(data.themePack))}</span>
             </div>
         </div>
         <div style="font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;">ランキング</div>
