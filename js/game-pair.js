@@ -392,12 +392,20 @@ let isGuestReadOnlyTheme = false;
 
 // パック色・ラベルは themes.js の getPackColor() / getPackLabel() から取得（Firebase管理）
 
+// 最初に表示すべきパックID（order最小）を返す
+function getFirstPackId() {
+    const ids = Object.values(packMeta)
+        .filter(p => p.isActive !== false)
+        .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+    return ids.length > 0 ? ids[0].id : 'all';
+}
+
 // 全モード共通: テーマ選択画面を表示（ホスト用）
 function showSharedThemeSelect() {
     isGuestReadOnlyTheme = false;
     sharedSelectedThemeIdx = -1;
     customThemeText = '';
-    currentPackFilter = 'all';
+    currentPackFilter = getFirstPackId();
     themeInputMode = 'pack';
     document.getElementById('confirmThemeBtn').disabled = true;
 
@@ -406,7 +414,7 @@ function showSharedThemeSelect() {
     document.querySelector('#themeSelectScreen .bottom-bar').style.display = '';
 
     renderPackTabs();
-    renderThemeCards('all');
+    renderThemeCards(currentPackFilter);
     setThemeInputMode('pack');
 
     showScreen('themeSelectScreen');
@@ -422,7 +430,7 @@ function showGuestThemeBrowse() {
     isGuestReadOnlyTheme = true;
     sharedSelectedThemeIdx = -1;
     customThemeText = '';
-    currentPackFilter = 'all';
+    currentPackFilter = getFirstPackId();
     themeInputMode = 'pack';
 
     document.getElementById('themeGuestBanner').style.display = 'block';
@@ -430,7 +438,7 @@ function showGuestThemeBrowse() {
     document.querySelector('#themeSelectScreen .bottom-bar').style.display = 'none';
 
     renderPackTabs();
-    renderThemeCards('all');
+    renderThemeCards(currentPackFilter);
     setThemeInputMode('pack');
 
     showScreen('themeSelectScreen');
@@ -438,19 +446,20 @@ function showGuestThemeBrowse() {
 
 // パックタブ描画
 function renderPackTabs() {
-    // packMetaのorder順でパックを並べる
+    // packMetaのorder順でパックを並べ、「すべて」を最後に
     const usedPacks = [...new Set(themes.filter(t => t.pack).map(t => t.pack))];
     const sortedPacks = usedPacks.sort((a, b) => {
         const oa = packMeta[a]?.order ?? 99;
         const ob = packMeta[b]?.order ?? 99;
         return oa - ob;
     });
-    const packs = ['all', ...sortedPacks];
+    const packs = [...sortedPacks, 'all'];
     document.getElementById('packTabsRow').innerHTML = packs.map(p => {
         const label = p === 'all' ? 'すべて' : (packMeta[p]?.label || p);
         return `<div class="pack-tab-item ${p === currentPackFilter ? 'pack-tab-item--active' : ''}"
              onclick="switchPackFilter('${p}')">${label}</div>`;
     }).join('');
+    renderPackDesc(currentPackFilter);
 }
 
 // パックフィルター切替
@@ -463,6 +472,16 @@ function switchPackFilter(pack) {
     }
     renderPackTabs();
     renderThemeCards(pack);
+    renderPackDesc(pack);
+}
+
+// パック説明文の描画
+function renderPackDesc(pack) {
+    const el = document.getElementById('packDescArea');
+    if (!el) return;
+    const desc = pack !== 'all' ? (packMeta[pack]?.description || '') : '';
+    el.textContent = desc;
+    el.style.display = desc ? 'block' : 'none';
 }
 
 // テーマカード横スクロール描画
