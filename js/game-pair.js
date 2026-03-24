@@ -546,7 +546,7 @@ function selectTheme(idx) {
 
     const theme = themes[idx];
     const panel = document.getElementById('themeInfoPanel');
-    document.getElementById('themeInfoText').textContent = theme.text;
+    document.getElementById('themeInfoText').textContent = theme.text.replace(/\n/g, '');
     panel.style.display = 'block';
 
     document.getElementById('confirmThemeBtn').disabled = false;

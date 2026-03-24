@@ -183,7 +183,7 @@ input, textarea { font-family: inherit; }
   clip-path: polygon(55px 0%, 100% 0%, 100% 100%, 33px 100%);
   inset: 0; background: rgba(255,255,255,0.92);
   display: flex; align-items: center; justify-content: center;
-  padding: 8px 12px 8px 58px;
+  padding: 8px 12px 8px 55px;
 }
 .theme-card__text {
   font-size: var(--card-text-size); font-weight: 700;
@@ -619,7 +619,7 @@ input, textarea { font-family: inherit; }
 
 /* パック説明文エリア（カード型） */
 .pack-desc-area {
-  margin: 6px 20px 0;
+  margin: 6px 20px 8px;
   padding: 10px 14px;
   border-radius: 10px;
   flex-shrink: 0;
