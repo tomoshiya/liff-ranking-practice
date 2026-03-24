@@ -188,7 +188,7 @@ input, textarea { font-family: inherit; }
 .theme-card__text {
   font-size: var(--card-text-size); font-weight: 700;
   color: #1A1917; line-height: 1.4;
-  word-break: break-all;
+  word-break: break-all; white-space: pre-line;
 }
 .theme-card__pack {
   position: absolute; bottom: 8px; left: 12px;
