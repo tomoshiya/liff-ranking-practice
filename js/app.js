@@ -64,15 +64,22 @@ async function onLiffReady() {
         // 6. URLパラメータチェック
         checkUrlParameters();
 
-        // 7. セッション復元チェック
-        checkSessionRestore();
+        // 7. 古い部屋のクリーンアップ & セッション復元チェック（並列実行）
+        const [, rejoinData] = await Promise.all([cleanupOldRooms(), checkSessionRestore()]);
 
         // 8. トップ画面へ
         hideLoading();
         initTopScreen();
         showScreen('topScreen');
 
-        // 9. 初回訪問（LocalStorageに名前がない）なら名前入力を強制
+        // 9. 復帰モーダル or 強制終了通知
+        if (rejoinData === 'stale') {
+            showToast('30分以上更新がなかったため、ゲームは強制終了となりました。', 'error');
+        } else if (rejoinData) {
+            showRejoinModal(rejoinData);
+        }
+
+        // 10. 初回訪問（LocalStorageに名前がない）なら名前入力を強制
         if (!savedName) {
             openFirstTimeNameModal();
         }
@@ -94,21 +101,81 @@ function checkUrlParameters() {
     if (roomId) App.deepLinkRoomId = roomId;
 }
 
-// セッション復元チェック
-function checkSessionRestore() {
+// 放置部屋の自動削除（lastActivityAt が ROOM_TIMEOUT_MS 超過）
+const ROOM_TIMEOUT_MS = 30 * 60 * 1000;
+
+async function cleanupOldRooms() {
+    try {
+        const snap = await database.ref('gameRooms').once('value');
+        if (!snap.exists()) return;
+        const updates = {};
+        snap.forEach(child => {
+            const r = child.val();
+            if (r.lastActivityAt && (Date.now() - r.lastActivityAt) > ROOM_TIMEOUT_MS) {
+                updates[child.key] = null;
+            }
+        });
+        if (Object.keys(updates).length > 0) {
+            await database.ref('gameRooms').update(updates);
+        }
+    } catch (e) {
+        console.warn('古い部屋のクリーンアップエラー:', e);
+    }
+}
+
+// セッション復元チェック（非同期・Firebase確認）
+// 戻り値: null（なし）| 'stale'（強制終了済み）| { roomId, data, isHost }（復帰可能）
+async function checkSessionRestore() {
+    // 旧セッションの1時間超過クリア
     const session = getCurrentSession();
-    if (!session) return;
-
-    const elapsed = Date.now() - (session.savedAt || 0);
-    const ONE_HOUR = 60 * 60 * 1000;
-
-    if (elapsed > ONE_HOUR) {
+    if (session && Date.now() - (session.savedAt || 0) > 60 * 60 * 1000) {
         clearCurrentSession();
-        return;
     }
 
-    // TODO: セッション復元ダイアログを表示
-    console.log('📦 復元可能なセッションがあります:', session.mode, session.roomId);
+    const roomId = localStorage.getItem('rankq_activeRoom');
+    if (!roomId) return null;
+
+    try {
+        const snap = await database.ref('gameRooms/' + roomId).once('value');
+        if (!snap.exists()) {
+            localStorage.removeItem('rankq_activeRoom');
+            return null;
+        }
+        const data = snap.val();
+        const userId = App.userProfile.userId;
+        const TERMINAL = ['finished', 'aborted', 'closed'];
+
+        if (!data.players?.[userId] || TERMINAL.includes(data.status)) {
+            localStorage.removeItem('rankq_activeRoom');
+            return null;
+        }
+
+        const TIMEOUT_MS = 30 * 60 * 1000;
+        const isStale = (Date.now() - (data.lastActivityAt || 0)) > TIMEOUT_MS;
+        const isHost = data.hostId === userId;
+
+        if (isStale) {
+            localStorage.removeItem('rankq_activeRoom');
+            try {
+                if (isHost) {
+                    await database.ref('gameRooms/' + roomId).remove();
+                } else {
+                    await database.ref(`gameRooms/${roomId}/players/${userId}`).remove();
+                    const rem = await database.ref(`gameRooms/${roomId}/players`).once('value');
+                    if (rem.numChildren() < 3) {
+                        await database.ref(`gameRooms/${roomId}/status`).set('aborted');
+                    }
+                }
+            } catch (e) { console.error('stale room cleanup error:', e); }
+            return 'stale';
+        }
+
+        return { roomId, data, isHost };
+    } catch (e) {
+        console.error('セッション復元チェックエラー:', e);
+        localStorage.removeItem('rankq_activeRoom');
+        return null;
+    }
 }
 
 // ========================================

@@ -232,6 +232,7 @@
 <div id="waitingRoomHostScreen" class="screen">
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
+    <button class="btn-back-home" onclick="handleExitRequest()">← HOME</button>
     <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);margin-bottom:8px;">部屋番号</div>
     <div class="room-code" id="waitingRoomCode">----</div>
     <div style="margin-top:12px;">
@@ -266,6 +267,7 @@
 <div id="waitingRoomGuestScreen" class="screen">
   <div class="hero" style="text-align:center;">
     <div class="hero__bubble hero__bubble--1"></div>
+    <button class="btn-back-home" onclick="handleExitRequest()">← HOME</button>
     <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);margin-bottom:8px;">部屋番号</div>
     <div class="room-code" id="waitingRoomCodeGuest" style="font-size:36px;margin-bottom:20px;">----</div>
     <div class="waiting-dots" style="margin-bottom:12px;">
@@ -285,6 +287,7 @@
 <div id="themeWaitingScreen" class="screen">
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
+    <button class="btn-back-home" onclick="handleExitRequest()">← HOME</button>
     <div class="step-indicator">
       <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">テーマ選択</div></div>
       <div class="step-sep"></div>
@@ -326,6 +329,7 @@
 <div id="themeSelectScreen" class="screen">
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
+    <button class="btn-back-home" onclick="handleExitRequest()">← HOME</button>
     <div class="step-indicator">
       <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">テーマ選択</div></div>
       <div class="step-sep"></div>
@@ -398,6 +402,7 @@
 <div id="rankingInputScreen" class="screen">
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
+    <button class="btn-back-home" onclick="handleExitRequest()">← HOME</button>
     <button class="help-btn" onclick="openHelpSheet()">?</button>
     <div class="step-indicator">
       <div class="step-item"><div class="step-dot step-dot--done"></div><div class="step-label">テーマ選択</div></div>
@@ -448,6 +453,7 @@
 <div id="rankingGuessScreen" class="screen">
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
+    <button class="btn-back-home" onclick="handleExitRequest()">← HOME</button>
     <button class="help-btn" onclick="openHelpSheet()">?</button>
     <div class="step-indicator">
       <div class="step-item"><div class="step-dot step-dot--done"></div><div class="step-label">テーマ選択</div></div>
@@ -696,6 +702,28 @@
     <div class="bottomsheet__handle"></div>
     <div class="bottomsheet__title">ゲーム履歴</div>
     <div id="historySheetList"></div>
+  </div>
+</div>
+
+<!-- ========================================
+     確認モーダル（共通ボトムシート）
+     ======================================== -->
+<div id="confirmOverlay" class="confirm-overlay" style="display:none;">
+  <div class="confirm-sheet">
+    <div class="confirm-sheet__title" id="confirmTitle"></div>
+    <div class="confirm-sheet__body" id="confirmBody"></div>
+    <div class="confirm-sheet__actions" id="confirmActions"></div>
+  </div>
+</div>
+
+<!-- ========================================
+     復帰モーダル
+     ======================================== -->
+<div id="rejoinOverlay" class="confirm-overlay" style="display:none;">
+  <div class="confirm-sheet">
+    <div class="confirm-sheet__title">前回のゲームが見つかりました</div>
+    <div class="confirm-sheet__body" id="rejoinBody"></div>
+    <div class="confirm-sheet__actions" id="rejoinActions"></div>
   </div>
 </div>
 

@@ -100,6 +100,7 @@ async function createRoom() {
 
         await roomsRef.child(roomId).set(roomData);
         room = { roomId, role: 'host', mode: room.mode, data: roomData };
+        localStorage.setItem('rankq_activeRoom', roomId);
 
         renderWaitingRoomHost(roomData);
         showScreen('waitingRoomHostScreen');
@@ -205,6 +206,7 @@ async function joinRoom() {
         saveDisplayName(guestName);
 
         room = { roomId, role: 'guest', mode: roomData.gameMode, data: roomData };
+        localStorage.setItem('rankq_activeRoom', roomId);
 
         const updatedSnap = await roomRef.once('value');
         renderWaitingRoomGuest(updatedSnap.val());
@@ -227,16 +229,150 @@ async function joinRoom() {
 // ========================================
 
 async function closeRoom() {
-    if (!confirm('部屋を閉じますか？\n全員が退出されます。')) return;
+    handleExitRequest();
+}
+
+// ========================================
+// 退出リクエスト（確認モーダル共通エントリ）
+// ========================================
+function handleExitRequest() {
+    const status = room.data?.status;
+    const isFinished = status === 'finished';
+    const isMultiGuest = room.mode === 'multi' && room.role === 'guest';
+
+    if (isFinished) {
+        showConfirmModal(
+            'HOMEに戻りますか？',
+            '',
+            [
+                { label: 'HOMEに戻る', cls: 'btn btn--primary', fn: 'doExitGame()' },
+                { label: 'キャンセル', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }
+            ]
+        );
+    } else if (isMultiGuest) {
+        showConfirmModal(
+            '退出しますか？',
+            '人数が3名に満たない場合はゲームが終了します。',
+            [
+                { label: '退出する', cls: 'btn btn--danger', fn: 'doExitGuest()' },
+                { label: 'キャンセル', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }
+            ]
+        );
+    } else {
+        showConfirmModal(
+            '退出しますか？',
+            '全員のゲームが終了します。',
+            [
+                { label: '退出する', cls: 'btn btn--danger', fn: 'doExitHost()' },
+                { label: 'キャンセル', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }
+            ]
+        );
+    }
+}
+
+function showConfirmModal(title, body, actions) {
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmBody').textContent = body;
+    document.getElementById('confirmBody').style.display = body ? 'block' : 'none';
+    document.getElementById('confirmActions').innerHTML = actions.map(a =>
+        `<button class="${a.cls}" onclick="${a.fn}">${a.label}</button>`
+    ).join('');
+    document.getElementById('confirmOverlay').style.display = 'flex';
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirmOverlay').style.display = 'none';
+}
+
+async function doExitHost() {
+    closeConfirmModal();
+    localStorage.removeItem('rankq_activeRoom');
     try {
         if (room.roomId && database) {
             await database.ref('gameRooms/' + room.roomId).remove();
         }
-    } catch (err) {
-        console.error('部屋削除エラー:', err);
-    }
+    } catch (e) { console.error('部屋削除エラー:', e); }
     cleanupRoom();
     showScreen('topScreen');
+}
+
+async function doExitGuest() {
+    closeConfirmModal();
+    localStorage.removeItem('rankq_activeRoom');
+    try {
+        const roomId = room.roomId;
+        const userId = App.userProfile.userId;
+        await database.ref(`gameRooms/${roomId}/players/${userId}`).remove();
+        const snap = await database.ref(`gameRooms/${roomId}/players`).once('value');
+        if (snap.numChildren() < 3) {
+            await database.ref(`gameRooms/${roomId}/status`).set('aborted');
+        }
+    } catch (e) { console.error('退出エラー:', e); }
+    cleanupRoom();
+    showScreen('topScreen');
+}
+
+function doExitGame() {
+    closeConfirmModal();
+    localStorage.removeItem('rankq_activeRoom');
+    cleanupRoom();
+    showScreen('topScreen');
+}
+
+// ========================================
+// 復帰モーダル
+// ========================================
+let _rejoinRoomId = null;
+let _rejoinIsHost = false;
+
+function showRejoinModal({ roomId, data, isHost }) {
+    _rejoinRoomId = roomId;
+    _rejoinIsHost = isHost;
+
+    const players = Object.values(data.players || {});
+    const memberNames = players.map(p => p.displayName).join('、');
+    const phaseLabel = { waiting: '待機中', setting: 'テーマ選択中', inputting: 'ランク入力中', guessing: 'ランク予想中' }[data.status] || data.status;
+
+    document.getElementById('rejoinBody').innerHTML =
+        `<div style="margin-bottom:6px;">参加者：${escapeHtml(memberNames)}</div>` +
+        `<div>フェーズ：${phaseLabel}</div>`;
+
+    document.getElementById('rejoinActions').innerHTML =
+        `<button class="btn btn--primary" onclick="doRejoinGame()">ゲームに戻る</button>` +
+        `<button class="btn btn--outline" onclick="doCancelRejoin()">このまま新しくはじめる</button>`;
+
+    document.getElementById('rejoinOverlay').style.display = 'flex';
+}
+
+function doRejoinGame() {
+    document.getElementById('rejoinOverlay').style.display = 'none';
+    const roomId = _rejoinRoomId;
+    // gameMode を Firebase から取得済みのデータで復元
+    database.ref('gameRooms/' + roomId).once('value').then(snap => {
+        if (!snap.exists()) { showToast('部屋が見つかりませんでした', 'error'); return; }
+        const d = snap.val();
+        room = { roomId, role: _rejoinIsHost ? 'host' : 'guest', mode: d.gameMode, data: d };
+        startRoomListener(roomId);
+    });
+}
+
+async function doCancelRejoin() {
+    document.getElementById('rejoinOverlay').style.display = 'none';
+    localStorage.removeItem('rankq_activeRoom');
+    const roomId = _rejoinRoomId;
+    const userId = App.userProfile.userId;
+    try {
+        if (_rejoinIsHost) {
+            await database.ref('gameRooms/' + roomId).remove();
+        } else {
+            await database.ref(`gameRooms/${roomId}/players/${userId}`).remove();
+            const rem = await database.ref(`gameRooms/${roomId}/players`).once('value');
+            if (rem.numChildren() < 3) {
+                await database.ref(`gameRooms/${roomId}/status`).set('aborted');
+            }
+        }
+    } catch (e) { console.error('rejoin cancel error:', e); }
+    _rejoinRoomId = null;
 }
 
 function cleanupRoom() {
@@ -264,8 +400,9 @@ function startRoomListener(roomId) {
 
     roomRef.on('value', snap => {
         if (!snap.exists()) {
+            localStorage.removeItem('rankq_activeRoom');
             cleanupRoom();
-            showToast('部屋が閉じられました', 'error');
+            showToast('ホストが抜けたため、ゲームが強制終了となりました。', 'error');
             showScreen('topScreen');
             return;
         }
@@ -276,6 +413,13 @@ function startRoomListener(roomId) {
         const activeId = document.querySelector('.screen--active')?.id || '';
 
         switch (data.status) {
+            case 'aborted':
+                localStorage.removeItem('rankq_activeRoom');
+                cleanupRoom();
+                showToast('最低人数に満たないため、ゲームが強制終了となりました。', 'error');
+                showScreen('topScreen');
+                break;
+
             case 'waiting':
                 // Bug9修正: 二重レンダーを解消
                 if (activeId === 'waitingRoomHostScreen') renderWaitingRoomHost(data);
@@ -314,6 +458,7 @@ function startRoomListener(roomId) {
                 break;
 
             case 'finished':
+                localStorage.removeItem('rankq_activeRoom');
                 if (activeId !== 'resultScreen') {
                     renderOnlineResultScreen(data);
                 }
@@ -1282,6 +1427,7 @@ function renderMultiResultScreen(data) {
     heroEl.innerHTML = `
         <div class="hero__bubble hero__bubble--1"></div>
         <div class="hero__bubble hero__bubble--2"></div>
+        <button class="btn-back-home" onclick="handleExitRequest()">← HOME</button>
         <div class="hero-title" style="margin-bottom:12px;">結果発表</div>
         <div class="hero__theme" style="margin-bottom:14px;">
             <div class="theme-card" style="background:${packColor};box-shadow:0 4px 16px rgba(0,0,0,0.4);">
@@ -1312,10 +1458,7 @@ function renderMultiResultScreen(data) {
             <div class="person-tabs" id="resultTabs" style="margin-bottom:12px;"></div>
             <div id="resultPersonDetail"></div>
         </div>
-        <div style="padding:0 20px;margin-top:8px;display:flex;flex-direction:column;gap:8px;padding-bottom:60px;">
-            ${isHost ? `<button class="btn btn--primary" onclick="if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()">テーマを変えてもう一度あそぶ</button>` : ''}
-            <button class="btn btn--outline" onclick="confirmGoHome()">HOMEにもどる</button>
-        </div>`;
+        ${isHost ? `<div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()">テーマを変えてもう一度あそぶ</button></div>` : ''}`;
 
     document.getElementById('resultTabs').innerHTML = players.map(([id, p], i) => `
         <div class="person-tab${i === 0 ? ' person-tab--active' : ''}"
@@ -1551,6 +1694,7 @@ function renderOnlineResultScreen(data) {
     heroEl.innerHTML = `
         <div class="hero__bubble hero__bubble--1"></div>
         <div class="hero__bubble hero__bubble--2"></div>
+        <button class="btn-back-home" onclick="handleExitRequest()">← HOME</button>
         <div class="hero-title" style="margin-bottom:12px;">結果発表</div>
         <div class="hero__theme" style="margin-bottom:16px;">
             <div class="theme-card" style="background:${packColor};box-shadow:0 4px 16px rgba(0,0,0,0.4);">
@@ -1602,10 +1746,7 @@ function renderOnlineResultScreen(data) {
             <div class="person-tabs" id="resultTabs" style="margin-bottom:12px;"></div>
             <div id="resultPersonDetail"></div>
         </div>
-        <div style="padding:0 20px;margin-top:8px;display:flex;flex-direction:column;gap:8px;padding-bottom:60px;">
-            ${isHost ? `<button class="btn btn--primary" onclick="if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()">テーマを変えてもう一度あそぶ</button>` : ''}
-            <button class="btn btn--outline" onclick="confirmGoHome()">HOMEにもどる</button>
-        </div>`;
+        ${isHost ? `<div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()">テーマを変えてもう一度あそぶ</button></div>` : ''}`;
 
     // 個人詳細タブ
     document.getElementById('resultTabs').innerHTML = players.map(([id, p], i) => `
@@ -1633,10 +1774,7 @@ function renderOnlineResultScreen(data) {
 }
 
 function confirmGoHome() {
-    if (confirm('HOMEに戻りますか？\nゲームを終了します。')) {
-        cleanupRoom();
-        showScreen('topScreen');
-    }
+    handleExitRequest();
 }
 
 function showOnlinePersonResult(targetId) {

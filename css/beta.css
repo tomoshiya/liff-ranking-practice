@@ -199,6 +199,20 @@ input, textarea { font-family: inherit; }
   writing-mode: vertical-rl; transform: rotate(180deg);
 }
 
+/* --- ヒーロー：HOMEボタン（ヒーロー左上・absolute） --- */
+.btn-back-home {
+  position: absolute; top: 14px; left: 16px;
+  display: flex; align-items: center; gap: 4px;
+  padding: 5px 10px; border-radius: 20px;
+  background: rgba(255,255,255,0.12);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  font-size: 12px; font-weight: 700;
+  color: rgba(255,255,255,0.75);
+  font-family: 'DM Sans', sans-serif; z-index: 10;
+  transition: background 0.15s;
+}
+.btn-back-home:hover { background: rgba(255,255,255,0.22); }
+
 /* --- ヒーロー：？ボタン（ヒーロー右下・absolute） --- */
 .help-btn {
   position: absolute; bottom: 16px; right: 16px;
@@ -212,6 +226,28 @@ input, textarea { font-family: inherit; }
   transition: background 0.15s;
 }
 .help-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* --- 確認モーダル（共通ボトムシート） --- */
+.confirm-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  z-index: 900; display: flex; align-items: flex-end; justify-content: center;
+}
+.confirm-sheet {
+  width: 100%; max-width: var(--max-w);
+  background: var(--bg); border-radius: 20px 20px 0 0;
+  padding: 24px 20px 40px; box-shadow: 0 -4px 24px rgba(0,0,0,0.2);
+}
+.confirm-sheet__title {
+  font-size: 17px; font-weight: 900; color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.confirm-sheet__body {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.6; margin-bottom: 20px; min-height: 0;
+}
+.confirm-sheet__actions {
+  display: flex; flex-direction: column; gap: 8px;
+}
 
 /* --- 履歴FAB（トップ画面のみ） --- */
 .history-fab {
