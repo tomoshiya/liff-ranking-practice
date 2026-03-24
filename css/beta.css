@@ -199,19 +199,7 @@ input, textarea { font-family: inherit; }
   writing-mode: vertical-rl; transform: rotate(180deg);
 }
 
-/* --- ヒーロー：HOMEボタン（ヒーロー左上・absolute） --- */
-.btn-back-home {
-  position: absolute; top: 14px; left: 16px;
-  display: flex; align-items: center; gap: 4px;
-  padding: 5px 10px; border-radius: 20px;
-  background: rgba(255,255,255,0.12);
-  border: 1.5px solid rgba(255,255,255,0.2);
-  font-size: 12px; font-weight: 700;
-  color: rgba(255,255,255,0.75);
-  font-family: 'DM Sans', sans-serif; z-index: 10;
-  transition: background 0.15s;
-}
-.btn-back-home:hover { background: rgba(255,255,255,0.22); }
+/* .btn-back-home は .hero-back-btn に統一済み */
 
 /* --- ヒーロー：？ボタン（ヒーロー右下・absolute） --- */
 .help-btn {

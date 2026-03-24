@@ -1427,7 +1427,7 @@ function renderMultiResultScreen(data) {
     heroEl.innerHTML = `
         <div class="hero__bubble hero__bubble--1"></div>
         <div class="hero__bubble hero__bubble--2"></div>
-        <button class="btn-back-home" onclick="handleExitRequest()">← HOME</button>
+        <button class="hero-back-btn" onclick="handleExitRequest()">← HOME</button>
         <div class="hero-title" style="margin-bottom:12px;">結果発表</div>
         <div class="hero__theme" style="margin-bottom:14px;">
             <div class="theme-card" style="background:${packColor};box-shadow:0 4px 16px rgba(0,0,0,0.4);">
@@ -1694,7 +1694,7 @@ function renderOnlineResultScreen(data) {
     heroEl.innerHTML = `
         <div class="hero__bubble hero__bubble--1"></div>
         <div class="hero__bubble hero__bubble--2"></div>
-        <button class="btn-back-home" onclick="handleExitRequest()">← HOME</button>
+        <button class="hero-back-btn" onclick="handleExitRequest()">← HOME</button>
         <div class="hero-title" style="margin-bottom:12px;">結果発表</div>
         <div class="hero__theme" style="margin-bottom:16px;">
             <div class="theme-card" style="background:${packColor};box-shadow:0 4px 16px rgba(0,0,0,0.4);">
