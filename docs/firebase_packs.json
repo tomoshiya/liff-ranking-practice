@@ -2,7 +2,7 @@
   "casual": {
     "label": "カジュアル",
     "labelEn": "CASUAL",
-    "color": "#3D2010",
+    "color": "#1E2D3D",
     "description": "自己開示が苦手でも遊びやすい\n誰とでも遊べるテーマパック",
     "order": 1,
     "isActive": true
@@ -10,7 +10,7 @@
   "basic": {
     "label": "ベーシック",
     "labelEn": "BASIC",
-    "color": "#1E2D3D",
+    "color": "#5A3015",
     "description": "価値観や体験談をシェアできる\nもっと仲が深まるテーマパック",
     "order": 2,
     "isActive": true
@@ -26,7 +26,7 @@
   "now": {
     "label": "ナウ",
     "labelEn": "NOW",
-    "color": "#1A3B2A",
+    "color": "#1F5C3C",
     "description": "隠れた本音が明らかになる\nちょっぴりまじめなテーマパック",
     "order": 4,
     "isActive": true

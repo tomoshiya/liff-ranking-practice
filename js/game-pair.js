@@ -456,7 +456,11 @@ function renderPackTabs() {
     const packs = [...sortedPacks, 'all'];
     document.getElementById('packTabsRow').innerHTML = packs.map(p => {
         const label = p === 'all' ? 'すべて' : (packMeta[p]?.label || p);
-        return `<div class="pack-tab-item ${p === currentPackFilter ? 'pack-tab-item--active' : ''}"
+        const isActive = p === currentPackFilter;
+        const bgColor = (p !== 'all' && packMeta[p]?.color) ? packMeta[p].color : '#1A1917';
+        const activeStyle = isActive ? `background:${bgColor};border-color:${bgColor};` : '';
+        return `<div class="pack-tab-item ${isActive ? 'pack-tab-item--active' : ''}"
+             style="${activeStyle}"
              onclick="switchPackFilter('${p}')">${label}</div>`;
     }).join('');
     renderPackDesc(currentPackFilter);
@@ -479,9 +483,17 @@ function switchPackFilter(pack) {
 function renderPackDesc(pack) {
     const el = document.getElementById('packDescArea');
     if (!el) return;
-    const desc = pack !== 'all' ? (packMeta[pack]?.description || '') : '';
-    el.textContent = desc;
-    el.style.display = desc ? 'block' : 'none';
+    if (pack === 'all' || !packMeta[pack]) {
+        el.style.display = 'none';
+        el.innerHTML = '';
+        return;
+    }
+    const desc = packMeta[pack]?.description || '';
+    const label = packMeta[pack]?.label || pack;
+    const color = getPackColor(pack);
+    el.style.display = 'block';
+    el.style.background = color;
+    el.innerHTML = `<div class="pack-desc__title">${label}パック</div><div class="pack-desc__text">${desc}</div>`;
 }
 
 // テーマカード横スクロール描画
