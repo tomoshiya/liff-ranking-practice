@@ -143,7 +143,7 @@ async function checkSessionRestore() {
         }
         const data = snap.val();
         const userId = App.userProfile.userId;
-        const TERMINAL = ['finished', 'aborted', 'closed'];
+        const TERMINAL = ['aborted', 'closed'];
 
         if (!data.players?.[userId] || TERMINAL.includes(data.status)) {
             localStorage.removeItem('rankq_activeRoom');

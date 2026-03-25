@@ -542,12 +542,37 @@ input, textarea { font-family: inherit; }
 .toast--success { background: var(--success); }
 .toast--error { background: var(--danger); }
 
-/* --- 部屋番号 --- */
+/* --- 部屋番号ブロック --- */
+.room-code-block {
+  text-align: center;
+  margin-top: 8px;
+}
+.room-code-label {
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 6px;
+}
+.room-code-row {
+  display: inline-flex; align-items: center; gap: 10px;
+}
 .room-code {
   font-family: 'DM Sans', sans-serif;
   font-size: 52px; font-weight: 900; font-style: italic;
   color: #fff; letter-spacing: 0.05em; line-height: 1;
   text-align: center;
+}
+.room-code-hint {
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,255,255,0.4);
+  margin-top: 8px;
+}
+.room-code-copy-btn {
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 6px; padding: 4px 10px;
+  background: transparent; cursor: pointer;
+  font-family: inherit; white-space: nowrap;
 }
 
 /* --- 送信完了バナー --- */

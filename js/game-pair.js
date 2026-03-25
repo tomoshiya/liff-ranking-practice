@@ -122,6 +122,7 @@ function generateRoomCode() {
 // ========================================
 
 function onRoomCodeInput(input) {
+    input.value = input.value.replace(/[^0-9]/g, '');
     const minLen = room.mode === 'multi' ? 5 : 4;
     const nameInput = document.getElementById('joinNameInput');
     const btn = document.getElementById('joinRoomBtn');
@@ -242,17 +243,17 @@ function handleExitRequest() {
 
     if (isFinished) {
         showConfirmModal(
-            'HOMEに戻りますか？',
-            '',
+            '退出しますか？',
+            'あなたが退出すると、全員のゲームが終了します。',
             [
-                { label: 'HOMEに戻る', cls: 'btn btn--primary', fn: 'doExitGame()' },
+                { label: '退出する', cls: 'btn btn--danger', fn: 'doExitGame()' },
                 { label: 'キャンセル', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }
             ]
         );
     } else if (isMultiGuest) {
         showConfirmModal(
             '退出しますか？',
-            '人数が3名に満たない場合はゲームが終了します。',
+            '退出後の人数が3名に満たない場合、全員のゲームが終了します。',
             [
                 { label: '退出する', cls: 'btn btn--danger', fn: 'doExitGuest()' },
                 { label: 'キャンセル', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }
@@ -289,6 +290,9 @@ async function doExitHost() {
     localStorage.removeItem('rankq_activeRoom');
     try {
         if (room.roomId && database) {
+            if (room.mode === 'pair') {
+                await database.ref('gameRooms/' + room.roomId + '/status').set('aborted');
+            }
             await database.ref('gameRooms/' + room.roomId).remove();
         }
     } catch (e) { console.error('部屋削除エラー:', e); }
@@ -312,9 +316,15 @@ async function doExitGuest() {
     showScreen('topScreen');
 }
 
-function doExitGame() {
+async function doExitGame() {
     closeConfirmModal();
     localStorage.removeItem('rankq_activeRoom');
+    try {
+        if (room.roomId && database) {
+            await database.ref('gameRooms/' + room.roomId + '/status').set('closed');
+            await database.ref('gameRooms/' + room.roomId).remove();
+        }
+    } catch (e) { console.error('部屋削除エラー:', e); }
     cleanupRoom();
     showScreen('topScreen');
 }
@@ -324,24 +334,51 @@ function doExitGame() {
 // ========================================
 let _rejoinRoomId = null;
 let _rejoinIsHost = false;
+let _rejoinGameMode = null;
 
 function showRejoinModal({ roomId, data, isHost }) {
     _rejoinRoomId = roomId;
     _rejoinIsHost = isHost;
+    _rejoinGameMode = data.gameMode;
 
     const players = Object.values(data.players || {});
-    const memberNames = players.map(p => p.displayName).join('、');
-    const phaseLabel = { waiting: '待機中', setting: 'テーマ選択中', inputting: 'ランク入力中', guessing: 'ランク予想中' }[data.status] || data.status;
+    const hostPlayer = players.find(p => p.userId === data.hostId) || players[0];
+    const guestPlayers = players.filter(p => p.userId !== data.hostId);
+    const memberNames = [
+        hostPlayer ? escapeHtml(hostPlayer.displayName) : '',
+        ...guestPlayers.map(p => escapeHtml(p.displayName))
+    ].filter(Boolean).join('、');
+
+    const modeLabel = { pair: 'ふたりであそぶ', multi: 'みんなであそぶ', local: '1台であそぶ' }[data.gameMode] || data.gameMode;
+    const roleLabel = isHost ? 'ホスト' : 'ゲスト';
+    const phaseLabel = { waiting: '待機室', setting: 'テーマ選択', inputting: 'ランク入力', guessing: 'ランク予想', finished: '結果発表' }[data.status] || data.status;
 
     document.getElementById('rejoinBody').innerHTML =
-        `<div style="margin-bottom:6px;">参加者：${escapeHtml(memberNames)}</div>` +
+        `<div style="margin-bottom:4px;">ゲームモード：${modeLabel}</div>` +
+        `<div style="margin-bottom:4px;">あなたの役割：${roleLabel}</div>` +
+        `<div style="margin-bottom:4px;">ルームの参加者：${memberNames}</div>` +
         `<div>フェーズ：${phaseLabel}</div>`;
 
     document.getElementById('rejoinActions').innerHTML =
-        `<button class="btn btn--primary" onclick="doRejoinGame()">ゲームに戻る</button>` +
-        `<button class="btn btn--outline" onclick="doCancelRejoin()">このまま新しくはじめる</button>`;
+        `<button class="btn btn--primary" onclick="doRejoinGame()">ゲームに復帰する</button>` +
+        `<button class="btn btn--outline" onclick="confirmCancelRejoin()">復帰せずに新しくあそぶ</button>`;
 
     document.getElementById('rejoinOverlay').style.display = 'flex';
+}
+
+function confirmCancelRejoin() {
+    let body;
+    if (_rejoinGameMode === 'multi' && _rejoinIsHost) {
+        body = 'ホストが抜けるとゲームが終了となりますが、よろしいですか？';
+    } else if (_rejoinGameMode === 'multi' && !_rejoinIsHost) {
+        body = '同じルームに再度復帰はできませんが、よろしいですか？';
+    } else {
+        body = 'ゲームが終了となりますが、よろしいですか？';
+    }
+    showConfirmModal('確認', body, [
+        { label: '新しくあそぶ', cls: 'btn btn--danger', fn: 'doCancelRejoin()' },
+        { label: 'もどる', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }
+    ]);
 }
 
 function doRejoinGame() {
@@ -457,8 +494,13 @@ function startRoomListener(roomId) {
                 }
                 break;
 
-            case 'finished':
+            case 'closed':
                 localStorage.removeItem('rankq_activeRoom');
+                cleanupRoom();
+                showScreen('topScreen');
+                break;
+
+            case 'finished':
                 if (activeId !== 'resultScreen') {
                     renderOnlineResultScreen(data);
                 }

@@ -233,13 +233,13 @@
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
     <button class="hero-back-btn" onclick="handleExitRequest()">← HOME</button>
-    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);margin-bottom:8px;">部屋番号</div>
-    <div class="room-code" id="waitingRoomCode">----</div>
-    <div style="margin-top:12px;">
-      <button class="btn btn--outline" onclick="copyRoomCode()"
-        style="width:auto;padding:6px 16px;font-size:12px;font-weight:700;color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.2);">
-        番号をコピー
-      </button>
+    <div class="room-code-block">
+      <div class="room-code-label">部屋番号</div>
+      <div class="room-code-row">
+        <div class="room-code" id="waitingRoomCode">----</div>
+        <button class="room-code-copy-btn" onclick="copyRoomCode()">コピー</button>
+      </div>
+      <div class="room-code-hint">番号を参加者に伝えてください</div>
     </div>
   </div>
   <div class="content">
@@ -254,9 +254,8 @@
         </button>
       </div>
     </div>
-    <div class="bottom-bar" style="display:flex;flex-direction:column;gap:8px;">
+    <div class="bottom-bar">
       <button id="startGameBtn" class="btn btn--primary" onclick="hostStartGame()" disabled>このメンバーでゲームを始める</button>
-      <button class="btn btn--danger" onclick="closeRoom()">部屋を閉じる</button>
     </div>
   </div>
 </div>
@@ -265,15 +264,17 @@
      待機室（ゲスト視点）
      ======================================== -->
 <div id="waitingRoomGuestScreen" class="screen">
-  <div class="hero" style="text-align:center;">
+  <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
     <button class="hero-back-btn" onclick="handleExitRequest()">← HOME</button>
-    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);margin-bottom:8px;">部屋番号</div>
-    <div class="room-code" id="waitingRoomCodeGuest" style="font-size:36px;margin-bottom:20px;">----</div>
+    <div class="room-code-block">
+      <div class="room-code-label">部屋番号</div>
+      <div class="room-code" id="waitingRoomCodeGuest">----</div>
+      <div class="room-code-hint">ホストの開始を待っています</div>
+    </div>
     <div class="waiting-dots" style="margin-bottom:12px;">
       <div class="waiting-dot"></div><div class="waiting-dot"></div><div class="waiting-dot"></div>
     </div>
-    <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);">ホストの開始を待っています</div>
   </div>
   <div class="content">
     <div class="section-label">参加中のメンバー</div>
@@ -721,7 +722,7 @@
      ======================================== -->
 <div id="rejoinOverlay" class="confirm-overlay" style="display:none;">
   <div class="confirm-sheet">
-    <div class="confirm-sheet__title">前回のゲームが見つかりました</div>
+    <div class="confirm-sheet__title">参加中のゲームに復帰しますか？</div>
     <div class="confirm-sheet__body" id="rejoinBody"></div>
     <div class="confirm-sheet__actions" id="rejoinActions"></div>
   </div>

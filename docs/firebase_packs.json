@@ -3,7 +3,7 @@
     "label": "カジュアル",
     "labelEn": "CASUAL",
     "color": "#1E2D3D",
-    "description": "自己開示が苦手でも遊びやすい\n誰とでも遊べるテーマパック",
+    "description": "どんなシーンでも気軽に遊べる\nみんなにオススメのテーマパック",
     "order": 1,
     "isActive": true
   },
@@ -11,7 +11,7 @@
     "label": "ベーシック",
     "labelEn": "BASIC",
     "color": "#5A3015",
-    "description": "価値観や体験談をシェアできる\nもっと仲が深まるテーマパック",
+    "description": "価値観や体験談に踏み込んで\nもっと仲良くなるためのテーマパック",
     "order": 2,
     "isActive": true
   },
@@ -19,7 +19,7 @@
     "label": "イフ",
     "labelEn": "IF",
     "color": "#2D1B4E",
-    "description": "相手の意外な一面が見つかる\n想像＆妄想のテーマパック",
+    "description": "意外な一面が明らかになる\n想像と妄想のテーマパック",
     "order": 3,
     "isActive": true
   },
@@ -27,7 +27,7 @@
     "label": "ナウ",
     "labelEn": "NOW",
     "color": "#1F5C3C",
-    "description": "隠れた本音が明らかになる\nちょっぴりまじめなテーマパック",
+    "description": "ホットな体験や気持ちが見えてくる\n「いま」に光を当てるテーマパック",
     "order": 4,
     "isActive": true
   }
