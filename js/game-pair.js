@@ -236,39 +236,31 @@ async function closeRoom() {
 // ========================================
 // 退出リクエスト（確認モーダル共通エントリ）
 // ========================================
+// 退出リクエスト（確認モーダル共通エントリ）
+// ========================================
 function handleExitRequest() {
     const status = room.data?.status;
     const isFinished = status === 'finished';
-    const isMultiGuest = room.mode === 'multi' && room.role === 'guest';
+    const isHost = room.role === 'host';
+    const mode = room.mode;
 
-    if (isFinished) {
-        showConfirmModal(
-            '退出しますか？',
-            'あなたが退出すると、全員のゲームが終了します。',
-            [
-                { label: '退出する', cls: 'btn btn--danger', fn: 'doExitGame()' },
-                { label: 'キャンセル', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }
-            ]
-        );
-    } else if (isMultiGuest) {
-        showConfirmModal(
-            '退出しますか？',
-            '退出後の人数が3名に満たない場合、全員のゲームが終了します。',
-            [
-                { label: '退出する', cls: 'btn btn--danger', fn: 'doExitGuest()' },
-                { label: 'キャンセル', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }
-            ]
-        );
+    let body;
+    if (isHost || mode === 'pair') {
+        body = 'あなたが退出すると、全員のゲームが終了します。';
+    } else if (isFinished) {
+        body = '結果画面を閉じてHOMEに戻ります。';
     } else {
-        showConfirmModal(
-            '退出しますか？',
-            '全員のゲームが終了します。',
-            [
-                { label: '退出する', cls: 'btn btn--danger', fn: 'doExitHost()' },
-                { label: 'キャンセル', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }
-            ]
-        );
+        body = '退出後の人数が3名に満たない場合、全員のゲームが終了します。';
     }
+
+    showConfirmModal(
+        '退出しますか？',
+        body,
+        [
+            { label: '退出する', cls: 'btn btn--danger', fn: 'doExit()' },
+            { label: 'キャンセル', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }
+        ]
+    );
 }
 
 function showConfirmModal(title, body, actions) {
@@ -285,48 +277,44 @@ function closeConfirmModal() {
     document.getElementById('confirmOverlay').style.display = 'none';
 }
 
-async function doExitHost() {
+// 統一退出処理（ホスト・ゲスト・モード・フェーズを内部で判定）
+async function doExit() {
     closeConfirmModal();
     localStorage.removeItem('rankq_activeRoom');
-    try {
-        if (room.roomId && database) {
-            if (room.mode === 'pair') {
-                await database.ref('gameRooms/' + room.roomId + '/status').set('aborted');
-            }
-            await database.ref('gameRooms/' + room.roomId).remove();
-        }
-    } catch (e) { console.error('部屋削除エラー:', e); }
+
+    const roomId = room.roomId;
+    const mode = room.mode;
+    const status = room.data?.status;
+    const isHost = room.role === 'host';
+    const userId = App.userProfile?.userId;
+    const minPlayers = (mode === 'pair') ? 2 : 3;
+
     cleanupRoom();
     showScreen('topScreen');
-}
 
-async function doExitGuest() {
-    closeConfirmModal();
-    localStorage.removeItem('rankq_activeRoom');
+    if (!roomId || !database) return;
+
     try {
-        const roomId = room.roomId;
-        const userId = App.userProfile.userId;
-        await database.ref(`gameRooms/${roomId}/players/${userId}`).remove();
-        const snap = await database.ref(`gameRooms/${roomId}/players`).once('value');
-        if (snap.numChildren() < 3) {
-            await database.ref(`gameRooms/${roomId}/status`).set('aborted');
+        if (status === 'finished') {
+            if (isHost || mode === 'pair') {
+                await database.ref(`gameRooms/${roomId}/status`).set('closed');
+                await database.ref(`gameRooms/${roomId}`).remove();
+            }
+            // みんなモードのゲストは結果発表からのみの退出→部屋は残す
+        } else if (isHost) {
+            if (mode === 'pair') {
+                await database.ref(`gameRooms/${roomId}/status`).set('aborted');
+            }
+            await database.ref(`gameRooms/${roomId}`).remove();
+        } else {
+            await database.ref(`gameRooms/${roomId}/players/${userId}`).remove();
+            const snap = await database.ref(`gameRooms/${roomId}/players`).once('value');
+            if (snap.numChildren() < minPlayers) {
+                await database.ref(`gameRooms/${roomId}/status`).set('aborted');
+                await database.ref(`gameRooms/${roomId}`).remove();
+            }
         }
     } catch (e) { console.error('退出エラー:', e); }
-    cleanupRoom();
-    showScreen('topScreen');
-}
-
-async function doExitGame() {
-    closeConfirmModal();
-    localStorage.removeItem('rankq_activeRoom');
-    try {
-        if (room.roomId && database) {
-            await database.ref('gameRooms/' + room.roomId + '/status').set('closed');
-            await database.ref('gameRooms/' + room.roomId).remove();
-        }
-    } catch (e) { console.error('部屋削除エラー:', e); }
-    cleanupRoom();
-    showScreen('topScreen');
 }
 
 // ========================================
@@ -335,18 +323,21 @@ async function doExitGame() {
 let _rejoinRoomId = null;
 let _rejoinIsHost = false;
 let _rejoinGameMode = null;
+let _rejoinStatus = null;
 
 function showRejoinModal({ roomId, data, isHost }) {
     _rejoinRoomId = roomId;
     _rejoinIsHost = isHost;
     _rejoinGameMode = data.gameMode;
+    _rejoinStatus = data.status;
 
-    const players = Object.values(data.players || {});
-    const hostPlayer = players.find(p => p.userId === data.hostId) || players[0];
-    const guestPlayers = players.filter(p => p.userId !== data.hostId);
+    // Object.entries でキー（userId）と値を正しく取得し、ホスト→ゲストの順に並べる
+    const playerEntries = Object.entries(data.players || {});
+    const hostEntry = playerEntries.find(([uid]) => uid === data.hostId) || playerEntries[0];
+    const guestEntries = playerEntries.filter(([uid]) => uid !== data.hostId);
     const memberNames = [
-        hostPlayer ? escapeHtml(hostPlayer.displayName) : '',
-        ...guestPlayers.map(p => escapeHtml(p.displayName))
+        hostEntry ? escapeHtml(hostEntry[1].displayName) : '',
+        ...guestEntries.map(([, p]) => escapeHtml(p.displayName))
     ].filter(Boolean).join('、');
 
     const modeLabel = { pair: 'ふたりであそぶ', multi: 'みんなであそぶ', local: '1台であそぶ' }[data.gameMode] || data.gameMode;
@@ -367,6 +358,8 @@ function showRejoinModal({ roomId, data, isHost }) {
 }
 
 function confirmCancelRejoin() {
+    // 復帰モーダルを閉じてから確認ポップアップを表示（重なり防止）
+    document.getElementById('rejoinOverlay').style.display = 'none';
     let body;
     if (_rejoinGameMode === 'multi' && _rejoinIsHost) {
         body = 'ホストが抜けるとゲームが終了となりますが、よろしいですか？';
@@ -376,15 +369,20 @@ function confirmCancelRejoin() {
         body = 'ゲームが終了となりますが、よろしいですか？';
     }
     showConfirmModal('確認', body, [
-        { label: '新しくあそぶ', cls: 'btn btn--danger', fn: 'doCancelRejoin()' },
-        { label: 'もどる', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }
+        { label: 'OK', cls: 'btn btn--danger', fn: 'doCancelRejoin()' },
+        { label: 'もどる', cls: 'btn btn--outline', fn: 'backToRejoinModal()' }
     ]);
 }
 
+function backToRejoinModal() {
+    closeConfirmModal();
+    document.getElementById('rejoinOverlay').style.display = 'flex';
+}
+
 function doRejoinGame() {
+    closeConfirmModal();
     document.getElementById('rejoinOverlay').style.display = 'none';
     const roomId = _rejoinRoomId;
-    // gameMode を Firebase から取得済みのデータで復元
     database.ref('gameRooms/' + roomId).once('value').then(snap => {
         if (!snap.exists()) { showToast('部屋が見つかりませんでした', 'error'); return; }
         const d = snap.val();
@@ -394,22 +392,42 @@ function doRejoinGame() {
 }
 
 async function doCancelRejoin() {
-    document.getElementById('rejoinOverlay').style.display = 'none';
+    closeConfirmModal();
     localStorage.removeItem('rankq_activeRoom');
     const roomId = _rejoinRoomId;
-    const userId = App.userProfile.userId;
+    const userId = App.userProfile?.userId;
+    const isHost = _rejoinIsHost;
+    const mode = _rejoinGameMode;
+    const status = _rejoinStatus;
+    const minPlayers = (mode === 'pair') ? 2 : 3;
+
+    _rejoinRoomId = null;
+    _rejoinIsHost = false;
+    _rejoinGameMode = null;
+    _rejoinStatus = null;
+
+    if (!roomId || !database) return;
+
     try {
-        if (_rejoinIsHost) {
-            await database.ref('gameRooms/' + roomId).remove();
+        if (status === 'finished') {
+            if (isHost || mode === 'pair') {
+                await database.ref(`gameRooms/${roomId}/status`).set('closed');
+                await database.ref(`gameRooms/${roomId}`).remove();
+            }
+        } else if (isHost || mode === 'pair') {
+            if (mode === 'pair') {
+                await database.ref(`gameRooms/${roomId}/status`).set('aborted');
+            }
+            await database.ref(`gameRooms/${roomId}`).remove();
         } else {
             await database.ref(`gameRooms/${roomId}/players/${userId}`).remove();
             const rem = await database.ref(`gameRooms/${roomId}/players`).once('value');
-            if (rem.numChildren() < 3) {
+            if (rem.numChildren() < minPlayers) {
                 await database.ref(`gameRooms/${roomId}/status`).set('aborted');
+                await database.ref(`gameRooms/${roomId}`).remove();
             }
         }
     } catch (e) { console.error('rejoin cancel error:', e); }
-    _rejoinRoomId = null;
 }
 
 function cleanupRoom() {
