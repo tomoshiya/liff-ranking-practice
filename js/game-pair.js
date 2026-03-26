@@ -297,21 +297,25 @@ async function doExit() {
     try {
         if (status === 'finished') {
             if (isHost || mode === 'pair') {
+                // closed → 相手のリスナーが off になってから remove() → !snap.exists() は届かない
                 await database.ref(`gameRooms/${roomId}/status`).set('closed');
                 await database.ref(`gameRooms/${roomId}`).remove();
             }
             // みんなモードのゲストは結果発表からのみの退出→部屋は残す
         } else if (isHost) {
-            if (mode === 'pair') {
+            if (mode === 'multi') {
+                // multiホストのみ直接 remove → !snap.exists() →「ホストが抜けたため」トースト
+                await database.ref(`gameRooms/${roomId}`).remove();
+            } else {
+                // pair ホストは aborted のみ（remove しない）→ 競合リスク排除。部屋は30分後に自動削除
                 await database.ref(`gameRooms/${roomId}/status`).set('aborted');
             }
-            await database.ref(`gameRooms/${roomId}`).remove();
         } else {
             await database.ref(`gameRooms/${roomId}/players/${userId}`).remove();
             const snap = await database.ref(`gameRooms/${roomId}/players`).once('value');
             if (snap.numChildren() < minPlayers) {
+                // aborted のみ（remove しない）→ 競合リスク排除。部屋は30分後に自動削除
                 await database.ref(`gameRooms/${roomId}/status`).set('aborted');
-                await database.ref(`gameRooms/${roomId}`).remove();
             }
         }
     } catch (e) { console.error('退出エラー:', e); }
@@ -515,6 +519,7 @@ function startRoomListener(roomId) {
             case 'closed':
                 localStorage.removeItem('rankq_activeRoom');
                 cleanupRoom();
+                showToast('ゲームが終了しました。', 'info');
                 showScreen('topScreen');
                 break;
 
