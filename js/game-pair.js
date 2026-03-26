@@ -304,18 +304,21 @@ async function doExit() {
             // みんなモードのゲストは結果発表からのみの退出→部屋は残す
         } else if (isHost) {
             if (mode === 'multi') {
-                // multiホストのみ直接 remove → !snap.exists() →「ホストが抜けたため」トースト
+                // multiホスト: 直接 remove → !snap.exists() →「ホストが抜けたため」トースト
                 await database.ref(`gameRooms/${roomId}`).remove();
             } else {
-                // pair ホストは aborted のみ（remove しない）→ 競合リスク排除。部屋は30分後に自動削除
+                // pairホスト: aborted → remove（roomId はローカル変数なので room.roomId=null 問題なし）
+                // Firebase はイベント順序を保証するため相手には aborted が先に届き正しいトーストが出る
                 await database.ref(`gameRooms/${roomId}/status`).set('aborted');
+                await database.ref(`gameRooms/${roomId}`).remove();
             }
         } else {
             await database.ref(`gameRooms/${roomId}/players/${userId}`).remove();
             const snap = await database.ref(`gameRooms/${roomId}/players`).once('value');
             if (snap.numChildren() < minPlayers) {
-                // aborted のみ（remove しない）→ 競合リスク排除。部屋は30分後に自動削除
+                // ゲスト人数不足: aborted → remove（同上）
                 await database.ref(`gameRooms/${roomId}/status`).set('aborted');
+                await database.ref(`gameRooms/${roomId}`).remove();
             }
         }
     } catch (e) { console.error('退出エラー:', e); }
