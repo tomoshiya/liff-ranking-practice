@@ -1524,11 +1524,11 @@ function renderMultiResultScreen(data) {
     contentEl.innerHTML = `
         <div style="padding:10px 20px 6px;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px 12px;font-size:10px;font-weight:600;color:var(--text-secondary);">
-                <div>○ あたり(±0)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></div>
-                <div>△ おしい(±1)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></div>
-                <div>▽ ちかい(±2)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></div>
-                <div>▼ かすり(±3)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></div>
-                <div>× はずれ(±4以上)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></div>
+                <div>◎ あたり(±0)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></div>
+                <div>○ おしい(±1)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></div>
+                <div>△ ちかい(±2)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></div>
+                <div>▽ かすり(±3)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></div>
+                <div>✕ はずれ(±4以上)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></div>
             </div>
         </div>
         <div style="padding:8px 20px;">
@@ -1579,7 +1579,7 @@ function switchMultiResultTab(type) {
         total: '当てた（ヨミpt）＆当てられた（ミエpt）の総合評価',
         yomi: 'みんなのことを読めているのは、誰？',
         mie: '自分のことを見せているのは、誰？',
-        gap: 'ヨミptとミエptの偏りが激しいのは、誰？'
+        gap: 'ヨミptとミエptの偏りが大きいのは、誰？'
     };
     const descEl = document.getElementById('multiTabDesc');
     if (descEl) descEl.textContent = descs[type] || '';
@@ -1675,7 +1675,7 @@ function showMultiPersonResult(targetId) {
     const SUFFIXES = ['st','nd','rd','th','th'];
     const maxPtPerPerson = 50;
 
-    let html = `<div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正しいランク＆参加者の予想</div>`;
+    let html = '';
 
     if (understanding.length > 0) {
         html += `<div style="margin-bottom:14px;padding:12px 14px;background:linear-gradient(135deg,#1a1a2e 0%,#2d1b4e 100%);border-radius:12px;">
@@ -1696,6 +1696,8 @@ function showMultiPersonResult(targetId) {
     }
 
     const guessers = understanding.map(u => [u.id, data.players[u.id]]).filter(([,g]) => g);
+
+    html += `<div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正しいランク＆参加者の予想</div>`;
 
     for (let rank = 1; rank <= 5; rank++) {
         const item = correct[String(rank)];
@@ -1828,11 +1830,11 @@ function renderOnlineResultScreen(data) {
     contentEl.innerHTML = `
         <div style="padding:10px 20px 6px;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px 12px;font-size:10px;font-weight:600;color:var(--text-secondary);">
-                <div>○ あたり(±0)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></div>
-                <div>△ おしい(±1)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></div>
-                <div>▽ ちかい(±2)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></div>
-                <div>▼ かすり(±3)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></div>
-                <div>× はずれ(±4以上)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></div>
+                <div>◎ あたり(±0)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></div>
+                <div>○ おしい(±1)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></div>
+                <div>△ ちかい(±2)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></div>
+                <div>▽ かすり(±3)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></div>
+                <div>✕ はずれ(±4以上)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></div>
             </div>
         </div>
         <div style="padding:8px 20px;">

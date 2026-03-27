@@ -642,26 +642,26 @@
      遊び方ボトムシート
      ======================================== -->
 <div id="helpSheet" class="bottomsheet-overlay" onclick="closeHelpSheet(event)">
-  <div class="bottomsheet bottomsheet--help">
+  <div class="bottomsheet bottomsheet--help"
+       ontouchstart="helpTouchStart(event)" ontouchend="helpTouchEnd(event)">
     <div class="bottomsheet__handle"></div>
     <button class="help-close-btn" onclick="closeHelpSheetDirect()">✕</button>
 
     <!-- カルーセル本体 -->
-    <div class="help-carousel-wrap" id="helpCarouselWrap"
-         ontouchstart="helpTouchStart(event)" ontouchend="helpTouchEnd(event)">
+    <div class="help-carousel-wrap" id="helpCarouselWrap">
       <div class="help-slides" id="helpSlides">
 
         <!-- Slide 1: RankNowとは？ -->
         <div class="help-slide">
           <div class="bottomsheet__title">RankNowとは？</div>
           <div class="help-slide-body">
-            <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:6px;">ランクで知り合うコミュニケーションゲーム</div>
-            <div style="font-size:12px;color:var(--text-secondary);line-height:1.7;margin-bottom:14px;">お題のランキングを入力・予想しあうことで、相手の「好き」や「価値観」が見えてくる会話ゲームです。正解を当てることよりも、そこから広がる会話を楽しんでください！</div>
-            <div style="background:var(--surface-2);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--text-secondary);line-height:1.7;">
-              <div style="font-weight:700;color:var(--text-primary);margin-bottom:4px;">💡 こんな場面で使えます</div>
-              <div>・初対面や久しぶりに会う仲間と</div>
-              <div>・友人・職場・恋人との会話のきっかけに</div>
-              <div>・飲み会やイベントのアイスブレイクに</div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.8;margin-bottom:12px;">あなたの「好き嫌い」や「体験談」がクイズになるコミュニケーションゲームです。選んだトークテーマに合わせて全員が自分のTOP5を書き出します。そのTOP5をお互いに予想して、誰がいちばん当てることができたかをスコア＆ランキングで表示します。</div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.8;margin-bottom:12px;">気軽に遊べるテーマから、少し踏み込んだディープなテーマまで。お互いの意外な一面が見つかるかもしれません。正解しても間違っても、お互いを知り合うきっかけにしてみてください。</div>
+            <div style="background:var(--surface-2);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--text-secondary);line-height:1.8;">
+              <div style="font-weight:700;color:var(--text-primary);margin-bottom:4px;">💡 こんなシーンで！</div>
+              <div>・初対面の人とのアイスブレイクに！</div>
+              <div>・デート中や旅行中の話題作りに！</div>
+              <div>・飲み会や合コンでの盛り上げに！</div>
             </div>
           </div>
         </div>
@@ -672,15 +672,14 @@
           <div class="help-slide-body">
             <div style="display:flex;flex-direction:column;gap:10px;">
               <div style="background:var(--surface-2);border-radius:10px;padding:12px 14px;">
-                <div style="font-size:13px;font-weight:800;color:var(--text-primary);margin-bottom:4px;">👥 ふたりであそぶ</div>
-                <div style="font-size:11px;color:var(--text-secondary);line-height:1.7;margin-bottom:8px;">2人でプレイ。お互いのランキングを予想し合います。</div>
-                <div style="font-size:11px;font-weight:700;color:var(--text-primary);">得点 = <span style="color:#4f8ef7;">ヨミpt</span>（当てたポイント）のみ</div>
+                <div style="font-size:13px;font-weight:800;color:var(--text-primary);margin-bottom:6px;">ふたりであそぶ</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.7;margin-bottom:8px;">2人専用のゲームモード。お互いのTOP5を予想し合い、正解に近いほどポイントが加算されます。</div>
+                <div style="font-size:11px;font-weight:700;color:var(--text-primary);">得点＝<span style="color:#4f8ef7;">ヨミpt</span>（当てたポイント）のみ</div>
               </div>
               <div style="background:var(--surface-2);border-radius:10px;padding:12px 14px;">
-                <div style="font-size:13px;font-weight:800;color:var(--text-primary);margin-bottom:4px;">👥👥 みんなであそぶ</div>
-                <div style="font-size:11px;color:var(--text-secondary);line-height:1.7;margin-bottom:8px;">3人以上でプレイ。「読む力」と「見せる力」が試されます。</div>
-                <div style="font-size:11px;font-weight:700;color:var(--text-primary);">得点 = <span style="color:#4f8ef7;">ヨミpt</span>（当てた）＋ <span style="color:#a78bfa;">ミエpt</span>（当てられた）</div>
-                <div style="font-size:10px;color:var(--text-muted);margin-top:6px;line-height:1.6;">ヨミpt：他の人のランクを当てるほど高い<br>ミエpt：自分のランクが当てられるほど高い</div>
+                <div style="font-size:13px;font-weight:800;color:var(--text-primary);margin-bottom:6px;">みんなであそぶ</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.7;margin-bottom:8px;">3〜10人用のゲームモード。参加者のランクを当てることに加えて、自分のランクを当てられることでもポイントが加算されます。</div>
+                <div style="font-size:11px;font-weight:700;color:var(--text-primary);">得点＝<span style="color:#4f8ef7;">ヨミpt</span>＋<span style="color:#a78bfa;">ミエpt</span>（当てられたポイント）</div>
               </div>
             </div>
           </div>
@@ -694,29 +693,29 @@
               <div style="display:flex;gap:12px;">
                 <div style="width:24px;height:24px;border-radius:50%;background:var(--text-primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:900;font-style:italic;color:#fff;">1</div>
                 <div>
-                  <div style="font-size:13px;font-weight:700;margin-bottom:3px;">テーマを選ぶ</div>
-                  <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;">ホストがテーマを選択します。アプリのテーマ一覧から選ぶか、オリジナルテーマを入力することもできます。</div>
+                  <div style="font-size:13px;font-weight:700;margin-bottom:3px;">テーマを選択する</div>
+                  <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;">トークテーマを選びます。アプリが用意したテーマだけでなく、オリジナルのテーマで遊ぶこともできます。テーマを選択できるのは部屋をつくったホストのみですが、みんなで話し合って決めましょう！</div>
                 </div>
               </div>
               <div style="display:flex;gap:12px;">
                 <div style="width:24px;height:24px;border-radius:50%;background:var(--text-primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:900;font-style:italic;color:#fff;">2</div>
                 <div>
-                  <div style="font-size:13px;font-weight:700;margin-bottom:3px;">自分のTOP5を入力</div>
-                  <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;">テーマに沿って、自分の正直なランキングを入力します。考えすぎず、直感で！</div>
+                  <div style="font-size:13px;font-weight:700;margin-bottom:3px;">自分のTOP5を入力する</div>
+                  <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;">トークテーマに沿って、自分自身のTOP5を入力してください。なるべく正直に書いたほうがゲームとしては盛り上がりますが、どうしても書きたくないことは書かなくても大丈夫です！</div>
                 </div>
               </div>
               <div style="display:flex;gap:12px;">
                 <div style="width:24px;height:24px;border-radius:50%;background:var(--text-primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:900;font-style:italic;color:#fff;">3</div>
                 <div>
-                  <div style="font-size:13px;font-weight:700;margin-bottom:3px;">相手のランキングを予想</div>
-                  <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;">他の参加者のTOP5の順番を予想して並べ替えます。どこまで相手のことを分かっているかがポイント！</div>
+                  <div style="font-size:13px;font-weight:700;margin-bottom:3px;">参加者のTOP5を予想する</div>
+                  <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;">全員がTOP5の入力を終えると、次は自分以外の参加者のTOP5を予想します。TOP5の順番がバラバラに表示されるので、正しいTOP5の順番を予想して並び替えてください！</div>
                 </div>
               </div>
               <div style="display:flex;gap:12px;">
                 <div style="width:24px;height:24px;border-radius:50%;background:var(--text-primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:900;font-style:italic;color:#fff;">4</div>
                 <div>
-                  <div style="font-size:13px;font-weight:700;margin-bottom:3px;">結果発表</div>
-                  <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;">正解ランキングと全員の予想が公開されます。答え合わせで盛り上がろう！</div>
+                  <div style="font-size:13px;font-weight:700;margin-bottom:3px;">結果発表を確認する</div>
+                  <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;">全員がTOP5の予想を完了すると、ゲームの結果が表示されます。ぜひ、アフタートークで「このTOP5にした理由」や「予想と正解のズレが大きい部分」などを話してみましょう！意外な一面が見つかるかも？</div>
                 </div>
               </div>
             </div>
@@ -727,34 +726,29 @@
         <div class="help-slide">
           <div class="bottomsheet__title">得点ルール</div>
           <div class="help-slide-body">
-            <div style="font-size:11px;color:var(--text-secondary);line-height:1.7;margin-bottom:12px;">予想した順位と正解順位の差によってポイントが決まります。完全一致を狙おう！</div>
-            <div style="background:var(--surface-2);border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.7;margin-bottom:12px;">予想した順位と正しい順位の差によってポイントが決まります。すべてを「あたり」にできる確率はたった1%未満！</div>
+            <div style="background:var(--surface-2);border-radius:10px;padding:12px 14px;">
               <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:8px;">スコアリング</div>
               <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text-secondary);">
-                <span>○ あたり（±0位）</span>
+                <span>◎ あたり（±0位）</span>
                 <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span>
               </div>
               <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text-secondary);">
-                <span>△ おしい（±1位）</span>
+                <span>○ おしい（±1位）</span>
                 <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span>
               </div>
               <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text-secondary);">
-                <span>▽ ちかい（±2位）</span>
+                <span>△ ちかい（±2位）</span>
                 <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span>
               </div>
               <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text-secondary);">
-                <span>▼ かすり（±3位）</span>
+                <span>▽ かすり（±3位）</span>
                 <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span>
               </div>
               <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;color:var(--text-secondary);">
-                <span>× はずれ（±4位以上）</span>
+                <span>✕ はずれ（±4位以上）</span>
                 <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span>
               </div>
-            </div>
-            <div style="background:var(--surface-2);border-radius:10px;padding:10px 14px;font-size:11px;color:var(--text-secondary);line-height:1.7;">
-              <div style="font-weight:700;color:var(--text-primary);margin-bottom:4px;">💡 楽しむポイント</div>
-              <div>・正直に入力することで予想がしやすくなります</div>
-              <div>・みんなモードでは「当てる」だけでなく「当てさせる」工夫も大切！</div>
             </div>
           </div>
         </div>

@@ -278,9 +278,18 @@ function helpTouchStart(e) {
 function helpTouchEnd(e) {
     const dx = e.changedTouches[0].clientX - _helpTouchStartX;
     const dy = e.changedTouches[0].clientY - _helpTouchStartY;
-    if (Math.abs(dy) > Math.abs(dx) && dy > 60) {
-        closeHelpSheetDirect();
-    } else if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    if (absDy > absDx && dy > 60) {
+        // 下スワイプ：現在のスライド内容がトップにある場合のみ閉じる
+        const slideBody = document.querySelectorAll('.help-slide-body')[helpCurrentSlide];
+        const isAtTop = !slideBody || slideBody.scrollTop < 10;
+        if (isAtTop) {
+            closeHelpSheetDirect();
+        }
+    } else if (absDx > 40 && absDx > absDy) {
+        // 横スワイプ：カルーセルナビ
         helpGoTo(helpCurrentSlide + (dx < 0 ? 1 : -1));
     }
 }
