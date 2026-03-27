@@ -1523,12 +1523,16 @@ function renderMultiResultScreen(data) {
     const contentEl = document.getElementById('resultContent');
     contentEl.innerHTML = `
         <div style="padding:10px 20px 6px;">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px 12px;font-size:10px;font-weight:600;color:var(--text-secondary);">
-                <div>◎ あたり(±0)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></div>
-                <div>○ おしい(±1)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></div>
-                <div>△ ちかい(±2)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></div>
-                <div>▽ かすり(±3)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></div>
-                <div>✕ はずれ(±4以上)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:9px;font-weight:600;color:var(--text-secondary);white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;">
+                <span>◎あたり <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></span>
+                <span style="opacity:0.3;">|</span>
+                <span>○おしい <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></span>
+                <span style="opacity:0.3;">|</span>
+                <span>△ちかい <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></span>
+                <span style="opacity:0.3;">|</span>
+                <span>▽かすり <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></span>
+                <span style="opacity:0.3;">|</span>
+                <span>✕はずれ <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></span>
             </div>
         </div>
         <div style="padding:8px 20px;">
@@ -1829,12 +1833,16 @@ function renderOnlineResultScreen(data) {
     const contentEl = document.getElementById('resultContent');
     contentEl.innerHTML = `
         <div style="padding:10px 20px 6px;">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px 12px;font-size:10px;font-weight:600;color:var(--text-secondary);">
-                <div>◎ あたり(±0)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></div>
-                <div>○ おしい(±1)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></div>
-                <div>△ ちかい(±2)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></div>
-                <div>▽ かすり(±3)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></div>
-                <div>✕ はずれ(±4以上)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:9px;font-weight:600;color:var(--text-secondary);white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;">
+                <span>◎あたり <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></span>
+                <span style="opacity:0.3;">|</span>
+                <span>○おしい <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></span>
+                <span style="opacity:0.3;">|</span>
+                <span>△ちかい <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></span>
+                <span style="opacity:0.3;">|</span>
+                <span>▽かすり <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></span>
+                <span style="opacity:0.3;">|</span>
+                <span>✕はずれ <span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></span>
             </div>
         </div>
         <div style="padding:8px 20px;">
