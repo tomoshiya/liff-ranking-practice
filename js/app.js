@@ -238,13 +238,50 @@ function saveDisplayName_() {
 // ヘルプ・履歴ボトムシート
 // ========================================
 
+let helpCurrentSlide = 0;
+const HELP_TOTAL = 4;
+let _helpTouchStartX = 0;
+let _helpTouchStartY = 0;
+
 function openHelpSheet() {
+    helpGoTo(0);
     document.getElementById('helpSheet').classList.add('bottomsheet-overlay--active');
 }
 
 function closeHelpSheet(e) {
-    if (e.target === e.currentTarget) {
+    if (!e || e.target === e.currentTarget) {
         document.getElementById('helpSheet').classList.remove('bottomsheet-overlay--active');
+    }
+}
+
+function closeHelpSheetDirect() {
+    document.getElementById('helpSheet').classList.remove('bottomsheet-overlay--active');
+}
+
+function helpGoTo(n) {
+    helpCurrentSlide = Math.max(0, Math.min(HELP_TOTAL - 1, n));
+    document.getElementById('helpSlides').style.transform = `translateX(-${helpCurrentSlide * 100}%)`;
+    document.querySelectorAll('.help-dot').forEach((dot, i) => {
+        dot.classList.toggle('help-dot--active', i === helpCurrentSlide);
+    });
+    const prevBtn = document.getElementById('helpPrevBtn');
+    const nextBtn = document.getElementById('helpNextBtn');
+    if (prevBtn) prevBtn.disabled = helpCurrentSlide === 0;
+    if (nextBtn) nextBtn.disabled = helpCurrentSlide === HELP_TOTAL - 1;
+}
+
+function helpTouchStart(e) {
+    _helpTouchStartX = e.touches[0].clientX;
+    _helpTouchStartY = e.touches[0].clientY;
+}
+
+function helpTouchEnd(e) {
+    const dx = e.changedTouches[0].clientX - _helpTouchStartX;
+    const dy = e.changedTouches[0].clientY - _helpTouchStartY;
+    if (Math.abs(dy) > Math.abs(dx) && dy > 60) {
+        closeHelpSheetDirect();
+    } else if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+        helpGoTo(helpCurrentSlide + (dx < 0 ? 1 : -1));
     }
 }
 

@@ -1473,7 +1473,13 @@ function calcUnderstandingRanking(targetId, data, allPlayers) {
         }
         result.push({ id: guesserId, name: p.displayName, pts });
     });
-    return result.sort((a, b) => b.pts - a.pts);
+    const sorted = result.sort((a, b) => b.pts - a.pts);
+    sorted.forEach((u, i) => {
+        if (i === 0) u.rank = 1;
+        else if (u.pts === sorted[i - 1].pts) u.rank = sorted[i - 1].rank;
+        else u.rank = i + 1;
+    });
+    return sorted;
 }
 
 // みんなモード 結果画面レンダリング
@@ -1517,8 +1523,12 @@ function renderMultiResultScreen(data) {
     const contentEl = document.getElementById('resultContent');
     contentEl.innerHTML = `
         <div style="padding:10px 20px 6px;">
-            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);white-space:nowrap;overflow-x:auto;">
-                あたり(±0):10pt&emsp;おしい(±1):6pt&emsp;ちかい(±2):3pt&emsp;かすり(±3):1pt&emsp;はずれ(±4):0pt
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px 12px;font-size:10px;font-weight:600;color:var(--text-secondary);">
+                <div>○ あたり(±0)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></div>
+                <div>△ おしい(±1)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></div>
+                <div>▽ ちかい(±2)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></div>
+                <div>▼ かすり(±3)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></div>
+                <div>× はずれ(±4以上)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></div>
             </div>
         </div>
         <div style="padding:8px 20px;">
@@ -1566,10 +1576,10 @@ function switchMultiResultTab(type) {
     });
 
     const descs = {
-        total: 'ヨミpt＋ミエpt の合計で競います',
-        yomi: '他の参加者のランクを当てたポイント',
-        mie: '自分のランクが当てられたポイント',
-        gap: 'ヨミptとミエptの差が大きいほど上位（偏りの大きさ）'
+        total: '当てた（ヨミpt）＆当てられた（ミエpt）の総合評価',
+        yomi: 'みんなのことを読めているのは、誰？',
+        mie: '自分のことを見せているのは、誰？',
+        gap: 'ヨミptとミエptの偏りが激しいのは、誰？'
     };
     const descEl = document.getElementById('multiTabDesc');
     if (descEl) descEl.textContent = descs[type] || '';
@@ -1604,9 +1614,17 @@ function renderMultiRankingList(type, maxYomiMie, maxTotal) {
         const delay = (sorted.length - 1 - i) * 0.10;
 
         if (isGap) {
+            const diff = p.yomi - p.mie;
             const gapColor = val >= maxYomiMie * 0.6 ? '#F87171' : val >= maxYomiMie * 0.3 ? '#FBBF24' : 'rgba(255,255,255,0.45)';
-            const gapLabel = val >= maxYomiMie * 0.6 ? '偏り大' : val >= maxYomiMie * 0.3 ? '偏り中' : '偏り小';
-            return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;animation:su 0.4s ${delay}s both;">
+            let gapLabel;
+            if (val < maxYomiMie * 0.15) {
+                gapLabel = 'ヨミ≒ミエ';
+            } else if (val < maxYomiMie * 0.6) {
+                gapLabel = diff > 0 ? 'ヨミ＞ミエ' : 'ミエ＞ヨミ';
+            } else {
+                gapLabel = diff > 0 ? 'ヨミ＞＞ミエ' : 'ミエ＞＞ヨミ';
+            }
+            return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;">
                 <div style="flex:1;min-width:0;">
                     <div style="font-size:13px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.name)}</div>
                     <div style="font-size:9px;color:rgba(255,255,255,0.35);">ヨミ${p.yomi}pt・ミエ${p.mie}pt</div>
@@ -1629,7 +1647,7 @@ function renderMultiRankingList(type, maxYomiMie, maxTotal) {
         const scoreSz = is1st ? '18px' : '14px';
         const sub = type === 'total' ? `ヨミ${p.yomi}pt・ミエ${p.mie}pt` : '';
 
-        return `<div style="display:flex;align-items:center;gap:8px;padding:${is1st?'9px':'7px'} 10px;border-radius:8px;animation:su 0.4s ${delay}s both;">
+        return `<div style="display:flex;align-items:center;gap:8px;padding:${is1st?'9px':'7px'} 10px;border-radius:8px;opacity:0;transform:translateY(8px);animation:su 0.5s ${delay}s cubic-bezier(0.34,1.2,0.64,1) both;">
             <div style="display:flex;flex-direction:column;align-items:center;min-width:${is1st?'32px':'28px'};flex-shrink:0;">
                 <div style="width:${rankBadgeSize};height:${rankBadgeSize};border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:${is1st?'11px':'9px'};font-weight:900;font-style:italic;background:${rankBadgeBg};color:${rankBadgeColor};${rankBadgeShadow}">${rank}</div>
             </div>
@@ -1660,13 +1678,17 @@ function showMultiPersonResult(targetId) {
     let html = `<div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正しいランク＆参加者の予想</div>`;
 
     if (understanding.length > 0) {
-        html += `<div style="margin-bottom:14px;padding:10px 12px;background:#f8f9fa;border-radius:10px;border:1px solid var(--border);">
-            <div style="font-size:11px;font-weight:800;color:var(--text-secondary);margin-bottom:8px;">${escapeHtml(target.displayName)}さんの理解度ランキング</div>
+        html += `<div style="margin-bottom:14px;padding:12px 14px;background:linear-gradient(135deg,#1a1a2e 0%,#2d1b4e 100%);border-radius:12px;">
+            <div style="font-size:12px;font-weight:900;color:#fff;margin-bottom:10px;">🏆 ${escapeHtml(target.displayName)}さんを分かっているのは、誰？</div>
             ${understanding.map((u, i) => {
-                const ptColor = i === 0 ? '#F59E0B' : i === 1 ? 'var(--text-secondary)' : 'var(--text-muted)';
-                return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;${i < understanding.length-1 ? 'border-bottom:1px solid var(--border);' : ''}">
-                    <span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:900;font-style:italic;color:var(--text-muted);min-width:20px;">${i+1}</span>
-                    <span style="font-size:12px;font-weight:700;color:var(--text-primary);flex:1;">${escapeHtml(u.name)}</span>
+                const sfx = u.rank <= 3 ? ['st','nd','rd'][u.rank - 1] : 'th';
+                const rankLabel = `${u.rank}${sfx}`;
+                const rankColor = u.rank === 1 ? '#F59E0B' : u.rank === 2 ? '#e0e0e0' : u.rank === 3 ? '#cd7f32' : 'rgba(255,255,255,0.35)';
+                const ptColor = u.rank === 1 ? '#F59E0B' : 'rgba(255,255,255,0.7)';
+                const nameColor = u.rank === 1 ? '#fff' : 'rgba(255,255,255,0.85)';
+                return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;${i < understanding.length-1 ? 'border-bottom:1px solid rgba(255,255,255,0.1);' : ''}">
+                    <span style="font-family:'DM Sans',sans-serif;font-size:10px;font-weight:900;font-style:italic;color:${rankColor};min-width:24px;">${rankLabel}</span>
+                    <span style="font-size:12px;font-weight:700;color:${nameColor};flex:1;">${escapeHtml(u.name)}</span>
                     <span style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:900;font-style:italic;color:${ptColor};">${u.pts}<span style="font-size:9px;opacity:0.6;">/${maxPtPerPerson}pt</span></span>
                 </div>`;
             }).join('')}
@@ -1805,8 +1827,12 @@ function renderOnlineResultScreen(data) {
     const contentEl = document.getElementById('resultContent');
     contentEl.innerHTML = `
         <div style="padding:10px 20px 6px;">
-            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);white-space:nowrap;overflow-x:auto;">
-                あたり(±0):10pt&emsp;おしい(±1):6pt&emsp;ちかい(±2):3pt&emsp;かすり(±3):1pt&emsp;はずれ(±4):0pt
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px 12px;font-size:10px;font-weight:600;color:var(--text-secondary);">
+                <div>○ あたり(±0)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></div>
+                <div>△ おしい(±1)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></div>
+                <div>▽ ちかい(±2)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></div>
+                <div>▼ かすり(±3)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></div>
+                <div>× はずれ(±4以上)：<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></div>
             </div>
         </div>
         <div style="padding:8px 20px;">
