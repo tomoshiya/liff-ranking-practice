@@ -1517,7 +1517,7 @@ function renderMultiResultScreen(data) {
             <button class="result-type-tab" onclick="switchMultiResultTab('mie')">ミエpt</button>
             <button class="result-type-tab" onclick="switchMultiResultTab('gap')">ヨミミエgap</button>
         </div>
-        <div id="multiTabDesc" style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:8px;">ヨミpt＋ミエpt の合計で競います</div>
+        <div id="multiTabDesc" style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
         <div id="multiRankingList" style="display:flex;flex-direction:column;gap:4px;"></div>`;
 
     const contentEl = document.getElementById('resultContent');
@@ -1543,7 +1543,7 @@ function renderMultiResultScreen(data) {
              id="resultTab_${id}" onclick="showMultiPersonResult('${id}')">${escapeHtml(p.displayName)}</div>
     `).join('');
 
-    renderMultiRankingList('total', maxYomiMie, maxTotal);
+    switchMultiResultTab('total');
     showMultiPersonResult(players[0][0]);
 
     const myId = App.userProfile.userId;
