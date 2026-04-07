@@ -1523,16 +1523,7 @@ function renderMultiResultScreen(data) {
     const contentEl = document.getElementById('resultContent');
     contentEl.innerHTML = `
         <div style="padding:10px 20px 6px;">
-            <div style="display:flex;align-items:center;gap:3px;font-size:9px;font-weight:600;color:var(--text-secondary);white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;">
-                <span>±0:あたり<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></span>
-                <span style="opacity:0.25;font-size:8px;">·</span>
-                <span>±1:おしい<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></span>
-                <span style="opacity:0.25;font-size:8px;">·</span>
-                <span>±2:ちかい<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></span>
-                <span style="opacity:0.25;font-size:8px;">·</span>
-                <span>±3:かすり<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></span>
-                <span style="opacity:0.25;font-size:8px;">·</span>
-                <span>±4:はずれ<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></span>
+            <div style="display:flex;align-items:center;font-size:8px;font-weight:600;color:var(--text-secondary);white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:0;"><span>±0:あたり<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></span><span style="opacity:0.25;padding:0 4px;">·</span><span>±1:おしい<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></span><span style="opacity:0.25;padding:0 4px;">·</span><span>±2:ちかい<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></span><span style="opacity:0.25;padding:0 4px;">·</span><span>±3:かすり<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></span><span style="opacity:0.25;padding:0 4px;">·</span><span>±4:はずれ<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></span>
             </div>
         </div>
         <div style="padding:8px 20px;">
@@ -1833,16 +1824,7 @@ function renderOnlineResultScreen(data) {
     const contentEl = document.getElementById('resultContent');
     contentEl.innerHTML = `
         <div style="padding:10px 20px 6px;">
-            <div style="display:flex;align-items:center;gap:3px;font-size:9px;font-weight:600;color:var(--text-secondary);white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;">
-                <span>±0:あたり<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></span>
-                <span style="opacity:0.25;font-size:8px;">·</span>
-                <span>±1:おしい<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></span>
-                <span style="opacity:0.25;font-size:8px;">·</span>
-                <span>±2:ちかい<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></span>
-                <span style="opacity:0.25;font-size:8px;">·</span>
-                <span>±3:かすり<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></span>
-                <span style="opacity:0.25;font-size:8px;">·</span>
-                <span>±4:はずれ<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></span>
+            <div style="display:flex;align-items:center;font-size:8px;font-weight:600;color:var(--text-secondary);white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:0;"><span>±0:あたり<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">10pt</span></span><span style="opacity:0.25;padding:0 4px;">·</span><span>±1:おしい<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">6pt</span></span><span style="opacity:0.25;padding:0 4px;">·</span><span>±2:ちかい<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">3pt</span></span><span style="opacity:0.25;padding:0 4px;">·</span><span>±3:かすり<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">1pt</span></span><span style="opacity:0.25;padding:0 4px;">·</span><span>±4:はずれ<span style="font-family:'DM Sans',sans-serif;font-weight:900;font-style:italic;color:var(--text-primary);">0pt</span></span>
             </div>
         </div>
         <div style="padding:8px 20px;">
