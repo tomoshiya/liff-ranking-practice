@@ -1,7 +1,7 @@
 {
   "CURRENT_RULES": "以下のrulesセクションをFirebase Consoleにコピーして使用してください",
-  "LAST_UPDATED": "2026-03-06",
-  "VERSION": "v3.4",
+  "LAST_UPDATED": "2026-04-07",
+  "VERSION": "v3.5",
 
   "rules": {
     "users": {
@@ -11,20 +11,14 @@
       }
     },
     "gameRooms": {
-      ".read":  "auth != null",
-      ".write": "auth != null"
-    },
-    "gameSessions": {
-      ".read":  "auth != null",
-      ".write": "auth != null"
-    },
-    "rankings": {
-      ".read":  "auth != null",
-      ".write": "auth != null"
-    },
-    "pairCodes": {
-      ".read":  "auth != null",
-      ".write": "auth != null"
+      ".read": "auth != null",
+      "$roomId": {
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['hostId', 'status', 'gameMode'])",
+        "status": {
+          ".validate": "newData.val() === 'waiting' || newData.val() === 'setting' || newData.val() === 'inputting' || newData.val() === 'guessing' || newData.val() === 'finished' || newData.val() === 'aborted' || newData.val() === 'closed'"
+        }
+      }
     },
     "analytics": {
       ".read":  false,
@@ -34,10 +28,26 @@
       "packs":  { ".read": true,           ".write": false },
       "items":  { ".read": "auth != null", ".write": false },
       "weekly": { ".read": "auth != null", ".write": false }
+    },
+    "$other": {
+      ".read":  false,
+      ".write": false
     }
   },
 
   "_CHANGE_HISTORY": [
+    {
+      "date": "2026-04-07",
+      "version": "v3.5",
+      "reason": "βテスト公開前のセキュリティ強化。未使用ノード削除・gameRoomsにvalidation追加・キャッチオールdeny追加。",
+      "changes": [
+        "gameSessions / rankings（ルート） / pairCodes を削除（コードで未使用の旧ノード）",
+        "gameRooms/$roomId に .validate 追加（hostId・status・gameModeの存在チェック）",
+        "gameRooms/$roomId/status に .validate 追加（許可されたステータス値のみ書き込み可）",
+        "$other catch-all deny追加（定義外パスへの明示的アクセス拒否）"
+      ],
+      "security_level": "v3.4より強化：gameRoomsへの不正データ書き込みを一部ブロック。APIキードメイン制限と組み合わせることで実用的なβ公開レベルを達成。"
+    },
     {
       "date": "2026-03-06",
       "version": "v3.4",
