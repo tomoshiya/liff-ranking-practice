@@ -239,7 +239,7 @@ input, textarea { font-family: inherit; }
 
 /* --- 履歴FAB（トップ画面のみ） --- */
 .history-fab {
-  position: fixed; bottom: 60px; right: 16px;
+  position: fixed; bottom: 40px; right: 16px;
   width: 44px; height: 44px; border-radius: 50%;
   background: var(--surface); border: 1.5px solid var(--border);
   display: flex; align-items: center; justify-content: center;
@@ -248,18 +248,20 @@ input, textarea { font-family: inherit; }
 }
 .history-fab:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
 
-/* --- β版FABボタン --- */
-.beta-fab {
-  position: fixed; bottom: 60px; left: 16px;
-  width: 44px; height: 44px; border-radius: 50%;
-  background: var(--accent); color: #fff;
-  font-size: 13px; font-weight: 900; letter-spacing: -0.5px;
-  border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.18); z-index: 100;
-  transition: box-shadow 0.15s;
+/* --- ヒーロー上部バー（ニックネーム左・BETAボタン右） --- */
+.hero__top-bar {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px; position: relative; z-index: 10;
 }
-.beta-fab:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+.beta-hero-btn {
+  background: rgba(180, 30, 30, 0.75);
+  color: #fff; border: none; cursor: pointer;
+  border-radius: 6px; padding: 5px 10px;
+  font-size: 11px; font-weight: 900; letter-spacing: 1.5px;
+  transition: background 0.15s;
+}
+.beta-hero-btn:hover { background: rgba(180, 30, 30, 0.9); }
 
 /* --- β版モーダル（中央表示） --- */
 .beta-modal-overlay {
@@ -319,11 +321,14 @@ input, textarea { font-family: inherit; }
   border-top: 1px solid var(--border); text-align: center;
 }
 
-/* --- TOPフッターリンク --- */
+/* --- TOPフッターリンク（画面底部固定） --- */
 .top-footer-links {
+  position: fixed; bottom: 0; left: 0; right: 0;
   display: flex; align-items: center; justify-content: center;
-  gap: 6px; padding: 16px 20px 8px;
-  flex-wrap: wrap;
+  gap: 6px; padding: 8px 20px 10px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  z-index: 90;
 }
 .top-footer-links a {
   font-size: 11px; color: var(--text-secondary);
