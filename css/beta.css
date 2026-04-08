@@ -248,6 +248,56 @@ input, textarea { font-family: inherit; }
 }
 .history-fab:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
 
+/* --- β版FABボタン --- */
+.beta-fab {
+  position: fixed; bottom: 24px; left: 16px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: 13px; font-weight: 900; letter-spacing: -0.5px;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18); z-index: 100;
+  transition: box-shadow 0.15s;
+}
+.beta-fab:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+
+/* --- β版モーダル --- */
+.beta-modal__h1 {
+  font-size: 17px; font-weight: 900;
+  color: var(--text-primary); margin-bottom: 10px;
+}
+.beta-modal__lead {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.75; margin-bottom: 4px;
+}
+.beta-modal__h2 {
+  font-size: 12px; font-weight: 700;
+  color: var(--text-primary);
+  margin: 20px 0 8px;
+  padding-bottom: 6px; border-bottom: 1.5px solid var(--border);
+}
+.beta-modal__text {
+  font-size: 13px; color: var(--text-secondary); line-height: 1.75;
+}
+.beta-modal__list {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.75; padding-left: 18px; margin: 0;
+}
+.beta-modal__list li { margin-bottom: 4px; }
+.beta-modal__link-btn {
+  display: block; margin-top: 14px;
+  background: var(--accent); color: #fff;
+  text-align: center; padding: 13px;
+  border-radius: 12px; font-size: 14px; font-weight: 700;
+  text-decoration: none;
+}
+.beta-modal__footer {
+  font-size: 11px; color: var(--text-secondary);
+  margin-top: 20px; padding-top: 14px;
+  border-top: 1px solid var(--border); text-align: center;
+}
+.beta-modal__close-btn { width: 100%; margin-top: 12px; }
+
 /* --- コンテンツエリア共通 --- */
 .content {
   flex: 1; background: var(--bg);
