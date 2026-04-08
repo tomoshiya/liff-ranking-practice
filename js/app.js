@@ -84,6 +84,9 @@ async function onLiffReady() {
             openFirstTimeNameModal();
         }
 
+        // 11. β版モーダル（初回のみ自動表示）
+        checkBetaModal();
+
     } catch (err) {
         console.error('初期化エラー:', err);
         hideLoading();
@@ -242,6 +245,28 @@ let helpCurrentSlide = 0;
 const HELP_TOTAL = 4;
 let _helpTouchStartX = 0;
 let _helpTouchStartY = 0;
+
+// ========================================
+// β版モーダル
+// ========================================
+const BETA_SHOWN_KEY = 'rankq_beta_shown';
+
+function checkBetaModal() {
+    if (!localStorage.getItem(BETA_SHOWN_KEY)) {
+        openBetaModal();
+        localStorage.setItem(BETA_SHOWN_KEY, '1');
+    }
+}
+
+function openBetaModal() {
+    document.getElementById('betaModalOverlay').classList.add('bottomsheet-overlay--active');
+}
+
+function closeBetaModal(e) {
+    if (!e || e.target === e.currentTarget) {
+        document.getElementById('betaModalOverlay').classList.remove('bottomsheet-overlay--active');
+    }
+}
 
 function openHelpSheet() {
     helpGoTo(0);
