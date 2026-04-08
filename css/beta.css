@@ -248,20 +248,24 @@ input, textarea { font-family: inherit; }
 }
 .history-fab:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
 
-/* --- ヒーロー上部バー（ニックネーム左・BETAボタン右） --- */
+/* --- ヒーロー上部バー（ニックネーム左） --- */
 .hero__top-bar {
   display: flex; align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   margin-bottom: 20px; position: relative; z-index: 10;
 }
+
+/* --- BETAボタン（全画面常時fixed表示） --- */
 .beta-hero-btn {
-  background: rgba(180, 30, 30, 0.75);
+  position: fixed; top: 14px; right: 16px; z-index: 300;
+  background: rgba(180, 30, 30, 0.82);
   color: #fff; border: none; cursor: pointer;
   border-radius: 6px; padding: 5px 10px;
   font-size: 11px; font-weight: 900; letter-spacing: 1.5px;
   transition: background 0.15s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
-.beta-hero-btn:hover { background: rgba(180, 30, 30, 0.9); }
+.beta-hero-btn:hover { background: rgba(180, 30, 30, 0.95); }
 
 /* --- β版モーダル（中央表示） --- */
 .beta-modal-overlay {
@@ -325,7 +329,7 @@ input, textarea { font-family: inherit; }
 .top-footer-links {
   position: fixed; bottom: 0; left: 0; right: 0;
   display: flex; align-items: center; justify-content: center;
-  gap: 6px; padding: 8px 20px 10px;
+  gap: 6px; padding: 18px 20px 24px;
   background: var(--bg);
   border-top: 1px solid var(--border);
   z-index: 90;
