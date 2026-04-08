@@ -239,7 +239,7 @@ input, textarea { font-family: inherit; }
 
 /* --- 履歴FAB（トップ画面のみ） --- */
 .history-fab {
-  position: fixed; bottom: 24px; right: 16px;
+  position: fixed; bottom: 60px; right: 16px;
   width: 44px; height: 44px; border-radius: 50%;
   background: var(--surface); border: 1.5px solid var(--border);
   display: flex; align-items: center; justify-content: center;
@@ -250,7 +250,7 @@ input, textarea { font-family: inherit; }
 
 /* --- β版FABボタン --- */
 .beta-fab {
-  position: fixed; bottom: 24px; left: 16px;
+  position: fixed; bottom: 60px; left: 16px;
   width: 44px; height: 44px; border-radius: 50%;
   background: var(--accent); color: #fff;
   font-size: 13px; font-weight: 900; letter-spacing: -0.5px;
@@ -318,6 +318,19 @@ input, textarea { font-family: inherit; }
   margin-top: 16px; padding-top: 12px;
   border-top: 1px solid var(--border); text-align: center;
 }
+
+/* --- TOPフッターリンク --- */
+.top-footer-links {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; padding: 16px 20px 8px;
+  flex-wrap: wrap;
+}
+.top-footer-links a {
+  font-size: 11px; color: var(--text-secondary);
+  text-decoration: none;
+}
+.top-footer-links a:hover { text-decoration: underline; }
+.top-footer-sep { font-size: 11px; color: var(--border); }
 
 /* --- コンテンツエリア共通 --- */
 .content {
