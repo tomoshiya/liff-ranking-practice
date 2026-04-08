@@ -644,28 +644,27 @@
 <!-- ========================================
      β版モーダル
      ======================================== -->
-<div id="betaModalOverlay" class="bottomsheet-overlay" onclick="closeBetaModal(event)">
-  <div class="bottomsheet">
-    <div class="bottomsheet__handle"></div>
+<div id="betaModalOverlay" class="beta-modal-overlay" onclick="closeBetaModal(event)">
+  <div class="beta-modal-card">
+    <button class="beta-modal__x-btn" onclick="closeBetaModal()">✕</button>
     <h2 class="beta-modal__h1">オープンβテストについて</h2>
-    <p class="beta-modal__lead">RankNowでは現在、誰でも遊べるオープンβテストを実施しています。飲み会・デート・旅行など、いろいろな場面で遊んでみてください。みなさんに遊んでいただけることが、開発の励みになります！</p>
+    <p class="beta-modal__lead">現在のRankNowは誰でも遊べるオープンβテスト版です。飲み会・デート・旅行など、いろいろな場面で試してみてください。遊んでいただけることが開発の励みになります！</p>
 
     <h3 class="beta-modal__h2">βテスト期間</h3>
     <p class="beta-modal__text">2026年4月11日（土）〜 5月10日（日）</p>
 
     <h3 class="beta-modal__h2">β版の留意事項</h3>
     <ul class="beta-modal__list">
-      <li>開発中のアプリですので、予期せぬ不具合が発生する可能性があります</li>
-      <li>βテスト期間中、予告なく機能の追加・変更・削除が発生する場合があります</li>
-      <li>βテスト期間でのプレイ内容・履歴は、βテスト期間後にリセットされます</li>
+      <li>開発中のアプリですので予期せぬ不具合が発生する可能性があります</li>
+      <li>予告なく機能の追加・変更・削除が発生する場合があります</li>
+      <li>βテスト期間終了後にFirebase上のプレイデータはリセットされます</li>
     </ul>
 
     <h3 class="beta-modal__h2">フィードバック・バグ報告</h3>
-    <p class="beta-modal__text">プレイしてみての感想やお気づきの点はフィードバックフォームでお知らせください。いただいた声は今後の改善に活かしていきます。</p>
+    <p class="beta-modal__text">プレイしてみて感想やお気づきの点はフィードバックフォームでお知らせください。いただいた声は今後の開発に活かしていきます。</p>
     <a class="beta-modal__link-btn" href="https://forms.gle/Js5FmEs8gcmtSLDW6" target="_blank">フィードバックフォームへ →</a>
 
     <p class="beta-modal__footer">※画面左下の「β」ボタンで、この画面をいつでも確認できます</p>
-    <button class="btn btn--outline beta-modal__close-btn" onclick="closeBetaModal()">閉じる</button>
   </div>
 </div>
 
@@ -675,7 +674,6 @@
 <div id="helpSheet" class="bottomsheet-overlay" onclick="closeHelpSheet(event)">
   <div class="bottomsheet bottomsheet--help"
        ontouchstart="helpTouchStart(event)" ontouchend="helpTouchEnd(event)">
-    <div class="bottomsheet__handle"></div>
     <button class="help-close-btn" onclick="closeHelpSheetDirect()">✕</button>
 
     <!-- カルーセル本体 -->

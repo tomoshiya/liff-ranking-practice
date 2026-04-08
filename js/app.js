@@ -259,12 +259,12 @@ function checkBetaModal() {
 }
 
 function openBetaModal() {
-    document.getElementById('betaModalOverlay').classList.add('bottomsheet-overlay--active');
+    document.getElementById('betaModalOverlay').classList.add('beta-modal-overlay--active');
 }
 
 function closeBetaModal(e) {
     if (!e || e.target === e.currentTarget) {
-        document.getElementById('betaModalOverlay').classList.remove('bottomsheet-overlay--active');
+        document.getElementById('betaModalOverlay').classList.remove('beta-modal-overlay--active');
     }
 }
 
