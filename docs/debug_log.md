@@ -783,6 +783,44 @@ startRoomListener 内のトリガー
 - LIFFアプリ開発 Provider に Messaging API チャネルを作成・リンク
 - botPrompt（友だち追加強制）の準備完了。Aggressive設定は後日実施
 
+---
+
+## 2026年4月8日（火）の作業記録
+
+### [INFRA] 本番環境構築完了
+- Firebase APIキーの許可ドメインに `tomoshiya.github.io/*` を追加
+- 本番LIFF作成：LIFF ID `2009531665-30BBFxP7`、エンドポイント = GitHub Pages URL、botPrompt = Aggressive
+- betaブランチをmainにマージしGitHub Pages（本番）へpush
+- **本番URL**: `https://liff.line.me/2009531665-30BBFxP7`
+
+### [FEAT] βモーダル実装
+- 初回アクセス時に自動表示（LocalStorage `rankq_beta_shown` で管理）
+- **中央モーダル**形式（ボトムシートからの変更）
+- BETAボタン：`position:fixed; top:14px; right:16px` で**全画面常時表示**
+- 閉じ方：右上✕ボタン or 背景タップ
+- Googleフォームリンク（https://forms.gle/Js5FmEs8gcmtSLDW6）を設置
+
+### [FEAT] 利用規約・プライバシーポリシー作成
+- `privacy-policy.html` / `terms-of-service.html` をリポジトリに追加
+- 運営者: 灯し屋 / 連絡先: contact@tomoshiya.com
+- α版（RankQuest）から内容を刷新（pictureUrl削除・ペアコード削除・Messaging API追記）
+- 「← 戻る」ボタンはLIFF仕様（新規ブラウザ起動）のため削除
+
+### [FEAT] TOP画面フッターリンク
+- 「利用規約 | プライバシーポリシー | 運営元」を画面底部固定表示
+- topScreen表示時のみ visible（showScreen関数で制御）
+- 履歴FABは `bottom: 40px` に調整
+
+### [UX] TOP画面デザイン変更
+- キャッチコピー：「ランクで知り合うコミュニケーションゲーム」→ **「価値観を読み合うコミュニケーションゲーム」**
+- ヒーロー上部：ニックネームを左上に移動、BETAボタンを右上固定に
+- ロゴ横のBETAバッジは削除（fixed BETAボタンに統一）
+
+### [ENV] 開発フロー確定
+- コード変更 → `git push origin beta` → Netlify自動反映 → 動作確認
+- 確認OK後 → GitHubでbeta→mainへPR作成 → マージ → GitHub Pages反映
+- mainへの直接pushは禁止（ブランチ保護ルール適用）
+
 ### [INFO] ニックネームとFirebase usersの関係（仕様メモ）
 - ニックネーム表示/初回入力の判定は **localStorage（端末内）** で行っている
 - Firebase usersを削除しても、localStorageが残っていればニックネーム入力画面は表示されない
@@ -796,6 +834,7 @@ startRoomListener 内のトリガー
 | ID | 内容 | 優先度 | 備考 |
 |---|---|---|---|
 | ~~P-01~~ | ~~遊び方説明を横スワイプ形式に改善~~ | ~~中~~ | **[FIXED 2026-04-07]** カルーセル4スライド形式で実装。スワイプ・ナビボタン・ドット・✕ボタン・下スワイプ閉じる |
+| P-13 | 下スワイプでハーフモーダルを閉じる | 低 | LIFF WebViewがネイティブスクロールを優先するためtouchendが確実に拾えない。ハンドルバー（棒）を削除して誤認を防ぐ対処済み |
 | P-02 | ヒーローエリアのスクロール縮小 | 中 | スクロール連動でカードが縮む挙動 |
 | ~~P-03~~ | ~~gameRoomsの30分自動削除~~ | ~~低~~ | **[FIXED 2026-03-24]** `cleanupOldRooms()` をログイン時に実行。`ROOM_TIMEOUT_MS` 定数で30分設定 |
 | ~~P-04~~ | ~~テスト用ダミーユーザー追加ボタン~~ | ~~低~~ | **[FIXED 2026-03-18]** みんなであそぶ待機室ホスト画面に実装済み |
