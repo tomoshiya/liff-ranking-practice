@@ -73,6 +73,7 @@ async function onLiffReady() {
 
         // 4. Firebaseにユーザー情報を保存
         await initializeUserInFirebase();
+        trackEvent('user_login', { displayName: App.userProfile?.displayName || '' });
 
         // 5. テーマデータ取得
         await loadThemes();

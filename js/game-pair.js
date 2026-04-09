@@ -963,9 +963,10 @@ async function confirmTheme() {
         trackEvent('game_start', {
             themeId: theme.id || '',
             themeText: theme.text,
+            themeType: theme.id ? 'pack' : 'original',
             mode: 'local',
             playerCount: localGame.players ? localGame.players.length : 1,
-            players: (localGame.players || []).map(p => ({ uid: p.id, name: p.name }))
+            players: (localGame.players || []).map(p => ({ uid: String(p.id), name: p.name }))
         });
         localStartRankingInput();
         return;
@@ -985,6 +986,7 @@ async function confirmTheme() {
         trackEvent('game_start', {
             themeId: theme.id || '',
             themeText: theme.text,
+            themeType: theme.id ? 'pack' : 'original',
             mode: App.currentMode,
             roomId: room.roomId || ''
         });
@@ -1887,10 +1889,15 @@ function showMultiPersonResult(targetId) {
 }
 
 function renderOnlineResultScreen(data) {
+    const myUid = App.currentUser?.userId || App.userProfile?.userId || '';
     trackEvent('game_complete', {
         themeId: data.themeId || '',
         themeText: data.theme || '',
+        themeType: data.themeId ? 'pack' : 'original',
         mode: data.gameMode || 'pair',
+        roomId: room.roomId || '',
+        hostUid: data.hostId || '',
+        role: data.hostId && data.hostId === myUid ? 'host' : 'guest',
         playerCount: Object.keys(data.players || {}).length,
         players: Object.entries(data.players || {}).map(([uid, p]) => ({ uid, name: p.displayName || '' }))
     });
