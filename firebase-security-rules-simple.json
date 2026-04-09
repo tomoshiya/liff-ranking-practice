@@ -1,12 +1,12 @@
 {
   "CURRENT_RULES": "以下のrulesセクションをFirebase Consoleにコピーして使用してください",
   "LAST_UPDATED": "2026-04-09",
-  "VERSION": "v3.6",
+  "VERSION": "v3.7",
 
   "rules": {
     "users": {
       "$lineUserId": {
-        ".read":  "auth != null && (!data.exists() || data.child('firebaseUid').val() == auth.uid)",
+        ".read":  "auth != null",
         ".write": "auth != null"
       }
     },
@@ -39,6 +39,15 @@
   },
 
   "_CHANGE_HISTORY": [
+    {
+      "date": "2026-04-09",
+      "version": "v3.7",
+      "reason": "v3.6でwriteのみ緩和したが、readも同様にfirebaseUid照合が失敗していた。initializeUserInFirebase()はonce('value')でREADしてからUPDATEするため、READ時点でPERMISSION_DENIEDになるとcatchに飛びlastLoginAtが更新されない。readもauth!=nullに緩和して修正。",
+      "changes": [
+        "users/$lineUserId .read: firebaseUid照合チェックを削除し auth!=null に統一（.writeと揃える）"
+      ],
+      "security_level": "認証済みユーザーであれば他ユーザーのusersレコードも読み書き可能（v2.0相当）。beta少人数テストの許容範囲。本番大規模公開前に再設計推奨。"
+    },
     {
       "date": "2026-04-09",
       "version": "v3.6",
