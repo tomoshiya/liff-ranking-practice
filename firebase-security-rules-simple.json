@@ -22,7 +22,10 @@
     },
     "analytics": {
       ".read":  false,
-      ".write": "auth != null"
+      ".write": "auth != null",
+      "events": {
+        ".indexOn": ["timestamp"]
+      }
     },
     "themes": {
       "packs":  { ".read": true,           ".write": false },
