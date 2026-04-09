@@ -180,30 +180,23 @@ input, textarea { font-family: inherit; }
 }
 .theme-card__white {
   position: absolute;
-  clip-path: polygon(40px 0%, 100% 0%, 100% 100%, 24px 100%);
-  inset: 0; background: rgba(255,255,255,0.94);
+  clip-path: polygon(55px 0%, 100% 0%, 100% 100%, 33px 100%);
+  inset: 0; background: rgba(255,255,255,0.92);
   display: flex; align-items: center; justify-content: flex-start;
-  padding: 10px 40px 10px 44px;
+  padding: 8px 12px 8px 55px;
 }
 .theme-card__text {
-  font-size: 13px; font-weight: 700;
+  font-size: var(--card-text-size); font-weight: 700;
   color: #1A1917; line-height: 1.4;
   word-break: break-all; white-space: pre-line;
 }
 .theme-card__pack {
   position: absolute; bottom: 8px; left: 12px;
   font-family: 'DM Sans', sans-serif;
-  font-size: 9px; font-weight: 800;
+  font-size: var(--card-pack-size); font-weight: 800;
   color: rgba(255,255,255,0.42);
   text-transform: uppercase; letter-spacing: 0.08em;
   writing-mode: vertical-rl; transform: rotate(180deg);
-}
-/* テーマ選択縦リスト内では白エリアのflex子として右寄せ */
-.theme-card__white > .theme-card__pack {
-  position: static;
-  margin-left: auto; flex-shrink: 0;
-  color: var(--text-muted);
-  writing-mode: horizontal-tb; transform: none;
 }
 
 /* .btn-back-home は .hero-back-btn に統一済み */
@@ -789,30 +782,32 @@ input, textarea { font-family: inherit; }
   line-height: 1.5; white-space: pre-line;
 }
 
-/* テーマカード縦スクロール */
+/* テーマカード横スクロール */
 .theme-cards-scroll {
-  display: flex; flex-direction: column; gap: 8px;
-  flex: 1; overflow-y: auto; padding: 10px 16px 12px;
+  display: flex; gap: 12px; flex-shrink: 0;
+  overflow-x: auto; padding: 10px 20px 6px;
+  /* scroll-padding-left: snap時もpaddingを考慮させることで左端に貼り付かなくなる */
+  scroll-padding-left: 20px;
+  scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 .theme-cards-scroll::-webkit-scrollbar { display: none; }
 .theme-card-item {
-  position: relative; width: 100%; min-height: 60px;
-  border-radius: 12px; overflow: hidden;
-  flex-shrink: 0;
-  cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative; width: var(--card-w); height: var(--card-h);
+  border-radius: 14px; overflow: hidden;
+  flex-shrink: 0; scroll-snap-align: start;
+  cursor: pointer; box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-.theme-card-item:active { transform: scale(0.98); }
+.theme-card-item:active { transform: scale(0.97); }
 .theme-card-item--selected::after {
   content: ''; position: absolute; inset: 0;
-  border-radius: 12px; border: 2.5px solid rgba(255,255,255,0.7);
+  border-radius: 14px; border: 2.5px solid rgba(255,255,255,0.7);
   pointer-events: none; z-index: 20;
 }
 .theme-card-check {
-  position: absolute; top: 50%; left: 0; width: 40px;
-  transform: translateY(-50%);
+  position: absolute; top: 8px; left: 0; width: 46px;
   display: flex; justify-content: center; z-index: 10;
 }
 .theme-card-check-circle {
@@ -828,9 +823,10 @@ input, textarea { font-family: inherit; }
   opacity: 1; transform: scale(1);
 }
 
-/* スクロールインジケーター（縦スクロール化により非表示） */
+/* スクロールインジケーター */
 .scroll-indicator-row {
-  display: none;
+  display: flex; align-items: center; gap: 10px;
+  padding: 2px 20px 6px; flex-shrink: 0;
 }
 .scroll-counter-text {
   font-size: 11px; font-weight: 700; color: var(--text-muted);
