@@ -465,7 +465,21 @@ beta      ← β版リビルドブランチ（新規作成）
 | キャッチコピー変更 | ✅ 完了 | 「価値観を読み合うコミュニケーションゲーム」 |
 | ヘロー上部レイアウト変更 | ✅ 完了 | ニックネーム左上・BETAボタン右上（全画面fixed） |
 
-### 残タスク（4/9〜4/10）
+### 実施済み対応（2026年4月9日）
+
+| 対応内容 | 状態 | 詳細 |
+|----------|------|------|
+| テーマ一覧ページ実装（js/theme-list.js） | ✅ 完了 | 過去TOP5履歴表示・削除機能・LocalStorage `ranknow_history_beta` |
+| テーマ一覧バグ修正 | ✅ 完了 | 1位空白・日付フォーマット・モードラベル・参加者表示・削除モーダルUX |
+| カルーセルループグリッチ修正 | ✅ 完了 | offsetLeft ベースのスクロール計算に変更（15/60問題を解消） |
+| モニタリング環境構築 | ✅ 完了 | Firebase Analytics (GA4)・trackEvent・user_login・window.onerror |
+| trackEvent 強化（themeType/roomId/hostUid/role/env） | ✅ 完了 | game_start / game_complete のペイロードを拡充 |
+| Google Apps Script 全面刷新 | ✅ 完了 | game_log / theme_stats / network_log / daily・weekly・monthly_summary |
+| analytics/events に .indexOn: timestamp 追加 | ✅ 完了 | Apps Script REST API クエリ最適化 |
+| Firebase Security Rules v3.7 | ✅ 完了 | users read/write を auth!=null に統一（lastLoginAt更新の根本修正） |
+| users ノードに env フィールド追加 | ✅ 完了 | beta/production の環境情報をユーザーレコードに記録 |
+
+### 残タスク（4/10〜）
 
 | タスク | 優先度 | 担当 |
 |--------|--------|------|
@@ -473,27 +487,7 @@ beta      ← β版リビルドブランチ（新規作成）
 | テーマ改善・追加（Firebase直接編集） | 🔴 高 | あなた |
 | リッチメニュー設定（LINE Official Account Manager） | 🟡 中 | あなた |
 | Firebase users不要データ削除（旧pictureUrl等） | 🟡 中 | あなた |
-| **テーマ一覧ページ①（ゲーム外でテーマ閲覧）** | 🔴 高 | **開発（4/9）** |
-| **テーマ一覧ページ②（自分の過去TOP5履歴）** | 🔴 高 | **開発（4/9）** |
-| **モニタリング整備（Firebase Analytics活用・KPI確認方法）** | 🔴 高 | **開発（4/9）** |
-| **テーマ選択のスクロール化（現状スワイプ→縦スクロールに変更検討）** | 🟡 中 | **開発（4/9）** |
-| Analytics カスタムイベント設定 | 🟢 低 | 開発 |
-
-### 4/9 開発優先順位
-
-```
-① テーマ一覧ページ
-   - ゲーム外でもテーマ一覧が見られる
-   - 自分の過去TOP5が履歴として表示される
-   - TOP5の入力・修正・削除ができる
-
-② テーマ選択のスクロール化
-   - 現状のスワイプカード形式を検討・改善
-
-③ モニタリング整備
-   - Firebaseで確認できるKPI整理
-   - 必要であればAnalyticsイベント追加
-```
+| Google Sheets モニタリングデータ確認・調整 | 🟡 中 | あなた・開発 |
 
 ### セキュリティ設計メモ
 
