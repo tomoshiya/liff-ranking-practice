@@ -71,7 +71,7 @@ function renderTLHistory(themeIdx) {
     if (!section) return;
 
     if (themeIdx === null) {
-        section.innerHTML = '<div class="tl-history-placeholder">← テーマを選んでください</div>';
+        section.innerHTML = '<div class="tl-history-placeholder">テーマを選択すると過去の履歴が表示されます</div>';
         return;
     }
 
@@ -86,7 +86,7 @@ function renderTLHistory(themeIdx) {
         return;
     }
 
-    const MODE_LABEL = { pair: 'ふたりで', multi: 'みんなで', local: '1台で' };
+    const MODE_LABEL = { pair: 'ふたりであそぶ', multi: 'みんなであそぶ', local: '1台であそぶ' };
 
     section.innerHTML = `<div class="tl-history-theme-name">${escapeHtml(theme.text)}</div>` +
         history.map(entry => {
@@ -98,6 +98,12 @@ function renderTLHistory(themeIdx) {
             const modeLabel = MODE_LABEL[entry.mode] || entry.mode || '';
             const myUid  = entry.myLineUserId;
 
+            // 参加者表示（playersデータがある場合のみ）
+            const players = entry.players;
+            const playersHtml = (Array.isArray(players) && players.length > 0)
+                ? `<div class="tl-entry__players">参加者：${players.map(p => escapeHtml(p.displayName || p.lineUserId || '')).join('、')}</div>`
+                : '';
+
             // Firebase が {1:'v',...} を [null,'v',...] に変換する場合があるため
             // インデックス0がnull/空の場合は除去して1始まりに揃える
             let raw = (entry.answers && entry.answers[myUid]) || [];
@@ -107,7 +113,10 @@ function renderTLHistory(themeIdx) {
 
             return `<div class="tl-entry">
                 <div class="tl-entry__header">
-                    <span class="tl-entry__date">${dateStr} · ${modeLabel}</span>
+                    <div class="tl-entry__header-left">
+                        <span class="tl-entry__date">${dateStr} · ${modeLabel}</span>
+                        ${playersHtml}
+                    </div>
                     <button class="tl-entry__delete-btn"
                             onclick="confirmDeleteTLEntry('${entry.id}',${themeIdx})">削除</button>
                 </div>

@@ -1083,9 +1083,18 @@ input, textarea { font-family: inherit; }
 
 .tl-entry__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 10px;
+}
+.tl-entry__header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tl-entry__players {
+  font-size: 11px;
+  color: var(--text-secondary);
 }
 
 .tl-entry__date {

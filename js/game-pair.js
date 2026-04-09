@@ -757,7 +757,7 @@ function onThemeCardsScroll() {
     updateCarouselIndicator('themeCardsScroll', 'scrollCounterText', 'scrollBarFill', currentPackFilter);
 }
 
-// インジケーター更新（共通）
+// インジケーター更新（共通）: DOM実座標で最近傍の実カードを探す
 function updateCarouselIndicator(scrollId, counterId, fillId, pack) {
     const scroll = document.getElementById(scrollId);
     if (!scroll) return;
@@ -765,12 +765,19 @@ function updateCarouselIndicator(scrollId, counterId, fillId, pack) {
     const total = filtered.length;
     if (total <= 1) return;
 
-    const CARD_W = 200 + 12;
-    // clone分のオフセットを考慮して実カード番号を算出
-    const cloneOffset = parseInt(scroll.dataset.cloneCount || '0') * CARD_W;
-    const rawIdx = Math.round((scroll.scrollLeft - cloneOffset) / CARD_W);
-    const current = ((rawIdx % total) + total) % total + 1;
+    const scrollPad = parseInt(getComputedStyle(scroll).scrollPaddingLeft) || 20;
+    const pos = scroll.scrollLeft;
+    const allReal = [...scroll.querySelectorAll('.theme-card-item:not([data-carousel-clone])')];
+    if (allReal.length === 0) return;
 
+    // 実カードの中で最もスナップ位置に近いものを探す
+    let closestIdx = 0, minDist = Infinity;
+    allReal.forEach((card, i) => {
+        const dist = Math.abs(pos - (card.offsetLeft - scrollPad));
+        if (dist < minDist) { minDist = dist; closestIdx = i; }
+    });
+
+    const current = closestIdx + 1;
     const counter = document.getElementById(counterId);
     const fill    = document.getElementById(fillId);
     if (counter) counter.textContent = `${current} / ${total}`;
@@ -782,10 +789,19 @@ function setupCarouselLoop(scrollId) {
     const scroll = document.getElementById(scrollId);
     if (!scroll) return;
 
+    // 前回のリスナーを先に除去（参照を削除する前に必ず removeEventListener）
+    if (scroll._carouselListener) {
+        scroll.removeEventListener('scrollend', scroll._carouselListener);
+    }
+    if (scroll._carouselListenerFallback) {
+        scroll.removeEventListener('scroll', scroll._carouselListenerFallback);
+    }
+    delete scroll._carouselListener;
+    delete scroll._carouselListenerFallback;
+
     // 前回のcloneを除去して再初期化
     scroll.querySelectorAll('[data-carousel-clone]').forEach(el => el.remove());
     delete scroll.dataset.cloneCount;
-    delete scroll._carouselListener;
 
     const realItems = [...scroll.querySelectorAll('.theme-card-item')];
     const N = realItems.length;
@@ -814,35 +830,63 @@ function setupCarouselLoop(scrollId) {
 
     scroll.dataset.cloneCount = CLONE;
 
-    // 先頭のcloneをスキップして実カード1枚目を表示
-    scroll.style.scrollSnapType = 'none';
-    scroll.scrollLeft = CLONE * CARD_W;
-    requestAnimationFrame(() => { scroll.style.scrollSnapType = ''; });
-
-    // ループ処理（snap完了後に呼ばれる前提）
-    function checkLoop() {
-        const pos = scroll.scrollLeft;
-        // pre-clone領域: 0 〜 (CLONE-1)*CARD_W
-        // real領域:       CLONE*CARD_W 〜 (CLONE+N-1)*CARD_W
-        // post-clone領域: (CLONE+N)*CARD_W 〜
-
-        if (pos <= (CLONE - 1) * CARD_W + 10) {
-            // pre-clone領域に snap された → 対応する実カード位置にジャンプ
+    // 先頭のcloneをスキップして実カード1枚目を表示（DOM描画後に実座標を使う）
+    requestAnimationFrame(() => {
+        const firstReal = scroll.querySelector('.theme-card-item:not([data-carousel-clone])');
+        if (firstReal) {
+            const scrollPad = parseInt(getComputedStyle(scroll).scrollPaddingLeft) || 20;
             scroll.style.scrollSnapType = 'none';
-            scroll.scrollLeft = pos + N * CARD_W;
-            requestAnimationFrame(() => { scroll.style.scrollSnapType = ''; });
-        } else if (pos >= (CLONE + N) * CARD_W - 10) {
-            // post-clone領域に snap された → 対応する実カード位置にジャンプ
-            scroll.style.scrollSnapType = 'none';
-            scroll.scrollLeft = pos - N * CARD_W;
+            scroll.scrollLeft = firstReal.offsetLeft - scrollPad;
             requestAnimationFrame(() => { scroll.style.scrollSnapType = ''; });
         }
-    }
+    });
 
-    // 旧リスナーがあれば除去
-    if (scroll._carouselListener) {
-        scroll.removeEventListener('scrollend', scroll._carouselListener);
-        scroll.removeEventListener('scroll',    scroll._carouselListenerFallback);
+    // ループ処理: N*CARD_W計算ではなく実DOM座標でジャンプ先を特定する
+    function checkLoop() {
+        if (scroll._isLoopJumping) return;
+
+        const scrollPad = parseInt(getComputedStyle(scroll).scrollPaddingLeft) || 20;
+        const pos = scroll.scrollLeft;
+
+        const allReal = [...scroll.querySelectorAll('.theme-card-item:not([data-carousel-clone])')];
+        if (allReal.length === 0) return;
+
+        const realStart = allReal[0].offsetLeft - scrollPad;
+        const realEnd   = allReal[allReal.length - 1].offsetLeft - scrollPad;
+
+        let targetPos = null;
+
+        if (pos < realStart - 5) {
+            // pre-clone領域: 末尾側の実カードにジャンプ
+            const preClones = [...scroll.querySelectorAll('[data-carousel-clone="pre"]')];
+            const firstPreSnap = preClones[0] ? preClones[0].offsetLeft - scrollPad : 0;
+            const interval = preClones.length > 1
+                ? (preClones[preClones.length - 1].offsetLeft - preClones[0].offsetLeft) / (preClones.length - 1)
+                : 212;
+            const cloneIdx = Math.max(0, Math.min(CLONE - 1, Math.round((pos - firstPreSnap) / interval)));
+            const realIdx  = allReal.length - CLONE + cloneIdx;
+            targetPos = allReal[Math.max(0, Math.min(allReal.length - 1, realIdx))].offsetLeft - scrollPad;
+
+        } else if (pos > realEnd + 5) {
+            // post-clone領域: 先頭側の実カードにジャンプ
+            const postClones = [...scroll.querySelectorAll('[data-carousel-clone="post"]')];
+            const firstPostSnap = postClones[0] ? postClones[0].offsetLeft - scrollPad : realEnd + 212;
+            const interval = postClones.length > 1
+                ? (postClones[postClones.length - 1].offsetLeft - postClones[0].offsetLeft) / (postClones.length - 1)
+                : 212;
+            const cloneIdx = Math.max(0, Math.min(CLONE - 1, Math.round((pos - firstPostSnap) / interval)));
+            targetPos = allReal[Math.max(0, Math.min(allReal.length - 1, cloneIdx))].offsetLeft - scrollPad;
+        }
+
+        if (targetPos !== null) {
+            scroll._isLoopJumping = true;
+            scroll.style.scrollSnapType = 'none';
+            scroll.scrollLeft = targetPos;
+            setTimeout(() => {
+                scroll.style.scrollSnapType = '';
+                setTimeout(() => { delete scroll._isLoopJumping; }, 100);
+            }, 20);
+        }
     }
 
     if ('onscrollend' in window) {
@@ -850,7 +894,7 @@ function setupCarouselLoop(scrollId) {
         scroll.addEventListener('scrollend', checkLoop);
     } else {
         let t;
-        scroll._carouselListenerFallback = () => { clearTimeout(t); t = setTimeout(checkLoop, 80); };
+        scroll._carouselListenerFallback = () => { clearTimeout(t); t = setTimeout(checkLoop, 200); };
         scroll.addEventListener('scroll', scroll._carouselListenerFallback);
     }
 }

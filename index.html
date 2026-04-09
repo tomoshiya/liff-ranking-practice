@@ -860,7 +860,8 @@
 <!-- ========================================
      確認モーダル（共通ボトムシート）
      ======================================== -->
-<div id="confirmOverlay" class="confirm-overlay" style="display:none;">
+<div id="confirmOverlay" class="confirm-overlay" style="display:none;"
+     onclick="if(event.target===this)closeConfirmModal()">
   <div class="confirm-sheet">
     <div class="confirm-sheet__title" id="confirmTitle"></div>
     <div class="confirm-sheet__body" id="confirmBody"></div>
