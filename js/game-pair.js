@@ -722,18 +722,13 @@ function renderThemeCards(pack) {
                      style="background:${color};">
             <div class="theme-card__white">
                 <span class="theme-card__text">${escapeHtml(t.text)}</span>
+                <span class="theme-card__pack">${escapeHtml(packLabel)}</span>
             </div>
             <div class="theme-card-check"><div class="theme-card-check-circle">✓</div></div>
-            <span class="theme-card__pack">${escapeHtml(packLabel)}</span>
         </div>`;
     }).join('');
 
-    const counter = document.getElementById('scrollCounterText');
-    const fill = document.getElementById('scrollBarFill');
-    counter.textContent = filtered.length > 0 ? `1 / ${filtered.length}` : '0 / 0';
-    fill.style.width = filtered.length > 1 ? `${100 / filtered.length}%` : '100%';
-
-    scroll.scrollLeft = 0;
+    scroll.scrollTop = 0;
 }
 
 // スクロールインジケーター更新

@@ -147,6 +147,12 @@
 
     </div>
 
+    <!-- テーマ一覧ボタン -->
+    <button class="tl-entry-btn" onclick="showThemeListScreen()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      テーマ一覧・過去の回答を見る
+    </button>
+
   </div>
 </div>
 
@@ -809,6 +815,26 @@
 </div>
 
 <!-- ========================================
+     テーマ一覧スクリーン
+     ======================================== -->
+<div id="themeListScreen" class="screen" style="display:none;">
+  <div class="hero hero--compact">
+    <div class="hero__bubble hero__bubble--1"></div>
+    <div class="hero__bubble hero__bubble--2"></div>
+    <button class="hero-back-btn" onclick="showScreen('topScreen')">← HOME</button>
+    <div style="text-align:center;padding-top:4px;">
+      <div style="font-size:18px;font-weight:700;color:#fff;letter-spacing:.04em;">テーマ一覧</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">テーマを選んで過去の回答を確認できます</div>
+    </div>
+  </div>
+  <div class="tl-content">
+    <div class="pack-tabs-row" id="tlPackTabsRow" style="padding:12px 16px 4px;"></div>
+    <div id="tlPackDescArea" class="pack-desc-area" style="display:none;margin:0 16px 8px;"></div>
+    <div id="tlThemeList" class="tl-theme-list"></div>
+  </div>
+</div>
+
+<!-- ========================================
      履歴ボトムシート
      ======================================== -->
 <div id="historySheet" class="bottomsheet-overlay" onclick="closeHistorySheet(event)">
@@ -850,6 +876,7 @@
 <script src="js/game-pair.js"></script>
 <script src="js/game-multi.js"></script>
 <script src="js/game-local.js"></script>
+<script src="js/theme-list.js"></script>
 
 <style>
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }

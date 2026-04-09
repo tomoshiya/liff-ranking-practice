@@ -180,23 +180,30 @@ input, textarea { font-family: inherit; }
 }
 .theme-card__white {
   position: absolute;
-  clip-path: polygon(55px 0%, 100% 0%, 100% 100%, 33px 100%);
-  inset: 0; background: rgba(255,255,255,0.92);
+  clip-path: polygon(40px 0%, 100% 0%, 100% 100%, 24px 100%);
+  inset: 0; background: rgba(255,255,255,0.94);
   display: flex; align-items: center; justify-content: flex-start;
-  padding: 8px 12px 8px 55px;
+  padding: 10px 40px 10px 44px;
 }
 .theme-card__text {
-  font-size: var(--card-text-size); font-weight: 700;
+  font-size: 13px; font-weight: 700;
   color: #1A1917; line-height: 1.4;
   word-break: break-all; white-space: pre-line;
 }
 .theme-card__pack {
   position: absolute; bottom: 8px; left: 12px;
   font-family: 'DM Sans', sans-serif;
-  font-size: var(--card-pack-size); font-weight: 800;
+  font-size: 9px; font-weight: 800;
   color: rgba(255,255,255,0.42);
   text-transform: uppercase; letter-spacing: 0.08em;
   writing-mode: vertical-rl; transform: rotate(180deg);
+}
+/* テーマ選択縦リスト内では白エリアのflex子として右寄せ */
+.theme-card__white > .theme-card__pack {
+  position: static;
+  margin-left: auto; flex-shrink: 0;
+  color: var(--text-muted);
+  writing-mode: horizontal-tb; transform: none;
 }
 
 /* .btn-back-home は .hero-back-btn に統一済み */
@@ -782,32 +789,30 @@ input, textarea { font-family: inherit; }
   line-height: 1.5; white-space: pre-line;
 }
 
-/* テーマカード横スクロール */
+/* テーマカード縦スクロール */
 .theme-cards-scroll {
-  display: flex; gap: 12px; flex-shrink: 0;
-  overflow-x: auto; padding: 10px 20px 6px;
-  /* scroll-padding-left: snap時もpaddingを考慮させることで左端に貼り付かなくなる */
-  scroll-padding-left: 20px;
-  scroll-snap-type: x mandatory;
+  display: flex; flex-direction: column; gap: 8px;
+  flex: 1; overflow-y: auto; padding: 10px 16px 12px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 .theme-cards-scroll::-webkit-scrollbar { display: none; }
 .theme-card-item {
-  position: relative; width: var(--card-w); height: var(--card-h);
-  border-radius: 14px; overflow: hidden;
-  flex-shrink: 0; scroll-snap-align: start;
-  cursor: pointer; box-shadow: 0 3px 12px rgba(0,0,0,0.12);
-  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative; width: 100%; min-height: 60px;
+  border-radius: 12px; overflow: hidden;
+  flex-shrink: 0;
+  cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
-.theme-card-item:active { transform: scale(0.97); }
+.theme-card-item:active { transform: scale(0.98); }
 .theme-card-item--selected::after {
   content: ''; position: absolute; inset: 0;
-  border-radius: 14px; border: 2.5px solid rgba(255,255,255,0.7);
+  border-radius: 12px; border: 2.5px solid rgba(255,255,255,0.7);
   pointer-events: none; z-index: 20;
 }
 .theme-card-check {
-  position: absolute; top: 8px; left: 0; width: 46px;
+  position: absolute; top: 50%; left: 0; width: 40px;
+  transform: translateY(-50%);
   display: flex; justify-content: center; z-index: 10;
 }
 .theme-card-check-circle {
@@ -823,10 +828,9 @@ input, textarea { font-family: inherit; }
   opacity: 1; transform: scale(1);
 }
 
-/* スクロールインジケーター */
+/* スクロールインジケーター（縦スクロール化により非表示） */
 .scroll-indicator-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 2px 20px 6px; flex-shrink: 0;
+  display: none;
 }
 .scroll-counter-text {
   font-size: 11px; font-weight: 700; color: var(--text-muted);
@@ -1005,4 +1009,281 @@ input, textarea { font-family: inherit; }
   background: var(--text-primary);
   width: 18px;
   border-radius: 4px;
+}
+
+/* ========================================
+   テーマ一覧ページ
+   ======================================== */
+
+/* TOP画面のエントリーボタン */
+.tl-entry-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: calc(100% - 40px);
+  margin: 12px 20px 0;
+  padding: 13px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: .02em;
+}
+.tl-entry-btn:active {
+  opacity: .7;
+}
+
+/* コンパクトなヒーロー */
+.hero--compact {
+  min-height: 90px !important;
+  padding-bottom: 16px !important;
+}
+
+/* 画面コンテンツ（スクロール可能エリア） */
+.tl-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 40px;
+}
+
+/* テーマリスト */
+.tl-theme-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 8px 16px 20px;
+}
+
+.tl-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 40px 0;
+}
+
+/* テーマ行 */
+.tl-theme-item {
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  transition: border-color .15s;
+}
+.tl-theme-item--expanded {
+  border-color: var(--text-muted);
+}
+
+/* テーマヘッダー（タップ領域） */
+.tl-theme-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.tl-theme-header:active {
+  opacity: .75;
+}
+
+.tl-theme-color-bar {
+  width: 4px;
+  height: 36px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.tl-theme-header-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.tl-theme-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.tl-history-badge {
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 500;
+}
+.tl-no-history-badge {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.tl-chevron {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform .2s;
+}
+.tl-chevron--open {
+  transform: rotate(180deg);
+}
+
+/* テーマ詳細（展開部分） */
+.tl-theme-detail {
+  border-top: 1px solid var(--border);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tl-detail-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 12px 0 4px;
+}
+
+/* プレイ履歴1エントリ */
+.tl-play-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tl-play-entry__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tl-play-date {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.tl-delete-btn {
+  font-size: 11px;
+  color: #E57373;
+  background: none;
+  border: 1px solid #E57373;
+  border-radius: 6px;
+  padding: 3px 9px;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.tl-delete-btn:active {
+  opacity: .7;
+}
+
+/* 回答リスト */
+.tl-play-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tl-answer-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+
+/* 回答行 */
+.tl-answer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--surface-1);
+  border-radius: 8px;
+  min-height: 36px;
+}
+.tl-answer-row--editing {
+  background: var(--surface-3, #2a2925);
+}
+
+.tl-answer-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.tl-answer-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+  min-width: 0;
+  word-break: break-all;
+}
+
+.tl-edit-btn {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 9px;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+.tl-edit-btn:active {
+  opacity: .7;
+}
+
+/* 編集中インライン */
+.tl-answer-input {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--surface-2);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 4px 8px;
+  min-width: 0;
+  outline: none;
+}
+
+.tl-answer-actions {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.tl-save-btn {
+  font-size: 11px;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.tl-save-btn:active {
+  opacity: .7;
+}
+
+.tl-cancel-btn {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.tl-cancel-btn:active {
+  opacity: .7;
 }

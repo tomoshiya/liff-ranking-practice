@@ -3,8 +3,8 @@
 // ========================================
 
 const STORAGE_KEYS = {
-    HISTORY: 'rankq_history',
-    SOLO_HISTORY: 'rankq_soloHistory',
+    HISTORY: 'ranknow_history_beta',
+    SOLO_HISTORY: 'ranknow_solo_history_beta',
     CURRENT_SESSION: 'rankq_currentSession',
     DISPLAY_NAME: 'rankq_displayName'
 };
@@ -106,4 +106,27 @@ function createHistoryEntry({ themeId, themeText, mode, players, myLineUserId, m
 
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+// --- 履歴の削除・編集 ---
+
+function deleteHistoryEntry(id) {
+    const history = getGameHistory().filter(h => h.id !== id);
+    try {
+        localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
+    } catch (e) {
+        console.warn('履歴削除エラー:', e);
+    }
+}
+
+function updateHistoryAnswer(histId, lineUserId, index, newText) {
+    const history = getGameHistory();
+    const entry = history.find(h => h.id === histId);
+    if (!entry || !entry.answers || !entry.answers[lineUserId]) return;
+    entry.answers[lineUserId][index] = newText;
+    try {
+        localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
+    } catch (e) {
+        console.warn('履歴更新エラー:', e);
+    }
 }
