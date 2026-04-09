@@ -63,6 +63,13 @@ async function initializeUserInFirebase() {
 }
 
 // Analytics: イベント記録
+function getEnv() {
+    const h = window.location.hostname;
+    if (h.includes('beta--dashing-granita') || h.includes('netlify.app')) return 'beta';
+    if (h.includes('github.io')) return 'production';
+    return 'local';
+}
+
 function trackEvent(eventName, eventData = {}) {
     if (!database || !App.currentUser) return;
     try {
@@ -70,6 +77,7 @@ function trackEvent(eventName, eventData = {}) {
             event: eventName,
             userId: App.currentUser.userId,
             displayName: App.userProfile?.displayName || 'unknown',
+            env: getEnv(),
             data: eventData,
             timestamp: Date.now(),
             date: new Date().toISOString()
