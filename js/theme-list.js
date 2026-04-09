@@ -91,10 +91,19 @@ function renderTLHistory(themeIdx) {
     section.innerHTML = `<div class="tl-history-theme-name">${escapeHtml(theme.text)}</div>` +
         history.map(entry => {
             const d = new Date(entry.playedAt);
-            const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
+            const yyyy = d.getFullYear();
+            const mm   = String(d.getMonth() + 1).padStart(2, '0');
+            const dd   = String(d.getDate()).padStart(2, '0');
+            const dateStr = `${yyyy}/${mm}/${dd}`;
             const modeLabel = MODE_LABEL[entry.mode] || entry.mode || '';
             const myUid  = entry.myLineUserId;
-            const answers = (entry.answers && entry.answers[myUid]) || [];
+
+            // Firebase が {1:'v',...} を [null,'v',...] に変換する場合があるため
+            // インデックス0がnull/空の場合は除去して1始まりに揃える
+            let raw = (entry.answers && entry.answers[myUid]) || [];
+            const answers = Array.isArray(raw) && raw.length > 0 && (raw[0] === null || raw[0] === '' || raw[0] === undefined)
+                ? raw.slice(1)
+                : raw;
 
             return `<div class="tl-entry">
                 <div class="tl-entry__header">
@@ -125,13 +134,13 @@ function confirmDeleteTLEntry(histId, themeIdx) {
         [
             {
                 label: '削除する',
-                style: 'danger',
-                action: `doDeleteTLEntry('${histId}',${themeIdx})`
+                cls: 'btn btn--danger',
+                fn: `doDeleteTLEntry('${histId}',${themeIdx})`
             },
             {
                 label: 'キャンセル',
-                style: 'cancel',
-                action: 'closeConfirmModal()'
+                cls: 'btn btn--outline',
+                fn: 'closeConfirmModal()'
             }
         ]
     );

@@ -794,14 +794,17 @@ function setupCarouselLoop(scrollId) {
     const CLONE = Math.min(3, N);
     const CARD_W = 200 + 12;
 
-    // 末尾カードのcloneを先頭に追加
+    // 末尾カードのcloneを先頭に追加（順序維持: [clone_N-2, clone_N-1, clone_N, real_1, ...]）
+    const preFragment = document.createDocumentFragment();
     realItems.slice(-CLONE).forEach(item => {
         const c = item.cloneNode(true);
         c.removeAttribute('id');
         c.setAttribute('data-carousel-clone', 'pre');
-        scroll.insertBefore(c, scroll.firstChild);
+        preFragment.appendChild(c);
     });
-    // 先頭カードのcloneを末尾に追加
+    scroll.insertBefore(preFragment, scroll.firstChild);
+
+    // 先頭カードのcloneを末尾に追加（順序維持: [..., real_N, clone_1, clone_2, clone_3]）
     realItems.slice(0, CLONE).forEach(item => {
         const c = item.cloneNode(true);
         c.removeAttribute('id');
@@ -816,19 +819,20 @@ function setupCarouselLoop(scrollId) {
     scroll.scrollLeft = CLONE * CARD_W;
     requestAnimationFrame(() => { scroll.style.scrollSnapType = ''; });
 
-    // ループ処理
+    // ループ処理（snap完了後に呼ばれる前提）
     function checkLoop() {
         const pos = scroll.scrollLeft;
-        const preEnd  = CLONE * CARD_W;       // 実カード1枚目の位置
-        const postStart = (CLONE + N) * CARD_W; // post-clone開始位置
+        // pre-clone領域: 0 〜 (CLONE-1)*CARD_W
+        // real領域:       CLONE*CARD_W 〜 (CLONE+N-1)*CARD_W
+        // post-clone領域: (CLONE+N)*CARD_W 〜
 
-        if (pos < preEnd - CARD_W * 0.5) {
-            // pre-clone領域 → 実末尾にジャンプ
+        if (pos <= (CLONE - 1) * CARD_W + 10) {
+            // pre-clone領域に snap された → 対応する実カード位置にジャンプ
             scroll.style.scrollSnapType = 'none';
             scroll.scrollLeft = pos + N * CARD_W;
             requestAnimationFrame(() => { scroll.style.scrollSnapType = ''; });
-        } else if (pos >= postStart - CARD_W * 0.5) {
-            // post-clone領域 → 実先頭にジャンプ
+        } else if (pos >= (CLONE + N) * CARD_W - 10) {
+            // post-clone領域に snap された → 対応する実カード位置にジャンプ
             scroll.style.scrollSnapType = 'none';
             scroll.scrollLeft = pos - N * CARD_W;
             requestAnimationFrame(() => { scroll.style.scrollSnapType = ''; });
