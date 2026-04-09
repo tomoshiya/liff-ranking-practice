@@ -71,17 +71,20 @@ function getEnv() {
 }
 
 function trackEvent(eventName, eventData = {}) {
-    if (!database || !App.currentUser) return;
+    if (!database) return;
+    const userId = App.currentUser?.userId || App.userProfile?.userId || 'unknown';
+    const displayName = App.userProfile?.displayName || 'unknown';
     try {
         database.ref('analytics/events').push({
             event: eventName,
-            userId: App.currentUser.userId,
-            displayName: App.userProfile?.displayName || 'unknown',
+            userId,
+            displayName,
             env: getEnv(),
             data: eventData,
             timestamp: Date.now(),
             date: new Date().toISOString()
-        });
+        }).catch(err => console.error('Analytics書き込みエラー:', err));
+        console.log('[Analytics]', eventName, eventData);
     } catch (error) {
         console.error('Analytics記録エラー:', error);
     }
