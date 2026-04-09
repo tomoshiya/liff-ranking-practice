@@ -1,13 +1,13 @@
 {
   "CURRENT_RULES": "以下のrulesセクションをFirebase Consoleにコピーして使用してください",
-  "LAST_UPDATED": "2026-04-07",
-  "VERSION": "v3.5",
+  "LAST_UPDATED": "2026-04-09",
+  "VERSION": "v3.6",
 
   "rules": {
     "users": {
       "$lineUserId": {
         ".read":  "auth != null && (!data.exists() || data.child('firebaseUid').val() == auth.uid)",
-        ".write": "auth != null && (!data.exists() || data.child('firebaseUid').val() == null || data.child('firebaseUid').val() == auth.uid)"
+        ".write": "auth != null"
       }
     },
     "gameRooms": {
@@ -39,6 +39,16 @@
   },
 
   "_CHANGE_HISTORY": [
+    {
+      "date": "2026-04-09",
+      "version": "v3.6",
+      "reason": "users/$lineUserId の .write を auth!=null に緩和。LIFF LINE内ブラウザでは Firebase 匿名認証 UID がセッション間で変わるため、firebaseUid 照合が常に失敗し lastLoginAt が更新できない問題を修正。beta 期間中は gameRooms と同等レベルの auth!=null で許容。",
+      "changes": [
+        "users/$lineUserId .write: firebaseUid照合チェックを削除し auth!=null に統一",
+        "firebase.js initializeUserInFirebase: update/set に env フィールドを追加"
+      ],
+      "security_level": "認証済みユーザーであれば他ユーザーのusersレコードも上書き可能（beta期間の許容範囲）。displayName・lastLoginAt・envのみ保存の軽微なリスク。"
+    },
     {
       "date": "2026-04-07",
       "version": "v3.5",

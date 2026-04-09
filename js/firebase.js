@@ -43,7 +43,8 @@ async function initializeUserInFirebase() {
             await userRef.update({
                 displayName: App.userProfile.displayName,
                 firebaseUid: firebase.auth().currentUser.uid,
-                lastLoginAt: new Date().toISOString()
+                lastLoginAt: new Date().toISOString(),
+                env: getEnv()
             });
         } else {
             const newUser = {
@@ -51,7 +52,8 @@ async function initializeUserInFirebase() {
                 displayName: App.userProfile.displayName,
                 firebaseUid: firebase.auth().currentUser.uid,
                 createdAt: new Date().toISOString(),
-                lastLoginAt: new Date().toISOString()
+                lastLoginAt: new Date().toISOString(),
+                env: getEnv()
             };
             await userRef.set(newUser);
             App.currentUser = newUser;
