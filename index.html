@@ -827,10 +827,22 @@
       <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">テーマを選んで過去の回答を確認できます</div>
     </div>
   </div>
-  <div class="tl-content">
-    <div class="pack-tabs-row" id="tlPackTabsRow" style="padding:12px 16px 4px;"></div>
-    <div id="tlPackDescArea" class="pack-desc-area" style="display:none;margin:0 16px 8px;"></div>
-    <div id="tlThemeList" class="tl-theme-list"></div>
+
+  <!-- パックタブ -->
+  <div class="pack-tabs-row" id="tlPackTabsRow"></div>
+  <!-- パック説明 -->
+  <div id="tlPackDescArea" class="pack-desc-area" style="display:none;"></div>
+  <!-- テーマカード横スクロール -->
+  <div class="theme-cards-scroll" id="tlThemeCardsScroll" onscroll="onTLThemeCardsScroll()"></div>
+  <!-- スクロールインジケーター -->
+  <div class="scroll-indicator-row">
+    <span class="scroll-counter-text" id="tlScrollCounterText">1 / 1</span>
+    <div class="scroll-bar-track"><div class="scroll-bar-fill" id="tlScrollBarFill" style="width:100%"></div></div>
+  </div>
+
+  <!-- 履歴セクション -->
+  <div class="tl-history-section" id="tlHistorySection">
+    <div class="tl-history-placeholder">← テーマを選んでください</div>
   </div>
 </div>
 

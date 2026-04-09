@@ -631,6 +631,7 @@ function showSharedThemeSelect() {
     setThemeInputMode('pack');
 
     showScreen('themeSelectScreen');
+    setupCarouselLoop('themeCardsScroll');
 }
 
 // onlineホスト用（Firebase listenerから呼ばれる）
@@ -655,11 +656,16 @@ function showGuestThemeBrowse() {
     setThemeInputMode('pack');
 
     showScreen('themeSelectScreen');
+    setupCarouselLoop('themeCardsScroll');
 }
 
 // パックタブ描画
-function renderPackTabs() {
-    // packMetaのorder順でパックを並べ、「すべて」を最後に
+// ctx: { tabsRowId, descAreaId, switchFn, activePack } — 省略時はゲーム用デフォルト
+function renderPackTabs(ctx) {
+    const tabsRowId = (ctx && ctx.tabsRowId) || 'packTabsRow';
+    const switchFn  = (ctx && ctx.switchFn)  || 'switchPackFilter';
+    const active    = (ctx && ctx.activePack !== undefined) ? ctx.activePack : currentPackFilter;
+
     const usedPacks = [...new Set(themes.filter(t => t.pack).map(t => t.pack))];
     const sortedPacks = usedPacks.sort((a, b) => {
         const oa = packMeta[a]?.order ?? 99;
@@ -667,19 +673,19 @@ function renderPackTabs() {
         return oa - ob;
     });
     const packs = [...sortedPacks, 'all'];
-    document.getElementById('packTabsRow').innerHTML = packs.map(p => {
+    document.getElementById(tabsRowId).innerHTML = packs.map(p => {
         const label = p === 'all' ? 'すべて' : (packMeta[p]?.label || p);
-        const isActive = p === currentPackFilter;
+        const isActive = p === active;
         const bgColor = (p !== 'all' && packMeta[p]?.color) ? packMeta[p].color : '#1A1917';
         const activeStyle = isActive ? `background:${bgColor};border-color:${bgColor};` : '';
         return `<div class="pack-tab-item ${isActive ? 'pack-tab-item--active' : ''}"
              style="${activeStyle}"
-             onclick="switchPackFilter('${p}')">${label}</div>`;
+             onclick="${switchFn}('${p}')">${label}</div>`;
     }).join('');
-    renderPackDesc(currentPackFilter);
+    renderPackDesc(active, ctx);
 }
 
-// パックフィルター切替
+// パックフィルター切替（ゲーム専用）
 function switchPackFilter(pack) {
     currentPackFilter = pack;
     sharedSelectedThemeIdx = -1;
@@ -690,11 +696,14 @@ function switchPackFilter(pack) {
     renderPackTabs();
     renderThemeCards(pack);
     renderPackDesc(pack);
+    setupCarouselLoop('themeCardsScroll');
 }
 
 // パック説明文の描画
-function renderPackDesc(pack) {
-    const el = document.getElementById('packDescArea');
+// ctx: { descAreaId } — 省略時はゲーム用デフォルト
+function renderPackDesc(pack, ctx) {
+    const descAreaId = (ctx && ctx.descAreaId) || 'packDescArea';
+    const el = document.getElementById(descAreaId);
     if (!el) return;
     if (pack === 'all' || !packMeta[pack]) {
         el.style.display = 'none';
@@ -710,15 +719,22 @@ function renderPackDesc(pack) {
 }
 
 // テーマカード横スクロール描画
-function renderThemeCards(pack) {
+// ctx: { scrollId, counterId, fillId, idPrefix, onClickFn } — 省略時はゲーム用デフォルト
+function renderThemeCards(pack, ctx) {
+    const scrollId   = (ctx && ctx.scrollId)   || 'themeCardsScroll';
+    const counterId  = (ctx && ctx.counterId)  || 'scrollCounterText';
+    const fillId     = (ctx && ctx.fillId)     || 'scrollBarFill';
+    const idPrefix   = (ctx && ctx.idPrefix)   || 'themeCardItem';
+    const onClickFn  = (ctx && ctx.onClickFn)  || 'selectTheme';
+
     const filtered = pack === 'all' ? themes : themes.filter(t => t.pack === pack);
-    const scroll = document.getElementById('themeCardsScroll');
+    const scroll = document.getElementById(scrollId);
     scroll.innerHTML = filtered.map(t => {
         const origIdx = themes.indexOf(t);
         const color = getPackColor(t.pack);
         const packLabel = getPackLabel(t.pack);
-        return `<div class="theme-card-item" id="themeCardItem_${origIdx}"
-                     onclick="selectTheme(${origIdx})"
+        return `<div class="theme-card-item" id="${idPrefix}_${origIdx}"
+                     onclick="${onClickFn}(${origIdx})"
                      style="background:${color};">
             <div class="theme-card__white">
                 <span class="theme-card__text">${escapeHtml(t.text)}</span>
@@ -728,33 +744,118 @@ function renderThemeCards(pack) {
         </div>`;
     }).join('');
 
-    const counter = document.getElementById('scrollCounterText');
-    const fill = document.getElementById('scrollBarFill');
-    counter.textContent = filtered.length > 0 ? `1 / ${filtered.length}` : '0 / 0';
-    fill.style.width = filtered.length > 1 ? `${100 / filtered.length}%` : '100%';
+    const counter = document.getElementById(counterId);
+    const fill    = document.getElementById(fillId);
+    if (counter) counter.textContent = filtered.length > 0 ? `1 / ${filtered.length}` : '0 / 0';
+    if (fill)    fill.style.width    = filtered.length > 1  ? `${100 / filtered.length}%` : '100%';
 
     scroll.scrollLeft = 0;
 }
 
-// スクロールインジケーター更新
+// スクロールインジケーター更新（ゲーム専用）
 function onThemeCardsScroll() {
-    const scroll = document.getElementById('themeCardsScroll');
-    const pack = currentPackFilter;
+    updateCarouselIndicator('themeCardsScroll', 'scrollCounterText', 'scrollBarFill', currentPackFilter);
+}
+
+// インジケーター更新（共通）
+function updateCarouselIndicator(scrollId, counterId, fillId, pack) {
+    const scroll = document.getElementById(scrollId);
+    if (!scroll) return;
     const filtered = pack === 'all' ? themes : themes.filter(t => t.pack === pack);
     const total = filtered.length;
     if (total <= 1) return;
 
-    const cardWidth = 200 + 12;
-    const current = Math.min(Math.round(scroll.scrollLeft / cardWidth) + 1, total);
-    document.getElementById('scrollCounterText').textContent = `${current} / ${total}`;
-    document.getElementById('scrollBarFill').style.width = `${(current / total) * 100}%`;
+    const CARD_W = 200 + 12;
+    // clone分のオフセットを考慮して実カード番号を算出
+    const cloneOffset = parseInt(scroll.dataset.cloneCount || '0') * CARD_W;
+    const rawIdx = Math.round((scroll.scrollLeft - cloneOffset) / CARD_W);
+    const current = ((rawIdx % total) + total) % total + 1;
+
+    const counter = document.getElementById(counterId);
+    const fill    = document.getElementById(fillId);
+    if (counter) counter.textContent = `${current} / ${total}`;
+    if (fill)    fill.style.width = `${(current / total) * 100}%`;
+}
+
+// ループカルーセル初期化（両スクロールで共用）
+function setupCarouselLoop(scrollId) {
+    const scroll = document.getElementById(scrollId);
+    if (!scroll) return;
+
+    // 前回のcloneを除去して再初期化
+    scroll.querySelectorAll('[data-carousel-clone]').forEach(el => el.remove());
+    delete scroll.dataset.cloneCount;
+    delete scroll._carouselListener;
+
+    const realItems = [...scroll.querySelectorAll('.theme-card-item')];
+    const N = realItems.length;
+    if (N < 2) return;
+
+    const CLONE = Math.min(3, N);
+    const CARD_W = 200 + 12;
+
+    // 末尾カードのcloneを先頭に追加
+    realItems.slice(-CLONE).forEach(item => {
+        const c = item.cloneNode(true);
+        c.removeAttribute('id');
+        c.setAttribute('data-carousel-clone', 'pre');
+        scroll.insertBefore(c, scroll.firstChild);
+    });
+    // 先頭カードのcloneを末尾に追加
+    realItems.slice(0, CLONE).forEach(item => {
+        const c = item.cloneNode(true);
+        c.removeAttribute('id');
+        c.setAttribute('data-carousel-clone', 'post');
+        scroll.appendChild(c);
+    });
+
+    scroll.dataset.cloneCount = CLONE;
+
+    // 先頭のcloneをスキップして実カード1枚目を表示
+    scroll.style.scrollSnapType = 'none';
+    scroll.scrollLeft = CLONE * CARD_W;
+    requestAnimationFrame(() => { scroll.style.scrollSnapType = ''; });
+
+    // ループ処理
+    function checkLoop() {
+        const pos = scroll.scrollLeft;
+        const preEnd  = CLONE * CARD_W;       // 実カード1枚目の位置
+        const postStart = (CLONE + N) * CARD_W; // post-clone開始位置
+
+        if (pos < preEnd - CARD_W * 0.5) {
+            // pre-clone領域 → 実末尾にジャンプ
+            scroll.style.scrollSnapType = 'none';
+            scroll.scrollLeft = pos + N * CARD_W;
+            requestAnimationFrame(() => { scroll.style.scrollSnapType = ''; });
+        } else if (pos >= postStart - CARD_W * 0.5) {
+            // post-clone領域 → 実先頭にジャンプ
+            scroll.style.scrollSnapType = 'none';
+            scroll.scrollLeft = pos - N * CARD_W;
+            requestAnimationFrame(() => { scroll.style.scrollSnapType = ''; });
+        }
+    }
+
+    // 旧リスナーがあれば除去
+    if (scroll._carouselListener) {
+        scroll.removeEventListener('scrollend', scroll._carouselListener);
+        scroll.removeEventListener('scroll',    scroll._carouselListenerFallback);
+    }
+
+    if ('onscrollend' in window) {
+        scroll._carouselListener = checkLoop;
+        scroll.addEventListener('scrollend', checkLoop);
+    } else {
+        let t;
+        scroll._carouselListenerFallback = () => { clearTimeout(t); t = setTimeout(checkLoop, 80); };
+        scroll.addEventListener('scroll', scroll._carouselListenerFallback);
+    }
 }
 
 // テーマ選択
 function selectTheme(idx) {
     if (isGuestReadOnlyTheme) return;
     sharedSelectedThemeIdx = idx;
-    document.querySelectorAll('.theme-card-item').forEach(el => el.classList.remove('theme-card-item--selected'));
+    document.querySelectorAll('#themeSelectScreen .theme-card-item').forEach(el => el.classList.remove('theme-card-item--selected'));
     document.getElementById(`themeCardItem_${idx}`)?.classList.add('theme-card-item--selected');
 
     const theme = themes[idx];
