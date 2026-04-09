@@ -960,6 +960,13 @@ async function confirmTheme() {
     if (App.currentMode === 'local') {
         localGame.theme = theme;
         localGame.currentRankingPlayerIdx = 0;
+        trackEvent('game_start', {
+            themeId: theme.id || '',
+            themeText: theme.text,
+            mode: 'local',
+            playerCount: localGame.players ? localGame.players.length : 1,
+            players: (localGame.players || []).map(p => ({ uid: p.id, name: p.name }))
+        });
         localStartRankingInput();
         return;
     }
@@ -974,6 +981,12 @@ async function confirmTheme() {
             rankings: null,
             guesses: null,
             lastActivityAt: Date.now()
+        });
+        trackEvent('game_start', {
+            themeId: theme.id || '',
+            themeText: theme.text,
+            mode: App.currentMode,
+            roomId: room.roomId || ''
         });
     } catch (err) {
         showToast('テーマの確定に失敗しました', 'error');
@@ -1874,6 +1887,13 @@ function showMultiPersonResult(targetId) {
 }
 
 function renderOnlineResultScreen(data) {
+    trackEvent('game_complete', {
+        themeId: data.themeId || '',
+        themeText: data.theme || '',
+        mode: data.gameMode || 'pair',
+        playerCount: Object.keys(data.players || {}).length,
+        players: Object.entries(data.players || {}).map(([uid, p]) => ({ uid, name: p.displayName || '' }))
+    });
     if (data.gameMode === 'multi') {
         renderMultiResultScreen(data);
         return;

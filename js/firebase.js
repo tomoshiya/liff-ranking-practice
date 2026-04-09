@@ -9,7 +9,8 @@ const FIREBASE_CONFIG = {
     projectId: "test-futari-no-ranking",
     storageBucket: "test-futari-no-ranking.firebasestorage.app",
     messagingSenderId: "802679547612",
-    appId: "1:802679547612:web:1582d3e0176282ede43619"
+    appId: "1:802679547612:web:1582d3e0176282ede43619",
+    measurementId: "G-N364EXJQV8"
 };
 
 let firebaseApp = null;
@@ -19,6 +20,7 @@ function initializeFirebase() {
     try {
         firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
         database = firebase.database();
+        firebase.analytics();
         console.log('✅ Firebase接続成功');
         return true;
     } catch (error) {

@@ -18,6 +18,22 @@ const App = {
 };
 
 // ========================================
+// エラー監視
+// ========================================
+
+window.onerror = function(message, source, lineno, colno, error) {
+    try {
+        trackEvent('error', {
+            message: String(message).slice(0, 200),
+            source: String(source || '').replace(window.location.origin, ''),
+            line: lineno,
+            col: colno,
+            stack: error?.stack ? String(error.stack).slice(0, 500) : ''
+        });
+    } catch (_) {}
+};
+
+// ========================================
 // LIFF初期化
 // ========================================
 

@@ -233,6 +233,13 @@ function localSubmitGuess() {
 function localShowResult() {
     localCalcResults();
     localRenderResultScreen();
+    trackEvent('game_complete', {
+        themeId: localGame.theme?.id || '',
+        themeText: localGame.theme?.text || '',
+        mode: 'local',
+        playerCount: (localGame.players || []).length,
+        players: (localGame.players || []).map(p => ({ uid: p.id, name: p.name }))
+    });
     showScreen('localResultScreen');
 }
 
