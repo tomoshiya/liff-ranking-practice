@@ -2,7 +2,7 @@
   "casual": {
     "label": "カジュアル",
     "labelEn": "CASUAL",
-    "color": "#1E2D3D",
+    "color": "#1B4A72",
     "description": "どんなシーンでも気軽に遊べる\nみんなにオススメのテーマパック",
     "order": 1,
     "isActive": true
