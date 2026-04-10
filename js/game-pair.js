@@ -277,6 +277,37 @@ function closeConfirmModal() {
     document.getElementById('confirmOverlay').style.display = 'none';
 }
 
+function showGuestWaitModal() {
+    showConfirmModal(
+        'ホストの操作をお待ちください',
+        'テーマの変更はホストのみが操作できます。ホストが新しいテーマを選ぶまでお待ちください。',
+        [{ label: '閉じる', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }]
+    );
+}
+
+// 開発者モード：部屋番号を7回タップで解放
+let _devTapCount = 0;
+let _devTapTimer = null;
+function handleDevTap() {
+    _devTapCount++;
+    clearTimeout(_devTapTimer);
+    _devTapTimer = setTimeout(() => { _devTapCount = 0; }, 1500);
+    if (_devTapCount >= 7) {
+        _devTapCount = 0;
+        App._devMode = !App._devMode;
+        const dummyArea = document.getElementById('dummyBtnArea');
+        if (dummyArea && room.data) {
+            const players = Object.keys(room.data.players || {}).length;
+            dummyArea.style.display = (App._devMode && players < (room.data.maxPlayers || 10)) ? 'block' : 'none';
+        }
+        const codeEl = document.getElementById('waitingRoomCode');
+        if (codeEl) {
+            codeEl.style.opacity = '0.4';
+            setTimeout(() => { codeEl.style.opacity = ''; }, 400);
+        }
+    }
+}
+
 // 統一退出処理（ホスト・ゲスト・モード・フェーズを内部で判定）
 async function doExit() {
     closeConfirmModal();
@@ -562,10 +593,10 @@ function renderWaitingRoomHost(data) {
         startBtn.style.display = isMulti ? 'block' : 'none';
     }
 
-    // ダミー追加ボタン（multiのみ・上限未達時のみ表示）
+    // ダミー追加ボタン（multiのみ・上限未達時・開発者モード時のみ表示）
     const dummyArea = document.getElementById('dummyBtnArea');
     if (dummyArea) {
-        dummyArea.style.display = (isMulti && players.length < data.maxPlayers) ? 'block' : 'none';
+        dummyArea.style.display = (isMulti && players.length < data.maxPlayers && App._devMode) ? 'block' : 'none';
     }
 }
 
@@ -1292,8 +1323,15 @@ function updateInputProgress(data) {
 }
 
 function toggleProgressDropdown() {
+    const pill = document.querySelector('#inputProgressArea .progress-pill');
     const dropdown = document.getElementById('inputProgressDropdown');
-    if (dropdown) dropdown.classList.toggle('progress-dropdown--open');
+    if (!dropdown) return;
+    if (!dropdown.classList.contains('progress-dropdown--open') && pill) {
+        const rect = pill.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 6) + 'px';
+        dropdown.style.left = rect.left + 'px';
+    }
+    dropdown.classList.toggle('progress-dropdown--open');
 }
 
 // ========================================
@@ -1563,8 +1601,15 @@ function updateGuessSubmitBtnState(targets) {
 }
 
 function toggleGuessProgressDropdown() {
+    const pill = document.querySelector('#rankingGuessScreen .progress-pill');
     const dropdown = document.getElementById('guessProgressDropdown');
-    if (dropdown) dropdown.classList.toggle('progress-dropdown--open');
+    if (!dropdown) return;
+    if (!dropdown.classList.contains('progress-dropdown--open') && pill) {
+        const rect = pill.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 6) + 'px';
+        dropdown.style.left = rect.left + 'px';
+    }
+    dropdown.classList.toggle('progress-dropdown--open');
 }
 
 // ========================================
@@ -1695,7 +1740,7 @@ function renderMultiResultScreen(data) {
             <div class="person-tabs" id="resultTabs" style="margin-bottom:12px;"></div>
             <div id="resultPersonDetail"></div>
         </div>
-        ${isHost ? `<div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()">テーマを変えてもう一度あそぶ</button></div>` : ''}`;
+        <div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="${isHost ? "if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()" : 'showGuestWaitModal()'}">テーマを変えてもう一度あそぶ</button></div>`;
 
     document.getElementById('resultTabs').innerHTML = players.map(([id, p], i) => `
         <div class="person-tab${i === 0 ? ' person-tab--active' : ''}"
@@ -2008,7 +2053,7 @@ function renderOnlineResultScreen(data) {
             <div class="person-tabs" id="resultTabs" style="margin-bottom:12px;"></div>
             <div id="resultPersonDetail"></div>
         </div>
-        ${isHost ? `<div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()">テーマを変えてもう一度あそぶ</button></div>` : ''}`;
+        <div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="${isHost ? "if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()" : 'showGuestWaitModal()'}">テーマを変えてもう一度あそぶ</button></div>`;
 
     // 個人詳細タブ
     document.getElementById('resultTabs').innerHTML = players.map(([id, p], i) => `

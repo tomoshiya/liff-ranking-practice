@@ -119,6 +119,14 @@ function deleteHistoryEntry(id) {
     }
 }
 
+function deleteAllHistory() {
+    try {
+        localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify([]));
+    } catch (e) {
+        console.warn('全履歴削除エラー:', e);
+    }
+}
+
 function updateHistoryAnswer(histId, lineUserId, index, newText) {
     const history = getGameHistory();
     const entry = history.find(h => h.id === histId);

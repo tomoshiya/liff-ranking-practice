@@ -14,7 +14,8 @@ const App = {
     currentUser: null,      // Firebaseに保存したユーザー情報
     displayName: '',        // ゲーム内表示名
     deepLinkThemeId: null,  // URLパラメータ ?themeId=xxx
-    currentMode: null       // 'pair' | 'multi' | 'local'
+    currentMode: null,      // 'pair' | 'multi' | 'local'
+    _devMode: false         // 開発者モード（秘密タップで解放）
 };
 
 // ========================================

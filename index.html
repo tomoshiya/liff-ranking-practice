@@ -115,36 +115,6 @@
         </div>
       </div>
 
-      <!-- 1台であそぶ -->
-      <div class="mode-card" onclick="startLocalMode()">
-        <div class="mode-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-            <line x1="12" y1="18" x2="12.01" y2="18"/>
-          </svg>
-        </div>
-        <div class="mode-text">
-          <div class="mode-name">1台であそぶ</div>
-          <div class="mode-sub">2〜5人用 · 1台のスマホをまわす</div>
-        </div>
-        <div class="mode-arrow">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </div>
-
-      <!-- ライブであそぶ（フェイクドア） -->
-      <div class="mode-card mode-card--live" onclick="onLiveTap()" style="opacity:0.6;">
-        <div class="mode-icon">
-          <div style="width:8px;height:8px;border-radius:50%;background:#E53E3E;animation:blink 1.4s ease-in-out infinite;"></div>
-        </div>
-        <div class="mode-text">
-          <div class="mode-name">ライブであそぶ</div>
-          <div class="mode-sub">配信者向け · 近日公開予定</div>
-        </div>
-        <div class="mode-arrow">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </div>
 
     </div>
 
@@ -252,7 +222,7 @@
     <div class="room-code-block">
       <div class="room-code-label">部屋番号</div>
       <div class="room-code-row">
-        <div class="room-code" id="waitingRoomCode">----</div>
+        <div class="room-code" id="waitingRoomCode" onclick="handleDevTap()">----</div>
         <button class="room-code-copy-btn" onclick="copyRoomCode()">コピー</button>
       </div>
       <div class="room-code-hint">番号を参加者に伝えてください</div>
@@ -823,6 +793,7 @@
     <div class="hero__bubble hero__bubble--1"></div>
     <div class="hero__bubble hero__bubble--2"></div>
     <button class="hero-back-btn" onclick="showScreen('topScreen')">← HOME</button>
+    <button onclick="confirmDeleteAllHistory()" style="position:absolute;top:16px;right:16px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);background:none;border:1.5px solid rgba(255,255,255,0.2);border-radius:6px;padding:4px 8px;">全履歴削除</button>
     <div style="text-align:center;padding-top:4px;">
       <div style="font-size:18px;font-weight:700;color:#fff;letter-spacing:.04em;">テーマ一覧</div>
       <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">テーマを選んで過去の回答を確認できます</div>

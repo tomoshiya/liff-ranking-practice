@@ -160,3 +160,32 @@ function doDeleteTLEntry(histId, themeIdx) {
     deleteHistoryEntry(histId);
     renderTLHistory(themeIdx);
 }
+
+function confirmDeleteAllHistory() {
+    showConfirmModal(
+        'すべての履歴を削除しますか？',
+        'すべてのテーマの全プレイ履歴が削除されます。この操作は取り消せません。',
+        [
+            {
+                label: 'すべて削除する',
+                cls: 'btn btn--danger',
+                fn: 'doDeleteAllHistory()'
+            },
+            {
+                label: 'キャンセル',
+                cls: 'btn btn--outline',
+                fn: 'closeConfirmModal()'
+            }
+        ]
+    );
+}
+
+function doDeleteAllHistory() {
+    closeConfirmModal();
+    deleteAllHistory();
+    tlSelectedThemeIdx = null;
+    renderTLHistory(null);
+    document.querySelectorAll('#themeListScreen .theme-card-item').forEach(el => {
+        el.classList.remove('theme-card-item--selected');
+    });
+}

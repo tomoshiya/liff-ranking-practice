@@ -533,14 +533,14 @@ input, textarea { font-family: inherit; }
 .progress-pill__text { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); }
 .progress-pill__arrow { font-size: 9px; color: rgba(255,255,255,0.4); }
 
-/* 進捗ドロップダウン */
+/* 進捗ドロップダウン（hero の overflow:hidden を避けるため fixed） */
 .progress-dropdown {
-  position: absolute; top: calc(100% + 6px); left: 0;
+  position: fixed; top: 0; left: 0;
   background: var(--surface); border-radius: 10px;
   border: 1.5px solid var(--border);
   padding: 8px 10px; min-width: 160px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-  z-index: 200; display: none;
+  z-index: 9999; display: none;
 }
 .progress-dropdown--open { display: block; }
 .progress-dropdown__item {
