@@ -277,6 +277,37 @@ function closeConfirmModal() {
     document.getElementById('confirmOverlay').style.display = 'none';
 }
 
+function showGuestWaitModal() {
+    showConfirmModal(
+        'ホストの操作をお待ちください',
+        'テーマの変更はホストのみが操作できます。ホストが新しいテーマを選ぶまでお待ちください。',
+        [{ label: '閉じる', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }]
+    );
+}
+
+// 開発者モード：部屋番号を7回タップで解放
+let _devTapCount = 0;
+let _devTapTimer = null;
+function handleDevTap() {
+    _devTapCount++;
+    clearTimeout(_devTapTimer);
+    _devTapTimer = setTimeout(() => { _devTapCount = 0; }, 1500);
+    if (_devTapCount >= 7) {
+        _devTapCount = 0;
+        App._devMode = !App._devMode;
+        const dummyArea = document.getElementById('dummyBtnArea');
+        if (dummyArea && room.data) {
+            const players = Object.keys(room.data.players || {}).length;
+            dummyArea.style.display = (App._devMode && players < (room.data.maxPlayers || 10)) ? 'block' : 'none';
+        }
+        const codeEl = document.getElementById('waitingRoomCode');
+        if (codeEl) {
+            codeEl.style.opacity = '0.4';
+            setTimeout(() => { codeEl.style.opacity = ''; }, 400);
+        }
+    }
+}
+
 // 統一退出処理（ホスト・ゲスト・モード・フェーズを内部で判定）
 async function doExit() {
     closeConfirmModal();
@@ -562,10 +593,10 @@ function renderWaitingRoomHost(data) {
         startBtn.style.display = isMulti ? 'block' : 'none';
     }
 
-    // ダミー追加ボタン（multiのみ・上限未達時のみ表示）
+    // ダミー追加ボタン（multiのみ・上限未達時・開発者モード時のみ表示）
     const dummyArea = document.getElementById('dummyBtnArea');
     if (dummyArea) {
-        dummyArea.style.display = (isMulti && players.length < data.maxPlayers) ? 'block' : 'none';
+        dummyArea.style.display = (isMulti && players.length < data.maxPlayers && App._devMode) ? 'block' : 'none';
     }
 }
 
@@ -631,6 +662,7 @@ function showSharedThemeSelect() {
     setThemeInputMode('pack');
 
     showScreen('themeSelectScreen');
+    setupCarouselLoop('themeCardsScroll');
 }
 
 // onlineホスト用（Firebase listenerから呼ばれる）
@@ -655,11 +687,16 @@ function showGuestThemeBrowse() {
     setThemeInputMode('pack');
 
     showScreen('themeSelectScreen');
+    setupCarouselLoop('themeCardsScroll');
 }
 
 // パックタブ描画
-function renderPackTabs() {
-    // packMetaのorder順でパックを並べ、「すべて」を最後に
+// ctx: { tabsRowId, descAreaId, switchFn, activePack } — 省略時はゲーム用デフォルト
+function renderPackTabs(ctx) {
+    const tabsRowId = (ctx && ctx.tabsRowId) || 'packTabsRow';
+    const switchFn  = (ctx && ctx.switchFn)  || 'switchPackFilter';
+    const active    = (ctx && ctx.activePack !== undefined) ? ctx.activePack : currentPackFilter;
+
     const usedPacks = [...new Set(themes.filter(t => t.pack).map(t => t.pack))];
     const sortedPacks = usedPacks.sort((a, b) => {
         const oa = packMeta[a]?.order ?? 99;
@@ -667,19 +704,19 @@ function renderPackTabs() {
         return oa - ob;
     });
     const packs = [...sortedPacks, 'all'];
-    document.getElementById('packTabsRow').innerHTML = packs.map(p => {
+    document.getElementById(tabsRowId).innerHTML = packs.map(p => {
         const label = p === 'all' ? 'すべて' : (packMeta[p]?.label || p);
-        const isActive = p === currentPackFilter;
+        const isActive = p === active;
         const bgColor = (p !== 'all' && packMeta[p]?.color) ? packMeta[p].color : '#1A1917';
         const activeStyle = isActive ? `background:${bgColor};border-color:${bgColor};` : '';
         return `<div class="pack-tab-item ${isActive ? 'pack-tab-item--active' : ''}"
              style="${activeStyle}"
-             onclick="switchPackFilter('${p}')">${label}</div>`;
+             onclick="${switchFn}('${p}')">${label}</div>`;
     }).join('');
-    renderPackDesc(currentPackFilter);
+    renderPackDesc(active, ctx);
 }
 
-// パックフィルター切替
+// パックフィルター切替（ゲーム専用）
 function switchPackFilter(pack) {
     currentPackFilter = pack;
     sharedSelectedThemeIdx = -1;
@@ -690,11 +727,14 @@ function switchPackFilter(pack) {
     renderPackTabs();
     renderThemeCards(pack);
     renderPackDesc(pack);
+    setupCarouselLoop('themeCardsScroll');
 }
 
 // パック説明文の描画
-function renderPackDesc(pack) {
-    const el = document.getElementById('packDescArea');
+// ctx: { descAreaId } — 省略時はゲーム用デフォルト
+function renderPackDesc(pack, ctx) {
+    const descAreaId = (ctx && ctx.descAreaId) || 'packDescArea';
+    const el = document.getElementById(descAreaId);
     if (!el) return;
     if (pack === 'all' || !packMeta[pack]) {
         el.style.display = 'none';
@@ -710,15 +750,22 @@ function renderPackDesc(pack) {
 }
 
 // テーマカード横スクロール描画
-function renderThemeCards(pack) {
+// ctx: { scrollId, counterId, fillId, idPrefix, onClickFn } — 省略時はゲーム用デフォルト
+function renderThemeCards(pack, ctx) {
+    const scrollId   = (ctx && ctx.scrollId)   || 'themeCardsScroll';
+    const counterId  = (ctx && ctx.counterId)  || 'scrollCounterText';
+    const fillId     = (ctx && ctx.fillId)     || 'scrollBarFill';
+    const idPrefix   = (ctx && ctx.idPrefix)   || 'themeCardItem';
+    const onClickFn  = (ctx && ctx.onClickFn)  || 'selectTheme';
+
     const filtered = pack === 'all' ? themes : themes.filter(t => t.pack === pack);
-    const scroll = document.getElementById('themeCardsScroll');
+    const scroll = document.getElementById(scrollId);
     scroll.innerHTML = filtered.map(t => {
         const origIdx = themes.indexOf(t);
         const color = getPackColor(t.pack);
         const packLabel = getPackLabel(t.pack);
-        return `<div class="theme-card-item" id="themeCardItem_${origIdx}"
-                     onclick="selectTheme(${origIdx})"
+        return `<div class="theme-card-item" id="${idPrefix}_${origIdx}"
+                     onclick="${onClickFn}(${origIdx})"
                      style="background:${color};">
             <div class="theme-card__white">
                 <span class="theme-card__text">${escapeHtml(t.text)}</span>
@@ -728,33 +775,166 @@ function renderThemeCards(pack) {
         </div>`;
     }).join('');
 
-    const counter = document.getElementById('scrollCounterText');
-    const fill = document.getElementById('scrollBarFill');
-    counter.textContent = filtered.length > 0 ? `1 / ${filtered.length}` : '0 / 0';
-    fill.style.width = filtered.length > 1 ? `${100 / filtered.length}%` : '100%';
+    const counter = document.getElementById(counterId);
+    const fill    = document.getElementById(fillId);
+    if (counter) counter.textContent = filtered.length > 0 ? `1 / ${filtered.length}` : '0 / 0';
+    if (fill)    fill.style.width    = filtered.length > 1  ? `${100 / filtered.length}%` : '100%';
 
     scroll.scrollLeft = 0;
 }
 
-// スクロールインジケーター更新
+// スクロールインジケーター更新（ゲーム専用）
 function onThemeCardsScroll() {
-    const scroll = document.getElementById('themeCardsScroll');
-    const pack = currentPackFilter;
+    updateCarouselIndicator('themeCardsScroll', 'scrollCounterText', 'scrollBarFill', currentPackFilter);
+}
+
+// インジケーター更新（共通）: DOM実座標で最近傍の実カードを探す
+function updateCarouselIndicator(scrollId, counterId, fillId, pack) {
+    const scroll = document.getElementById(scrollId);
+    if (!scroll) return;
     const filtered = pack === 'all' ? themes : themes.filter(t => t.pack === pack);
     const total = filtered.length;
     if (total <= 1) return;
 
-    const cardWidth = 200 + 12;
-    const current = Math.min(Math.round(scroll.scrollLeft / cardWidth) + 1, total);
-    document.getElementById('scrollCounterText').textContent = `${current} / ${total}`;
-    document.getElementById('scrollBarFill').style.width = `${(current / total) * 100}%`;
+    const scrollPad = parseInt(getComputedStyle(scroll).scrollPaddingLeft) || 20;
+    const pos = scroll.scrollLeft;
+    const allReal = [...scroll.querySelectorAll('.theme-card-item:not([data-carousel-clone])')];
+    if (allReal.length === 0) return;
+
+    // 実カードの中で最もスナップ位置に近いものを探す
+    let closestIdx = 0, minDist = Infinity;
+    allReal.forEach((card, i) => {
+        const dist = Math.abs(pos - (card.offsetLeft - scrollPad));
+        if (dist < minDist) { minDist = dist; closestIdx = i; }
+    });
+
+    const current = closestIdx + 1;
+    const counter = document.getElementById(counterId);
+    const fill    = document.getElementById(fillId);
+    if (counter) counter.textContent = `${current} / ${total}`;
+    if (fill)    fill.style.width = `${(current / total) * 100}%`;
+}
+
+// ループカルーセル初期化（両スクロールで共用）
+function setupCarouselLoop(scrollId) {
+    const scroll = document.getElementById(scrollId);
+    if (!scroll) return;
+
+    // 前回のリスナーを先に除去（参照を削除する前に必ず removeEventListener）
+    if (scroll._carouselListener) {
+        scroll.removeEventListener('scrollend', scroll._carouselListener);
+    }
+    if (scroll._carouselListenerFallback) {
+        scroll.removeEventListener('scroll', scroll._carouselListenerFallback);
+    }
+    delete scroll._carouselListener;
+    delete scroll._carouselListenerFallback;
+
+    // 前回のcloneを除去して再初期化
+    scroll.querySelectorAll('[data-carousel-clone]').forEach(el => el.remove());
+    delete scroll.dataset.cloneCount;
+
+    const realItems = [...scroll.querySelectorAll('.theme-card-item')];
+    const N = realItems.length;
+    if (N < 2) return;
+
+    const CLONE = Math.min(3, N);
+    const CARD_W = 200 + 12;
+
+    // 末尾カードのcloneを先頭に追加（順序維持: [clone_N-2, clone_N-1, clone_N, real_1, ...]）
+    const preFragment = document.createDocumentFragment();
+    realItems.slice(-CLONE).forEach(item => {
+        const c = item.cloneNode(true);
+        c.removeAttribute('id');
+        c.setAttribute('data-carousel-clone', 'pre');
+        preFragment.appendChild(c);
+    });
+    scroll.insertBefore(preFragment, scroll.firstChild);
+
+    // 先頭カードのcloneを末尾に追加（順序維持: [..., real_N, clone_1, clone_2, clone_3]）
+    realItems.slice(0, CLONE).forEach(item => {
+        const c = item.cloneNode(true);
+        c.removeAttribute('id');
+        c.setAttribute('data-carousel-clone', 'post');
+        scroll.appendChild(c);
+    });
+
+    scroll.dataset.cloneCount = CLONE;
+
+    // 先頭のcloneをスキップして実カード1枚目を表示（DOM描画後に実座標を使う）
+    requestAnimationFrame(() => {
+        const firstReal = scroll.querySelector('.theme-card-item:not([data-carousel-clone])');
+        if (firstReal) {
+            const scrollPad = parseInt(getComputedStyle(scroll).scrollPaddingLeft) || 20;
+            scroll.style.scrollSnapType = 'none';
+            scroll.scrollLeft = firstReal.offsetLeft - scrollPad;
+            requestAnimationFrame(() => { scroll.style.scrollSnapType = ''; });
+        }
+    });
+
+    // ループ処理: N*CARD_W計算ではなく実DOM座標でジャンプ先を特定する
+    function checkLoop() {
+        if (scroll._isLoopJumping) return;
+
+        const scrollPad = parseInt(getComputedStyle(scroll).scrollPaddingLeft) || 20;
+        const pos = scroll.scrollLeft;
+
+        const allReal = [...scroll.querySelectorAll('.theme-card-item:not([data-carousel-clone])')];
+        if (allReal.length === 0) return;
+
+        const realStart = allReal[0].offsetLeft - scrollPad;
+        const realEnd   = allReal[allReal.length - 1].offsetLeft - scrollPad;
+
+        let targetPos = null;
+
+        if (pos < realStart - 5) {
+            // pre-clone領域: 末尾側の実カードにジャンプ
+            const preClones = [...scroll.querySelectorAll('[data-carousel-clone="pre"]')];
+            const firstPreSnap = preClones[0] ? preClones[0].offsetLeft - scrollPad : 0;
+            const interval = preClones.length > 1
+                ? (preClones[preClones.length - 1].offsetLeft - preClones[0].offsetLeft) / (preClones.length - 1)
+                : 212;
+            const cloneIdx = Math.max(0, Math.min(CLONE - 1, Math.round((pos - firstPreSnap) / interval)));
+            const realIdx  = allReal.length - CLONE + cloneIdx;
+            targetPos = allReal[Math.max(0, Math.min(allReal.length - 1, realIdx))].offsetLeft - scrollPad;
+
+        } else if (pos > realEnd + 5) {
+            // post-clone領域: 先頭側の実カードにジャンプ
+            const postClones = [...scroll.querySelectorAll('[data-carousel-clone="post"]')];
+            const firstPostSnap = postClones[0] ? postClones[0].offsetLeft - scrollPad : realEnd + 212;
+            const interval = postClones.length > 1
+                ? (postClones[postClones.length - 1].offsetLeft - postClones[0].offsetLeft) / (postClones.length - 1)
+                : 212;
+            const cloneIdx = Math.max(0, Math.min(CLONE - 1, Math.round((pos - firstPostSnap) / interval)));
+            targetPos = allReal[Math.max(0, Math.min(allReal.length - 1, cloneIdx))].offsetLeft - scrollPad;
+        }
+
+        if (targetPos !== null) {
+            scroll._isLoopJumping = true;
+            scroll.style.scrollSnapType = 'none';
+            scroll.scrollLeft = targetPos;
+            setTimeout(() => {
+                scroll.style.scrollSnapType = '';
+                setTimeout(() => { delete scroll._isLoopJumping; }, 100);
+            }, 20);
+        }
+    }
+
+    if ('onscrollend' in window) {
+        scroll._carouselListener = checkLoop;
+        scroll.addEventListener('scrollend', checkLoop);
+    } else {
+        let t;
+        scroll._carouselListenerFallback = () => { clearTimeout(t); t = setTimeout(checkLoop, 200); };
+        scroll.addEventListener('scroll', scroll._carouselListenerFallback);
+    }
 }
 
 // テーマ選択
 function selectTheme(idx) {
     if (isGuestReadOnlyTheme) return;
     sharedSelectedThemeIdx = idx;
-    document.querySelectorAll('.theme-card-item').forEach(el => el.classList.remove('theme-card-item--selected'));
+    document.querySelectorAll('#themeSelectScreen .theme-card-item').forEach(el => el.classList.remove('theme-card-item--selected'));
     document.getElementById(`themeCardItem_${idx}`)?.classList.add('theme-card-item--selected');
 
     const theme = themes[idx];
@@ -811,6 +991,14 @@ async function confirmTheme() {
     if (App.currentMode === 'local') {
         localGame.theme = theme;
         localGame.currentRankingPlayerIdx = 0;
+        trackEvent('game_start', {
+            themeId: theme.id || '',
+            themeText: theme.text,
+            themeType: theme.id ? 'pack' : 'original',
+            mode: 'local',
+            playerCount: localGame.players ? localGame.players.length : 1,
+            players: (localGame.players || []).map(p => ({ uid: String(p.id), name: p.name }))
+        });
         localStartRankingInput();
         return;
     }
@@ -825,6 +1013,13 @@ async function confirmTheme() {
             rankings: null,
             guesses: null,
             lastActivityAt: Date.now()
+        });
+        trackEvent('game_start', {
+            themeId: theme.id || '',
+            themeText: theme.text,
+            themeType: theme.id ? 'pack' : 'original',
+            mode: App.currentMode,
+            roomId: room.roomId || ''
         });
     } catch (err) {
         showToast('テーマの確定に失敗しました', 'error');
@@ -1128,8 +1323,15 @@ function updateInputProgress(data) {
 }
 
 function toggleProgressDropdown() {
+    const pill = document.querySelector('#inputProgressArea .progress-pill');
     const dropdown = document.getElementById('inputProgressDropdown');
-    if (dropdown) dropdown.classList.toggle('progress-dropdown--open');
+    if (!dropdown) return;
+    if (!dropdown.classList.contains('progress-dropdown--open') && pill) {
+        const rect = pill.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 6) + 'px';
+        dropdown.style.left = rect.left + 'px';
+    }
+    dropdown.classList.toggle('progress-dropdown--open');
 }
 
 // ========================================
@@ -1399,8 +1601,15 @@ function updateGuessSubmitBtnState(targets) {
 }
 
 function toggleGuessProgressDropdown() {
+    const pill = document.querySelector('#rankingGuessScreen .progress-pill');
     const dropdown = document.getElementById('guessProgressDropdown');
-    if (dropdown) dropdown.classList.toggle('progress-dropdown--open');
+    if (!dropdown) return;
+    if (!dropdown.classList.contains('progress-dropdown--open') && pill) {
+        const rect = pill.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 6) + 'px';
+        dropdown.style.left = rect.left + 'px';
+    }
+    dropdown.classList.toggle('progress-dropdown--open');
 }
 
 // ========================================
@@ -1531,7 +1740,7 @@ function renderMultiResultScreen(data) {
             <div class="person-tabs" id="resultTabs" style="margin-bottom:12px;"></div>
             <div id="resultPersonDetail"></div>
         </div>
-        ${isHost ? `<div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()">テーマを変えてもう一度あそぶ</button></div>` : ''}`;
+        <div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="${isHost ? "if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()" : 'showGuestWaitModal()'}">テーマを変えてもう一度あそぶ</button></div>`;
 
     document.getElementById('resultTabs').innerHTML = players.map(([id, p], i) => `
         <div class="person-tab${i === 0 ? ' person-tab--active' : ''}"
@@ -1725,6 +1934,18 @@ function showMultiPersonResult(targetId) {
 }
 
 function renderOnlineResultScreen(data) {
+    const myUid = App.currentUser?.userId || App.userProfile?.userId || '';
+    trackEvent('game_complete', {
+        themeId: data.themeId || '',
+        themeText: data.theme || '',
+        themeType: data.themeId ? 'pack' : 'original',
+        mode: data.gameMode || 'pair',
+        roomId: room.roomId || '',
+        hostUid: data.hostId || '',
+        role: data.hostId && data.hostId === myUid ? 'host' : 'guest',
+        playerCount: Object.keys(data.players || {}).length,
+        players: Object.entries(data.players || {}).map(([uid, p]) => ({ uid, name: p.displayName || '' }))
+    });
     if (data.gameMode === 'multi') {
         renderMultiResultScreen(data);
         return;
@@ -1832,7 +2053,7 @@ function renderOnlineResultScreen(data) {
             <div class="person-tabs" id="resultTabs" style="margin-bottom:12px;"></div>
             <div id="resultPersonDetail"></div>
         </div>
-        ${isHost ? `<div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()">テーマを変えてもう一度あそぶ</button></div>` : ''}`;
+        <div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="${isHost ? "if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()" : 'showGuestWaitModal()'}">テーマを変えてもう一度あそぶ</button></div>`;
 
     // 個人詳細タブ
     document.getElementById('resultTabs').innerHTML = players.map(([id, p], i) => `

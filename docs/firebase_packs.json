@@ -2,14 +2,14 @@
   "casual": {
     "label": "カジュアル",
     "labelEn": "CASUAL",
-    "color": "#1E2D3D",
+    "color": "#1B4A72",
     "description": "どんなシーンでも気軽に遊べる\nみんなにオススメのテーマパック",
     "order": 1,
     "isActive": true
   },
-  "basic": {
-    "label": "ベーシック",
-    "labelEn": "BASIC",
+  "private": {
+    "label": "プライベート",
+    "labelEn": "PRIVATE",
     "color": "#5A3015",
     "description": "価値観や体験談に踏み込んで\nもっと仲良くなるためのテーマパック",
     "order": 2,
@@ -23,12 +23,28 @@
     "order": 3,
     "isActive": true
   },
-  "now": {
-    "label": "ナウ",
-    "labelEn": "NOW",
+  "news": {
+    "label": "ニュース",
+    "labelEn": "NEWS",
     "color": "#1F5C3C",
     "description": "ホットな体験や気持ちが見えてくる\n「いま」に光を当てるテーマパック",
     "order": 4,
+    "isActive": true
+  },
+  "work": {
+    "label": "仕事",
+    "labelEn": "WORK",
+    "color": "#1A3554",
+    "description": "仕事への向き合い方や\n職場の人間関係が見えてくるテーマパック",
+    "order": 5,
+    "isActive": true
+  },
+  "love": {
+    "label": "ラブ",
+    "labelEn": "LOVE",
+    "color": "#5C1A35",
+    "description": "恋愛や結婚について\n本音が飛び出すテーマパック",
+    "order": 6,
     "isActive": true
   }
 }

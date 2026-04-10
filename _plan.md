@@ -451,20 +451,43 @@ beta      ← β版リビルドブランチ（新規作成）
 | Messaging APIチャネル作成 | ✅ 完了 | LIFFアプリ開発Providerに紐づけ |
 | LINE LoginチャネルとMessaging APIリンク | ✅ 完了 | botPromptの準備完了（Aggressive設定は後日） |
 
-### 残タスク（4/8〜4/10）
+### 実施済み対応（2026年4月8日）
+
+| 対応内容 | 状態 | 詳細 |
+|----------|------|------|
+| Firebase APIキー ドメイン制限追加 | ✅ 完了 | `tomoshiya.github.io/*` を許可ドメインに追加 |
+| 本番LIFF作成（GitHub Pages用） | ✅ 完了 | LIFF ID: 2009531665-30BBFxP7 / botPrompt: Aggressive |
+| betaブランチ → mainマージ・push | ✅ 完了 | GitHub Pages（本番環境）にβ版コードを反映 |
+| βモーダル実装 | ✅ 完了 | 中央モーダル・BETAボタン全画面fixed表示・初回自動表示 |
+| お問い合わせフォーム連携 | ✅ 完了 | Googleフォーム（https://forms.gle/Js5FmEs8gcmtSLDW6） |
+| 利用規約・プライバシーポリシー作成 | ✅ 完了 | RankNow版に更新（運営:灯し屋 / contact@tomoshiya.com） |
+| TOP画面フッターリンク追加 | ✅ 完了 | 利用規約 / プライバシーポリシー / 運営元（固定表示） |
+| キャッチコピー変更 | ✅ 完了 | 「価値観を読み合うコミュニケーションゲーム」 |
+| ヘロー上部レイアウト変更 | ✅ 完了 | ニックネーム左上・BETAボタン右上（全画面fixed） |
+
+### 実施済み対応（2026年4月9日）
+
+| 対応内容 | 状態 | 詳細 |
+|----------|------|------|
+| テーマ一覧ページ実装（js/theme-list.js） | ✅ 完了 | 過去TOP5履歴表示・削除機能・LocalStorage `ranknow_history_beta` |
+| テーマ一覧バグ修正 | ✅ 完了 | 1位空白・日付フォーマット・モードラベル・参加者表示・削除モーダルUX |
+| カルーセルループグリッチ修正 | ✅ 完了 | offsetLeft ベースのスクロール計算に変更（15/60問題を解消） |
+| モニタリング環境構築 | ✅ 完了 | Firebase Analytics (GA4)・trackEvent・user_login・window.onerror |
+| trackEvent 強化（themeType/roomId/hostUid/role/env） | ✅ 完了 | game_start / game_complete のペイロードを拡充 |
+| Google Apps Script 全面刷新 | ✅ 完了 | game_log / theme_stats / network_log / daily・weekly・monthly_summary |
+| analytics/events に .indexOn: timestamp 追加 | ✅ 完了 | Apps Script REST API クエリ最適化 |
+| Firebase Security Rules v3.7 | ✅ 完了 | users read/write を auth!=null に統一（lastLoginAt更新の根本修正） |
+| users ノードに env フィールド追加 | ✅ 完了 | beta/production の環境情報をユーザーレコードに記録 |
+
+### 残タスク（4/10〜）
 
 | タスク | 優先度 | 担当 |
 |--------|--------|------|
-| Firebase users不要データ削除（旧pictureUrl等） | 中 | あなた |
-| botPrompt=Aggressive設定（LIFF設定画面） | 高 | あなた |
-| ベータ版説明文のアプリ内設置 | 高 | 開発 |
-| お問い合わせフォーム設置（Googleフォーム） | 高 | 開発 |
-| テーマ一覧ページ①（ゲーム外でテーマ閲覧） | 中 | 開発 |
-| テーマ一覧ページ②（自分の過去TOP5履歴） | 中 | 開発 |
-| Analytics カスタムイベント設定 | 中 | 開発 |
-| リッチメニュー設定（LINE Official Account Manager） | 中 | あなた |
-| テーマ改善・追加（Firebase直接編集） | 高 | あなた |
-| Netlify本番サイト作成＋LIFF URL更新 | 高 | 両者 |
+| betaブランチ → main PR作成・マージ | 🔴 高 | あなた（最終的に実施） |
+| テーマ改善・追加（Firebase直接編集） | 🔴 高 | あなた |
+| リッチメニュー設定（LINE Official Account Manager） | 🟡 中 | あなた |
+| Firebase users不要データ削除（旧pictureUrl等） | 🟡 中 | あなた |
+| Google Sheets モニタリングデータ確認・調整 | 🟡 中 | あなた・開発 |
 
 ### セキュリティ設計メモ
 

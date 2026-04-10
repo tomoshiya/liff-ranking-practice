@@ -9,7 +9,8 @@ const FIREBASE_CONFIG = {
     projectId: "test-futari-no-ranking",
     storageBucket: "test-futari-no-ranking.firebasestorage.app",
     messagingSenderId: "802679547612",
-    appId: "1:802679547612:web:1582d3e0176282ede43619"
+    appId: "1:802679547612:web:1582d3e0176282ede43619",
+    measurementId: "G-N364EXJQV8"
 };
 
 let firebaseApp = null;
@@ -19,6 +20,7 @@ function initializeFirebase() {
     try {
         firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
         database = firebase.database();
+        firebase.analytics();
         console.log('✅ Firebase接続成功');
         return true;
     } catch (error) {
@@ -41,7 +43,8 @@ async function initializeUserInFirebase() {
             await userRef.update({
                 displayName: App.userProfile.displayName,
                 firebaseUid: firebase.auth().currentUser.uid,
-                lastLoginAt: new Date().toISOString()
+                lastLoginAt: new Date().toISOString(),
+                env: getEnv()
             });
         } else {
             const newUser = {
@@ -49,7 +52,8 @@ async function initializeUserInFirebase() {
                 displayName: App.userProfile.displayName,
                 firebaseUid: firebase.auth().currentUser.uid,
                 createdAt: new Date().toISOString(),
-                lastLoginAt: new Date().toISOString()
+                lastLoginAt: new Date().toISOString(),
+                env: getEnv()
             };
             await userRef.set(newUser);
             App.currentUser = newUser;
@@ -61,17 +65,28 @@ async function initializeUserInFirebase() {
 }
 
 // Analytics: イベント記録
+function getEnv() {
+    const h = window.location.hostname;
+    if (h.includes('beta--dashing-granita') || h.includes('netlify.app')) return 'beta';
+    if (h.includes('github.io')) return 'production';
+    return 'local';
+}
+
 function trackEvent(eventName, eventData = {}) {
-    if (!database || !App.currentUser) return;
+    if (!database) return;
+    const userId = App.currentUser?.userId || App.userProfile?.userId || 'unknown';
+    const displayName = App.userProfile?.displayName || 'unknown';
     try {
         database.ref('analytics/events').push({
             event: eventName,
-            userId: App.currentUser.userId,
-            displayName: App.userProfile?.displayName || 'unknown',
+            userId,
+            displayName,
+            env: getEnv(),
             data: eventData,
             timestamp: Date.now(),
             date: new Date().toISOString()
-        });
+        }).catch(err => console.error('Analytics書き込みエラー:', err));
+        console.log('[Analytics]', eventName, eventData);
     } catch (error) {
         console.error('Analytics記録エラー:', error);
     }

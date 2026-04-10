@@ -233,6 +233,17 @@ function localSubmitGuess() {
 function localShowResult() {
     localCalcResults();
     localRenderResultScreen();
+    trackEvent('game_complete', {
+        themeId: localGame.theme?.id || '',
+        themeText: localGame.theme?.text || '',
+        themeType: localGame.theme?.id ? 'pack' : 'original',
+        mode: 'local',
+        role: 'host',
+        roomId: '',
+        hostUid: App.currentUser?.userId || '',
+        playerCount: (localGame.players || []).length,
+        players: (localGame.players || []).map(p => ({ uid: String(p.id), name: p.name }))
+    });
     showScreen('localResultScreen');
 }
 

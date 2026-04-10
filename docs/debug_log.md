@@ -783,6 +783,44 @@ startRoomListener 内のトリガー
 - LIFFアプリ開発 Provider に Messaging API チャネルを作成・リンク
 - botPrompt（友だち追加強制）の準備完了。Aggressive設定は後日実施
 
+---
+
+## 2026年4月8日（火）の作業記録
+
+### [INFRA] 本番環境構築完了
+- Firebase APIキーの許可ドメインに `tomoshiya.github.io/*` を追加
+- 本番LIFF作成：LIFF ID `2009531665-30BBFxP7`、エンドポイント = GitHub Pages URL、botPrompt = Aggressive
+- betaブランチをmainにマージしGitHub Pages（本番）へpush
+- **本番URL**: `https://liff.line.me/2009531665-30BBFxP7`
+
+### [FEAT] βモーダル実装
+- 初回アクセス時に自動表示（LocalStorage `rankq_beta_shown` で管理）
+- **中央モーダル**形式（ボトムシートからの変更）
+- BETAボタン：`position:fixed; top:14px; right:16px` で**全画面常時表示**
+- 閉じ方：右上✕ボタン or 背景タップ
+- Googleフォームリンク（https://forms.gle/Js5FmEs8gcmtSLDW6）を設置
+
+### [FEAT] 利用規約・プライバシーポリシー作成
+- `privacy-policy.html` / `terms-of-service.html` をリポジトリに追加
+- 運営者: 灯し屋 / 連絡先: contact@tomoshiya.com
+- α版（RankQuest）から内容を刷新（pictureUrl削除・ペアコード削除・Messaging API追記）
+- 「← 戻る」ボタンはLIFF仕様（新規ブラウザ起動）のため削除
+
+### [FEAT] TOP画面フッターリンク
+- 「利用規約 | プライバシーポリシー | 運営元」を画面底部固定表示
+- topScreen表示時のみ visible（showScreen関数で制御）
+- 履歴FABは `bottom: 40px` に調整
+
+### [UX] TOP画面デザイン変更
+- キャッチコピー：「ランクで知り合うコミュニケーションゲーム」→ **「価値観を読み合うコミュニケーションゲーム」**
+- ヒーロー上部：ニックネームを左上に移動、BETAボタンを右上固定に
+- ロゴ横のBETAバッジは削除（fixed BETAボタンに統一）
+
+### [ENV] 開発フロー確定
+- コード変更 → `git push origin beta` → Netlify自動反映 → 動作確認
+- 確認OK後 → GitHubでbeta→mainへPR作成 → マージ → GitHub Pages反映
+- mainへの直接pushは禁止（ブランチ保護ルール適用）
+
 ### [INFO] ニックネームとFirebase usersの関係（仕様メモ）
 - ニックネーム表示/初回入力の判定は **localStorage（端末内）** で行っている
 - Firebase usersを削除しても、localStorageが残っていればニックネーム入力画面は表示されない
@@ -791,11 +829,118 @@ startRoomListener 内のトリガー
 
 ---
 
+## 2026年4月9日（水）の作業記録
+
+### テーマ一覧ページ（theme-list.js）新設
+
+#### [NEW] テーマ一覧ページ実装
+- **概要**: ゲーム外でテーマ一覧を確認・過去TOP5履歴を閲覧できる画面を新設
+- **LocalStorageキー**: `ranknow_history_beta`
+- **機能**: テーマ別の過去TOP5履歴表示・削除（削除確認モーダルつき）
+- **関連ファイル**: `js/theme-list.js`, `index.html`, `css/beta.css`
+
+#### [FIXED] テーマ一覧画面がブランク表示されていた
+- **原因**: `#themeListScreen` に `style="display:none;"` がインラインで設定されていた
+- **修正**: インラインスタイルを削除
+- **関連ファイル**: `index.html`
+
+#### [FIXED] テーマ選択を縦スクロール化 → 横スワイプカルーセルに戻した
+- **経緯**: テーマ一覧ページ追加時に誤って縦スクロールに変更してしまった
+- **修正**: 横スワイプカルーセル（scroll-snap-type）に戻し、CSSとJSも元の状態に復元
+- **関連ファイル**: `css/beta.css`, `js/game-pair.js`
+
+#### [FIXED] カルーセルのループグリッチ（15/60 と表示される問題）
+- **現象**: カードのループ処理で先頭から末尾へ戻るとき、インジケーターが「15/60」などの誤値になる
+- **原因**: クローン順序が逆（末尾クローンが先に並んでいた）＋ `CARD_W` のハードコードが実際の要素幅とズレていた
+- **修正**: クローン挿入に `document.createDocumentFragment()` を使い正しい順序を保証。スクロール位置とインジケーター計算を `offsetLeft` ベースに変更（実要素の座標を直接参照）
+- **関連ファイル**: `js/game-pair.js`
+
+#### [FIXED] 履歴の1位が空白になる・順位がずれる
+- **原因**: FirebaseはJSオブジェクトを1-indexedで保存するため、配列変換時に `[0]` が空になる
+- **修正**: `renderTLHistory()` 内で `raw[0]` が空の場合に `raw.slice(1)` を適用
+- **関連ファイル**: `js/theme-list.js`
+
+#### [FIXED] 日付フォーマットが `4/9` 形式になっていた
+- **修正**: `YYYY/MM/DD` 形式（ゼロ埋め）に変更
+- **関連ファイル**: `js/theme-list.js`
+
+#### [FIXED] 各種表示修正
+- モードラベルを `みんなであそぶ` / `ふたりであそぶ` に変更
+- 参加者表示を追加：`参加者：A、B、C` 形式
+- プレースホルダーテキストを `テーマを選択すると過去の履歴が表示されます` に変更
+- **関連ファイル**: `js/theme-list.js`
+
+#### [FIXED] 削除確認モーダルのUX不具合
+- **現象①**: 「削除する」「キャンセル」ボタンが機能しない
+- **原因**: `confirmDeleteTLEntry()` が `showConfirmModal()` に `style` と `action` を渡していたが、正しい引数は `cls` と `fn`
+- **修正**: 引数を `cls`（`danger`）と `fn`（削除処理）に修正
+- **現象②**: モーダル外タップでキャンセルできない・ボタンが小さい
+- **修正**: オーバーレイの `onclick` にキャンセル処理を追加。ボタンサイズをモーダル全幅に変更
+- **関連ファイル**: `js/theme-list.js`
+
+---
+
+### モニタリング環境構築
+
+#### [NEW] Firebase Analytics (GA4) 統合
+- `index.html` に `firebase-analytics-compat.js` SDK を追加
+- `js/firebase.js` に `measurementId: "G-N364EXJQV8"` を追加
+- `initializeFirebase()` 内で `firebase.analytics()` を呼び出し
+- **効果**: DAU・セッション数をFirebase Consoleで確認可能に
+
+#### [NEW] trackEvent ユーティリティ実装（`js/firebase.js`）
+- Firebase RTDB の `analytics/events` ノードにカスタムイベントを書き込む関数
+- 各イベントに `event`, `userId`, `displayName`, `env`, `data`, `timestamp`, `date` を記録
+- `getEnv()` でドメインに基づき `beta` / `production` を自動判定
+- `App.currentUser` が未設定でも `database` があれば動作するよう堅牢化
+
+#### [NEW] 主要トラッキングイベント追加
+| イベント名 | 追加箇所 | 主な payload |
+|---|---|---|
+| `user_login` | `js/app.js` の `onLiffReady()` | displayName |
+| `game_start` | `js/game-pair.js` / `js/game-local.js` | themeId, themeText, themeType, mode, roomId |
+| `game_complete` | `js/game-pair.js` / `js/game-local.js` | themeId, themeText, themeType, mode, roomId, hostUid, role, playerCount, players |
+| `error` | `js/app.js` の `window.onerror` | message, source, lineno, error |
+
+#### [NEW] Analytics / Security Rules 追加対応
+- `analytics/events` に `.indexOn: ["timestamp"]` を追加（Apps Script REST API クエリ最適化）
+- **関連ファイル**: `firebase-security-rules-simple.json`
+
+#### [NEW] Google Apps Script 全面刷新
+- `syncEvents()`: Firebase RTDB から `analytics/events` を取得 → `raw_events` シートに追記
+- `syncUsers()`: `users` ノードを取得 → `users` シートを上書き
+- `buildGameLog()`: `game_start`/`game_complete` を突合し1テーマ1行の `game_log` を生成
+- `buildThemeStats()`: テーマID・テーマ内容・モード・themeType・人数・時間を `theme_stats` に記録
+- `buildNetworkLog()`: ホストUID・参加者・ゲーム時間を `network_log` に記録
+- `buildSummary()`: 日次・週次・月次で プレイ数・DAU・新規ユーザー数・モード別集計 を生成
+- 必要シート: `raw_events`, `users`, `game_log`, `theme_stats`, `network_log`, `daily_summary`, `weekly_summary`, `monthly_summary`
+
+---
+
+### Firebase Security Rules 修正
+
+#### [FIXED] users の `lastLoginAt` が更新されない根本原因を修正（v3.7）
+- **現象**: Security Rules を緩和しても `lastLoginAt` が更新されない
+- **根本原因**: `initializeUserInFirebase()` は `once('value')` の READ から始まる。READ ルールも `firebaseUid` 照合チェックが残っていたため、LIFF セッションをまたぐと READ 時点で `PERMISSION_DENIED` になり `catch` に飛んで UPDATE が実行されなかった
+- **修正経緯**:
+  - v3.6: `.write` のみ `auth != null` に緩和 → 不十分（READ で弾かれていた）
+  - v3.7: `.read` も `auth != null` に緩和 → 解決
+- **セキュリティ水準**: displayName・lastLoginAt・envのみ保存。beta少人数テストの許容範囲（v2.0相当）
+- **関連ファイル**: `firebase-security-rules-simple.json`
+
+#### [NEW] `users` ノードに `env` フィールドを追加
+- 新規ユーザー登録時・ログイン時に `env: getEnv()` を保存
+- beta / production どちらの環境から登録・アクセスしているかを記録
+- **関連ファイル**: `js/firebase.js`
+
+---
+
 ## 未解決・ペンディング事項
 
 | ID | 内容 | 優先度 | 備考 |
 |---|---|---|---|
 | ~~P-01~~ | ~~遊び方説明を横スワイプ形式に改善~~ | ~~中~~ | **[FIXED 2026-04-07]** カルーセル4スライド形式で実装。スワイプ・ナビボタン・ドット・✕ボタン・下スワイプ閉じる |
+| P-13 | 下スワイプでハーフモーダルを閉じる | 低 | LIFF WebViewがネイティブスクロールを優先するためtouchendが確実に拾えない。ハンドルバー（棒）を削除して誤認を防ぐ対処済み |
 | P-02 | ヒーローエリアのスクロール縮小 | 中 | スクロール連動でカードが縮む挙動 |
 | ~~P-03~~ | ~~gameRoomsの30分自動削除~~ | ~~低~~ | **[FIXED 2026-03-24]** `cleanupOldRooms()` をログイン時に実行。`ROOM_TIMEOUT_MS` 定数で30分設定 |
 | ~~P-04~~ | ~~テスト用ダミーユーザー追加ボタン~~ | ~~低~~ | **[FIXED 2026-03-18]** みんなであそぶ待機室ホスト画面に実装済み |
@@ -805,7 +950,7 @@ startRoomListener 内のトリガー
 | ~~P-08~~ | ~~ゲームから途中退出する方法がない・復帰できない~~ | ~~高~~ | **[FIXED 2026-03-24〜25]** `doExit()` 統一化・`checkSessionRestore()` 改善で退出・復帰フローを完成 |
 | ~~P-09~~ | ~~「みんなであそぶ」で3名以下になったら部屋を閉じる~~ | ~~中~~ | **[FIXED 2026-03-24〜25]** `doExit()` 内でmode別minPlayersチェック実装 |
 | ~~P-10~~ | ~~結果発表：ズレ幅・正解した率・正解され率タブ切替~~ | ~~低~~ | **[FIXED 2026-03-20]** みんなモードで総合/ヨミpt/ミエpt/ヨミミエgapの4タブ実装済み |
-| P-11 | テーマ選択：最後のカードから最初に戻るループUI | 低 | 30枚超えた際の操作性。先頭に戻るボタンまたは無限スクロール |
+| ~~P-11~~ | ~~テーマ選択：最後のカードから最初に戻るループUI~~ | ~~低~~ | **[FIXED 2026-04-09]** カルーセルクローン＋offsetLeftベースのループ実装済み。15/60グリッチも解消 |
 | P-12 | 「自分でつくる」のカード直接入力体験 | 中 | カード上にtextareaを重ねて直接入力するUI（画像14参照） |
 
 ---
