@@ -479,14 +479,31 @@ beta      ← β版リビルドブランチ（新規作成）
 | Firebase Security Rules v3.7 | ✅ 完了 | users read/write を auth!=null に統一（lastLoginAt更新の根本修正） |
 | users ノードに env フィールド追加 | ✅ 完了 | beta/production の環境情報をユーザーレコードに記録 |
 
-### 残タスク（4/10〜）
+### 2026-04-10 完了タスク
+
+| タスク | 状態 | 備考 |
+|--------|------|------|
+| TOPから「1台であそぶ」「ライブであそぶ」削除 | ✅ 完了 | beta対象外モードを非表示化 |
+| ダミー追加ボタンを非公開化 | ✅ 完了 | 部屋番号7回タップで開発者モードON |
+| テーマ一覧にゴミ箱アイコンで全履歴削除ボタン追加 | ✅ 完了 | help-btnスタイル・確認モーダル付き |
+| プログレスドロップダウンの表示崩れ修正 | ✅ 完了 | position:fixed + getBoundingClientRect |
+| ゲスト側結果画面にホスト待機ボタン追加 | ✅ 完了 | showGuestWaitModal()でモーダル表示 |
+| テーマデータ全面更新 | ✅ 完了 | basic→private / now→news / work・love追加 |
+| カジュアルパック色変更 | ✅ 完了 | #1E2D3D → #1B4A72（明るめネイビー） |
+| beta → main PR作成・マージ | ✅ 完了 | PR #2 bypass mergeで本番反映 |
+| Firebase・モニタリングシートのクリア案内 | ✅ 完了 | β開始前にusers/events/gameRoomsを削除推奨 |
+
+### 残タスク（β公開後〜）
 
 | タスク | 優先度 | 担当 |
 |--------|--------|------|
-| betaブランチ → main PR作成・マージ | 🔴 高 | あなた（最終的に実施） |
-| テーマ改善・追加（Firebase直接編集） | 🔴 高 | あなた |
+| Firebase themes/packs・items インポート（新テーマデータ反映） | 🔴 高 | あなた |
+| NetlifyのURL変更（旧シェアURLを無効化） + LIFF URL更新 | 🔴 高 | あなた |
+| Firebaseデータクリア（users / analytics/events / gameRooms） | 🔴 高 | あなた |
+| モニタリングシートのリセット | 🔴 高 | あなた |
+| α版LIFFアプリの削除（RankQuest α版） | 🟡 中 | あなた |
 | リッチメニュー設定（LINE Official Account Manager） | 🟡 中 | あなた |
-| Firebase users不要データ削除（旧pictureUrl等） | 🟡 中 | あなた |
+| テストプレイフェーズでの不具合収集・対応 | 🟡 中 | あなた・開発 |
 | Google Sheets モニタリングデータ確認・調整 | 🟡 中 | あなた・開発 |
 
 ### セキュリティ設計メモ

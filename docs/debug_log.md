@@ -935,6 +935,47 @@ startRoomListener 内のトリガー
 
 ---
 
+## 2026-04-10 作業ログ（β版公開直前・UI整備・テーマデータ更新）
+
+### [FIXED] プログレスピルのドロップダウンが白いコンテンツエリアに隠れる
+- **現象**: ランク入力・予想画面で「〇/〇人が入力完了 ▼」を開くと、ドロップダウンがコンテンツエリアの白背景の下に隠れて見えない
+- **原因**: `.progress-dropdown` が `position: absolute` で `.hero` 内に配置されており、`.hero { overflow: hidden }` に切られていた
+- **修正**: `.progress-dropdown` を `position: fixed` に変更。`toggleProgressDropdown()` / `toggleGuessProgressDropdown()` 内でpillの `getBoundingClientRect()` から座標を取得してtop/leftをJSでセット
+- **関連ファイル**: `css/beta.css`, `js/game-pair.js`
+
+### [FIXED] ゲスト側の結果画面に「テーマを変えてもう一度あそぶ」ボタンがなかった
+- **現象**: ホスト側の結果画面にはボタンがあるが、ゲスト側にはなく、画面左上の「← HOME」を押して退出してしまう可能性があった
+- **修正**: ゲスト側にも同ボタンを表示。押すと `showGuestWaitModal()` が呼ばれ「テーマの変更はホストのみが操作できます。ホストが新しいテーマを選ぶまでお待ちください。」のモーダルを表示
+- **関連ファイル**: `js/game-pair.js`
+
+### [UX] 公開版でダミー追加ボタンが表示されていた
+- **対応**: `App._devMode` フラグを導入。デフォルトは `false`（非表示）。待機室の部屋番号を**7回素早くタップ**するとON/OFFが切り替わる（部屋番号が一瞬薄くなってフィードバック）
+- **関連ファイル**: `js/game-pair.js`, `index.html`
+
+### [UX] テーマ一覧の全履歴削除ボタンをBETAバッジと重なる位置に配置していた
+- **対応**: `help-btn` クラスと同スタイル（右下・丸形）でゴミ箱SVGアイコンに変更
+- **関連ファイル**: `index.html`
+
+### [NEW] β版公開前UI整備（2026-04-10）
+- TOPから「1台であそぶ」「ライブであそぶ」ボタンを削除（beta対象外モード）
+- テーマ一覧画面の右下に全履歴削除ボタン（ゴミ箱アイコン）を追加
+- `deleteAllHistory()` を `js/storage.js` に追加、`confirmDeleteAllHistory()` / `doDeleteAllHistory()` を `js/theme-list.js` に追加
+
+### [NEW] テーマデータ全面更新（2026-04-10）
+- パック名変更: `basic` → `private`（プライベート）、`now` → `news`（ニュース）
+- 新パック追加: `work`（仕事 / `#2E3818`）、`love`（ラブ / `#5C1A35`）
+- カジュアルパックの色を `#1E2D3D` → `#1B4A72`（明るめネイビー）に変更
+- 全テーマのテキストを最新データに更新（88アイテム）
+- `docs/firebase_packs.json` / `docs/firebase_items.json` 更新済み
+- Firebase Console への手動インポートが必要（`themes/packs` / `themes/items`）
+
+### [NEW] beta → main PR作成・マージ（2026-04-10）
+- PR #2 `feat: beta版リリース準備 - UI整備・モニタリング・テーマデータ更新`
+- bypass rules and merge で main にマージ完了
+- 本番環境（GitHub Pages）への反映開始
+
+---
+
 ## 未解決・ペンディング事項
 
 | ID | 内容 | 優先度 | 備考 |
