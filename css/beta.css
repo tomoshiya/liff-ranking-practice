@@ -1170,6 +1170,20 @@ input, textarea { font-family: inherit; }
   flex-direction: column;
   gap: 4px;
 }
+.pair-result-score-col {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 6px;
+}
+.pair-result-score-cell {
+  height: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
 .pair-result-card {
   height: 72px;
   border-radius: 8px;
@@ -1203,16 +1217,22 @@ input, textarea { font-family: inherit; }
   line-height: 1.35;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   flex: 1;
 }
-.pair-result-card__score {
-  font-size: 9px;
+.pair-result-col-badge {
+  display: inline-block;
+  background: var(--text-primary);
+  color: #fff;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 10px;
   font-weight: 700;
-  margin-top: 2px;
+  letter-spacing: 0.02em;
   white-space: nowrap;
-  flex-shrink: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
+  box-sizing: border-box;
 }

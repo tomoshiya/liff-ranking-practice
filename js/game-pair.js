@@ -2097,8 +2097,12 @@ function showOnlinePersonResult(targetId) {
     const SUFFIXES = ['st','nd','rd','th','th'];
     const CARD_H = 72;
     const CARD_GAP = 4;
-    const CONN_W = 28;
+    const CONN_W = 36;
+    const SCORE_W = 52;
     const TOTAL_H = 5 * CARD_H + 4 * CARD_GAP;
+
+    // 正解順位ごとの識別カラー（5色・深みのある色調）
+    const RANK_COLORS = ['#B45309', '#1D4ED8', '#047857', '#6D28D9', '#BE123C'];
 
     const gEntry = guessers[0];
     const gId = gEntry?.[0];
@@ -2120,55 +2124,61 @@ function showOnlinePersonResult(targetId) {
         }
     }
 
-    // SVG 連結線（コネクタ幅内で描画: x=0が左列右端、x=CONN_Wが右列左端）
+    // SVG 連結線（正解順位の識別カラーを使用）
     let svgLines = '';
     for (let rank = 1; rank <= 5; rank++) {
         const gRank = correctToGuess[rank];
         if (!gRank) continue;
         const y1 = (rank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
         const y2 = (gRank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
-        const diff = Math.abs(rank - gRank);
-        const { color } = diff <= 3 ? getScoreLabel(diff) : { color: '#4B5563' };
-        svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="2" stroke-opacity="0.75"/>`;
+        svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${RANK_COLORS[rank-1]}" stroke-width="2.5" stroke-opacity="0.85"/>`;
     }
 
-    // 左列（正解ランク）
+    // 左列（正解ランク）- 識別カラーで塗りつぶし・白抜き文字
     let leftHtml = '';
     for (let rank = 1; rank <= 5; rank++) {
         const item = correct[String(rank)] || '';
-        leftHtml += `<div class="pair-result-card">
-            <div class="pair-result-card__rank">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></div>
-            <div class="pair-result-card__text">${escapeHtml(item)}</div>
+        const bg = RANK_COLORS[rank - 1];
+        leftHtml += `<div class="pair-result-card" style="background:${bg};border-color:${bg};">
+            <div class="pair-result-card__rank" style="color:rgba(255,255,255,0.55);">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></div>
+            <div class="pair-result-card__text" style="color:#fff;">${escapeHtml(item)}</div>
         </div>`;
     }
 
-    // 右列（予想ランク＋スコアラベル）
+    // 右列（予想ランク）- 対応する正解順位の識別カラーで塗りつぶし
+    // スコアラベルはカード外（スコア列）に配置
     let rightHtml = '';
+    let scoreHtml = '';
     for (let gRank = 1; gRank <= 5; gRank++) {
         const guessItem = guess?.[String(gRank)] || '';
         const correctRank = guessToCorrect[gRank] || 0;
+        const bg = correctRank > 0 ? RANK_COLORS[correctRank - 1] : '#374151';
         const diff = correctRank > 0 ? Math.abs(gRank - correctRank) : 99;
-        const { icon, label, color } = correctRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ', color: '#4B5563' };
+        const { icon, label, color: scoreColor } = correctRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ', color: '#6B7280' };
         const pt = correctRank > 0 ? calcItemScore(diff) : 0;
         const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
-        rightHtml += `<div class="pair-result-card" style="border-color:${color}55;">
-            <div class="pair-result-card__rank" style="color:${color};">${gRank}<span class="pair-result-card__sfx">${SUFFIXES[gRank-1]}</span></div>
-            <div class="pair-result-card__text">${escapeHtml(guessItem)}</div>
-            <div class="pair-result-card__score" style="color:${color};">${icon}${label} <span style="font-weight:800;">${ptDisplay}</span></div>
+
+        rightHtml += `<div class="pair-result-card" style="background:${bg};border-color:${bg};">
+            <div class="pair-result-card__rank" style="color:rgba(255,255,255,0.55);">${gRank}<span class="pair-result-card__sfx">${SUFFIXES[gRank-1]}</span></div>
+            <div class="pair-result-card__text" style="color:#fff;">${escapeHtml(guessItem)}</div>
+        </div>`;
+
+        scoreHtml += `<div class="pair-result-score-cell">
+            <div style="font-size:9px;font-weight:700;color:${scoreColor};white-space:nowrap;">${icon} ${label}</div>
+            <div style="font-size:9px;font-weight:800;color:${scoreColor};white-space:nowrap;">${ptDisplay}</div>
         </div>`;
     }
 
+    // カラム見出しバッジ（1行・ダーク背景・白文字）
+    const colBadge = (text) => `<div class="pair-result-col-badge">${escapeHtml(text)}</div>`;
+
     const html = `
-        <div style="display:flex;margin-bottom:6px;">
-            <div style="flex:1;text-align:center;">
-                <div style="font-size:10px;font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(target.displayName)}</div>
-                <div style="font-size:9px;color:var(--text-secondary);">正解</div>
-            </div>
+        <div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正しいランク＆参加者の予想</div>
+        <div style="display:flex;align-items:center;margin-bottom:6px;">
+            <div style="flex:1;min-width:0;">${colBadge(target.displayName + 'の正解ランク')}</div>
             <div style="width:${CONN_W}px;"></div>
-            <div style="flex:1;text-align:center;">
-                <div style="font-size:10px;font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(gPlayer?.displayName || '')}</div>
-                <div style="font-size:9px;color:var(--text-secondary);">予想</div>
-            </div>
+            <div style="flex:1;min-width:0;">${colBadge((gPlayer?.displayName || '') + 'の予想ランク')}</div>
+            <div style="width:${SCORE_W}px;"></div>
         </div>
         <div class="pair-result-wrap">
             <div class="pair-result-col">${leftHtml}</div>
@@ -2176,6 +2186,7 @@ function showOnlinePersonResult(targetId) {
                 <svg width="${CONN_W}" height="${TOTAL_H}" style="display:block;">${svgLines}</svg>
             </div>
             <div class="pair-result-col">${rightHtml}</div>
+            <div class="pair-result-score-col" style="width:${SCORE_W}px;">${scoreHtml}</div>
         </div>`;
 
     document.getElementById('resultPersonDetail').innerHTML = html;
