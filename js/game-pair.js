@@ -2100,8 +2100,8 @@ function showOnlinePersonResult(targetId) {
     const CONN_W = 40;
     const TOTAL_H = 5 * CARD_H + 4 * CARD_GAP;
 
-    // 正解順位ごとの識別カラー（ワインレッド→薄赤→グレー→濃グレー→黒 のグラデーション）
-    const RANK_COLORS = ['#6B1E2E', '#A04545', '#888888', '#4A4A4A', '#1E1E1E'];
+    // 正解順位ごとの識別カラー（同系色・彩度を落としてグレーへグラデーション）
+    const RANK_COLORS = ['#7B1D2E', '#6B3040', '#5C464F', '#4E4D55', '#3D3D3D'];
 
     const gEntry = guessers[0];
     const gId = gEntry?.[0];
@@ -2133,12 +2133,12 @@ function showOnlinePersonResult(targetId) {
         const color = RANK_COLORS[rank - 1];
         const diff = Math.abs(rank - gRank);
         if (diff === 0) {
-            // あたり: 二重線
-            svgLines += `<line x1="0" y1="${y1-1.5}" x2="${CONN_W}" y2="${y2-1.5}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.9"/>`;
-            svgLines += `<line x1="0" y1="${y1+1.5}" x2="${CONN_W}" y2="${y2+1.5}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.9"/>`;
+            // あたり: 太線
+            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="3.5" stroke-opacity="0.9"/>`;
         } else if (diff === 1) {
-            // おしい: 太線
-            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="3.5" stroke-opacity="0.85"/>`;
+            // おしい: 二重線
+            svgLines += `<line x1="0" y1="${y1-1.5}" x2="${CONN_W}" y2="${y2-1.5}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.85"/>`;
+            svgLines += `<line x1="0" y1="${y1+1.5}" x2="${CONN_W}" y2="${y2+1.5}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.85"/>`;
         } else if (diff === 2) {
             // ちかい: 普通線
             svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="2" stroke-opacity="0.8"/>`;
@@ -2151,30 +2151,38 @@ function showOnlinePersonResult(targetId) {
         }
     }
 
-    // 左列（正解ランク）- 白カード・識別カラーの枠線
+    // 左列（正解ランク）- 上部カラー帯（順位のみ白抜き）+ 白ボディ
     let leftHtml = '';
     for (let rank = 1; rank <= 5; rank++) {
         const item = correct[String(rank)] || '';
-        leftHtml += `<div class="pair-result-card" style="border-color:${RANK_COLORS[rank-1]};border-width:2px;">
-            <div class="pair-result-card__rank">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></div>
-            <div class="pair-result-card__text">${escapeHtml(item)}</div>
+        leftHtml += `<div class="pair-result-card">
+            <div class="pair-result-card__header" style="background:${RANK_COLORS[rank-1]};">
+                <span class="pair-result-card__rank">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></span>
+            </div>
+            <div class="pair-result-card__body">
+                <div class="pair-result-card__text">${escapeHtml(item)}</div>
+            </div>
         </div>`;
     }
 
-    // 右列（予想ランク）- 白カード・対応する正解順位の枠線 + スコアバッジ（右下に絶対配置）
+    // 右列（予想ランク）- 上部カラー帯に順位＋スコアを白抜きで表示
     let rightHtml = '';
     for (let gRank = 1; gRank <= 5; gRank++) {
         const guessItem = guess?.[String(gRank)] || '';
         const correctRank = guessToCorrect[gRank] || 0;
-        const borderColor = correctRank > 0 ? RANK_COLORS[correctRank - 1] : '#D1D5DB';
+        const headerBg = correctRank > 0 ? RANK_COLORS[correctRank - 1] : '#6B7280';
         const diff = correctRank > 0 ? Math.abs(gRank - correctRank) : 99;
-        const { icon, label, color: scoreColor } = correctRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ', color: '#9CA3AF' };
+        const { icon } = correctRank > 0 ? getScoreLabel(diff) : { icon: '×' };
         const pt = correctRank > 0 ? calcItemScore(diff) : 0;
         const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
-        rightHtml += `<div class="pair-result-card" style="position:relative;border-color:${borderColor};border-width:2px;">
-            <div class="pair-result-card__rank">${gRank}<span class="pair-result-card__sfx">${SUFFIXES[gRank-1]}</span></div>
-            <div class="pair-result-card__text">${escapeHtml(guessItem)}</div>
-            <div style="position:absolute;bottom:4px;right:5px;font-size:8px;font-weight:700;color:${scoreColor};white-space:nowrap;">${icon}${label} ${ptDisplay}</div>
+        rightHtml += `<div class="pair-result-card">
+            <div class="pair-result-card__header" style="background:${headerBg};">
+                <span class="pair-result-card__rank">${gRank}<span class="pair-result-card__sfx">${SUFFIXES[gRank-1]}</span></span>
+                <span class="pair-result-card__score-tag">${icon} ${ptDisplay}</span>
+            </div>
+            <div class="pair-result-card__body">
+                <div class="pair-result-card__text">${escapeHtml(guessItem)}</div>
+            </div>
         </div>`;
     }
 
