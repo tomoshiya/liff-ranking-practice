@@ -1171,7 +1171,7 @@ input, textarea { font-family: inherit; }
   gap: 4px;
 }
 .pair-result-card {
-  height: 72px;
+  height: 80px;
   border-radius: 8px;
   overflow: hidden;
   box-sizing: border-box;
@@ -1183,16 +1183,16 @@ input, textarea { font-family: inherit; }
 }
 .pair-result-card__header {
   flex-shrink: 0;
-  height: 26px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 8px;
+  padding: 0 7px;
   gap: 4px;
 }
 .pair-result-card__rank {
   font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
   font-style: italic;
   color: #fff;
@@ -1200,32 +1200,34 @@ input, textarea { font-family: inherit; }
   flex-shrink: 0;
 }
 .pair-result-card__sfx {
-  font-size: 8px;
+  font-size: 7px;
   font-style: normal;
 }
 .pair-result-card__score-tag {
   font-size: 8px;
   font-weight: 700;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255,255,255,0.92);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .pair-result-card__body {
   flex: 1;
-  padding: 5px 8px;
+  padding: 4px 8px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
 }
 .pair-result-card__text {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.35;
+  text-align: center;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   width: 100%;
 }

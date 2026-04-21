@@ -2095,8 +2095,8 @@ function showOnlinePersonResult(targetId) {
 
     const guessers = Object.entries(data.players || {}).filter(([id]) => id !== targetId);
     const SUFFIXES = ['st','nd','rd','th','th'];
-    const CARD_H = 72;
-    const CARD_GAP = 4;
+    const CARD_H = 80;
+    const CARD_GAP = 10;
     const CONN_W = 40;
     const TOTAL_H = 5 * CARD_H + 4 * CARD_GAP;
 
@@ -2136,9 +2136,12 @@ function showOnlinePersonResult(targetId) {
             // あたり: 太線
             svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="3.5" stroke-opacity="0.9"/>`;
         } else if (diff === 1) {
-            // おしい: 二重線
-            svgLines += `<line x1="0" y1="${y1-1.5}" x2="${CONN_W}" y2="${y2-1.5}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.85"/>`;
-            svgLines += `<line x1="0" y1="${y1+1.5}" x2="${CONN_W}" y2="${y2+1.5}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.85"/>`;
+            // おしい: 二重線（線方向に対して垂直オフセット）
+            const dxL = CONN_W, dyL = y2 - y1;
+            const lenL = Math.sqrt(dxL * dxL + dyL * dyL) || 1;
+            const ox = (-dyL / lenL) * 2.5, oy = (dxL / lenL) * 2.5;
+            svgLines += `<line x1="${ox.toFixed(2)}" y1="${(y1+oy).toFixed(2)}" x2="${(CONN_W+ox).toFixed(2)}" y2="${(y2+oy).toFixed(2)}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.85"/>`;
+            svgLines += `<line x1="${(-ox).toFixed(2)}" y1="${(y1-oy).toFixed(2)}" x2="${(CONN_W-ox).toFixed(2)}" y2="${(y2-oy).toFixed(2)}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.85"/>`;
         } else if (diff === 2) {
             // ちかい: 普通線
             svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="2" stroke-opacity="0.8"/>`;
@@ -2172,13 +2175,13 @@ function showOnlinePersonResult(targetId) {
         const correctRank = guessToCorrect[gRank] || 0;
         const headerBg = correctRank > 0 ? RANK_COLORS[correctRank - 1] : '#6B7280';
         const diff = correctRank > 0 ? Math.abs(gRank - correctRank) : 99;
-        const { icon } = correctRank > 0 ? getScoreLabel(diff) : { icon: '×' };
+        const { icon, label: scoreLabel } = correctRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ' };
         const pt = correctRank > 0 ? calcItemScore(diff) : 0;
         const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
         rightHtml += `<div class="pair-result-card">
             <div class="pair-result-card__header" style="background:${headerBg};">
                 <span class="pair-result-card__rank">${gRank}<span class="pair-result-card__sfx">${SUFFIXES[gRank-1]}</span></span>
-                <span class="pair-result-card__score-tag">${icon} ${ptDisplay}</span>
+                <span class="pair-result-card__score-tag">${icon}${scoreLabel} ${ptDisplay}</span>
             </div>
             <div class="pair-result-card__body">
                 <div class="pair-result-card__text">${escapeHtml(guessItem)}</div>
@@ -2186,13 +2189,13 @@ function showOnlinePersonResult(targetId) {
         </div>`;
     }
 
-    // カラム見出し（下線スタイル・中央寄せ）
-    const colLabel = (text) => `<div style="text-align:center;font-size:10px;font-weight:800;color:var(--text-primary);letter-spacing:0.02em;padding-bottom:5px;border-bottom:2px solid var(--text-primary);">${escapeHtml(text)}</div>`;
+    // カラム見出し（下線スタイル・中央寄せ・細く薄い線）
+    const colLabel = (text) => `<div style="text-align:center;font-size:10px;font-weight:700;color:var(--text-secondary);padding-bottom:4px;border-bottom:1px solid var(--border);">${escapeHtml(text)}</div>`;
 
     const html = `
         <div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正しいランク＆参加者の予想</div>
         <div style="display:flex;align-items:flex-end;margin-bottom:6px;">
-            <div style="flex:1;min-width:0;">${colLabel(target.displayName + 'の正解')}</div>
+            <div style="flex:1;min-width:0;">${colLabel(target.displayName + 'の正しいランク')}</div>
             <div style="width:${CONN_W}px;"></div>
             <div style="flex:1;min-width:0;">${colLabel((gPlayer?.displayName || '') + 'の予想')}</div>
         </div>
