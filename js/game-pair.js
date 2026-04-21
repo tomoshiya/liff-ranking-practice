@@ -2125,7 +2125,6 @@ function showOnlinePersonResult(targetId) {
     }
 
     // SVG 連結線（正解順位の色 × スコアのズレで線種変更）
-    const OVERLAP = 5;
     let svgLines = '';
     for (let rank = 1; rank <= 5; rank++) {
         const gRank = correctToGuess[rank];
@@ -2140,9 +2139,9 @@ function showOnlinePersonResult(targetId) {
         else if (diff === 2) { strokeW = 1.5; opacity = 0.8;  dashAttr = ''; }
         else if (diff === 3) { strokeW = 1.5; opacity = 0.75; dashAttr = ' stroke-dasharray="6,4"'; }
         else                 { strokeW = 1.5; opacity = 0.7;  dashAttr = ' stroke-dasharray="2,5"'; }
-        svgLines += `<line x1="${-OVERLAP}" y1="${y1}" x2="${CONN_W + OVERLAP}" y2="${y2}" stroke="${color}" stroke-width="${strokeW}"${dashAttr} stroke-opacity="${opacity}"/>`;
-        svgLines += `<circle cx="${-OVERLAP}" cy="${y1}" r="3" fill="${color}" fill-opacity="${opacity}"/>`;
-        svgLines += `<circle cx="${CONN_W + OVERLAP}" cy="${y2}" r="3" fill="${color}" fill-opacity="${opacity}"/>`;
+        svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="${strokeW}"${dashAttr} stroke-opacity="${opacity}"/>`;
+        svgLines += `<circle cx="0" cy="${y1}" r="3.5" fill="${color}" fill-opacity="${opacity}"/>`;
+        svgLines += `<circle cx="${CONN_W}" cy="${y2}" r="3.5" fill="${color}" fill-opacity="${opacity}"/>`;
     }
 
     const pairCardFontInfo = (text) => {
@@ -2202,7 +2201,7 @@ function showOnlinePersonResult(targetId) {
         <div class="pair-result-wrap">
             <div class="pair-result-col">${leftHtml}</div>
             <div style="position:relative;z-index:1;width:${CONN_W}px;height:${TOTAL_H}px;flex-shrink:0;">
-                <svg width="${CONN_W}" height="${TOTAL_H}" style="display:block;overflow:visible;">${svgLines}</svg>
+                <svg width="${CONN_W}" height="${TOTAL_H}" style="display:block;">${svgLines}</svg>
             </div>
             <div class="pair-result-col">${rightHtml}</div>
         </div>`;
