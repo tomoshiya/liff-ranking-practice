@@ -974,6 +974,20 @@ startRoomListener 内のトリガー
 - bypass rules and merge で main にマージ完了
 - 本番環境（GitHub Pages）への反映開始
 
+### [NEW] ふたりモード結果画面 デザイン改善・バグ修正（2026-04-21）
+- **バグ**: CSS `.pair-result-col { gap: 4px }` が JS の `CARD_GAP=10` と不一致のまま放置されていた
+  - **原因**: JS側でCARD_GAPを変更した際にCSSの更新を忘れた
+  - **影響**: SVG高さ計算と実レイアウトがずれて連結線の位置が狂い、「テーマを変えてもう一度あそぶ」ボタン上に謎スペースが発生
+  - **対応**: CSS gap を 12px に修正し JS CARD_GAP=12 に統一
+- **改善**: SVG連結線の起点をカード縦中央（CARD_H/2 = 40px）に統一
+- **改善**: ±1の二重線を廃止。太線(3.5px)→中太線(2.5px)→細線(1.5px)→破線→点線の5段階に整理
+- **改善**: 文字数に応じた動的フォントサイズを追加（`pairCardFontInfo()` ヘルパー関数で ≤10字→14px/≤22字→11px/それ以上→9px）
+- **改善**: 各連結線の両端に同色・同透明度の結節点 (`<circle r="3.5">`) を追加
+- **バグ**: 結節点がカードの下（shadow の下）に隠れる z-index 問題
+  - **原因**: card column に明示的な z-index がなく、ブラウザの描画順制御が意図通りに動作しなかった
+  - **対応**: card column に `position:relative; z-index:0`、SVGコンテナに `z-index:1` + SVG要素に `overflow:visible` を設定
+- **関連ファイル**: `js/game-pair.js`, `css/beta.css`
+
 ---
 
 ## 未解決・ペンディング事項
