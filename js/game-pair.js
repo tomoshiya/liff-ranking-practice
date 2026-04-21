@@ -2097,12 +2097,11 @@ function showOnlinePersonResult(targetId) {
     const SUFFIXES = ['st','nd','rd','th','th'];
     const CARD_H = 72;
     const CARD_GAP = 4;
-    const CONN_W = 36;
-    const SCORE_W = 52;
+    const CONN_W = 40;
     const TOTAL_H = 5 * CARD_H + 4 * CARD_GAP;
 
-    // 正解順位ごとの識別カラー（5色・深みのある色調）
-    const RANK_COLORS = ['#B45309', '#1D4ED8', '#047857', '#6D28D9', '#BE123C'];
+    // 正解順位ごとの識別カラー（ワインレッド→薄赤→グレー→濃グレー→黒 のグラデーション）
+    const RANK_COLORS = ['#6B1E2E', '#A04545', '#888888', '#4A4A4A', '#1E1E1E'];
 
     const gEntry = guessers[0];
     const gId = gEntry?.[0];
@@ -2124,61 +2123,70 @@ function showOnlinePersonResult(targetId) {
         }
     }
 
-    // SVG 連結線（正解順位の識別カラーを使用）
+    // SVG 連結線（正解順位の色 × スコアのズレで線種変更）
     let svgLines = '';
     for (let rank = 1; rank <= 5; rank++) {
         const gRank = correctToGuess[rank];
         if (!gRank) continue;
         const y1 = (rank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
         const y2 = (gRank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
-        svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${RANK_COLORS[rank-1]}" stroke-width="2.5" stroke-opacity="0.85"/>`;
+        const color = RANK_COLORS[rank - 1];
+        const diff = Math.abs(rank - gRank);
+        if (diff === 0) {
+            // あたり: 二重線
+            svgLines += `<line x1="0" y1="${y1-1.5}" x2="${CONN_W}" y2="${y2-1.5}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.9"/>`;
+            svgLines += `<line x1="0" y1="${y1+1.5}" x2="${CONN_W}" y2="${y2+1.5}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.9"/>`;
+        } else if (diff === 1) {
+            // おしい: 太線
+            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="3.5" stroke-opacity="0.85"/>`;
+        } else if (diff === 2) {
+            // ちかい: 普通線
+            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="2" stroke-opacity="0.8"/>`;
+        } else if (diff === 3) {
+            // かすり: 破線
+            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="2" stroke-dasharray="6,4" stroke-opacity="0.75"/>`;
+        } else {
+            // はずれ: 点線
+            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="2" stroke-dasharray="2,5" stroke-opacity="0.7"/>`;
+        }
     }
 
-    // 左列（正解ランク）- 識別カラーで塗りつぶし・白抜き文字
+    // 左列（正解ランク）- 白カード・識別カラーの枠線
     let leftHtml = '';
     for (let rank = 1; rank <= 5; rank++) {
         const item = correct[String(rank)] || '';
-        const bg = RANK_COLORS[rank - 1];
-        leftHtml += `<div class="pair-result-card" style="background:${bg};border-color:${bg};">
-            <div class="pair-result-card__rank" style="color:rgba(255,255,255,0.55);">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></div>
-            <div class="pair-result-card__text" style="color:#fff;">${escapeHtml(item)}</div>
+        leftHtml += `<div class="pair-result-card" style="border-color:${RANK_COLORS[rank-1]};border-width:2px;">
+            <div class="pair-result-card__rank">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></div>
+            <div class="pair-result-card__text">${escapeHtml(item)}</div>
         </div>`;
     }
 
-    // 右列（予想ランク）- 対応する正解順位の識別カラーで塗りつぶし
-    // スコアラベルはカード外（スコア列）に配置
+    // 右列（予想ランク）- 白カード・対応する正解順位の枠線 + スコアバッジ（右下に絶対配置）
     let rightHtml = '';
-    let scoreHtml = '';
     for (let gRank = 1; gRank <= 5; gRank++) {
         const guessItem = guess?.[String(gRank)] || '';
         const correctRank = guessToCorrect[gRank] || 0;
-        const bg = correctRank > 0 ? RANK_COLORS[correctRank - 1] : '#374151';
+        const borderColor = correctRank > 0 ? RANK_COLORS[correctRank - 1] : '#D1D5DB';
         const diff = correctRank > 0 ? Math.abs(gRank - correctRank) : 99;
-        const { icon, label, color: scoreColor } = correctRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ', color: '#6B7280' };
+        const { icon, label, color: scoreColor } = correctRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ', color: '#9CA3AF' };
         const pt = correctRank > 0 ? calcItemScore(diff) : 0;
         const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
-
-        rightHtml += `<div class="pair-result-card" style="background:${bg};border-color:${bg};">
-            <div class="pair-result-card__rank" style="color:rgba(255,255,255,0.55);">${gRank}<span class="pair-result-card__sfx">${SUFFIXES[gRank-1]}</span></div>
-            <div class="pair-result-card__text" style="color:#fff;">${escapeHtml(guessItem)}</div>
-        </div>`;
-
-        scoreHtml += `<div class="pair-result-score-cell">
-            <div style="font-size:9px;font-weight:700;color:${scoreColor};white-space:nowrap;">${icon} ${label}</div>
-            <div style="font-size:9px;font-weight:800;color:${scoreColor};white-space:nowrap;">${ptDisplay}</div>
+        rightHtml += `<div class="pair-result-card" style="position:relative;border-color:${borderColor};border-width:2px;">
+            <div class="pair-result-card__rank">${gRank}<span class="pair-result-card__sfx">${SUFFIXES[gRank-1]}</span></div>
+            <div class="pair-result-card__text">${escapeHtml(guessItem)}</div>
+            <div style="position:absolute;bottom:4px;right:5px;font-size:8px;font-weight:700;color:${scoreColor};white-space:nowrap;">${icon}${label} ${ptDisplay}</div>
         </div>`;
     }
 
-    // カラム見出しバッジ（1行・ダーク背景・白文字）
-    const colBadge = (text) => `<div class="pair-result-col-badge">${escapeHtml(text)}</div>`;
+    // カラム見出し（下線スタイル・中央寄せ）
+    const colLabel = (text) => `<div style="text-align:center;font-size:10px;font-weight:800;color:var(--text-primary);letter-spacing:0.02em;padding-bottom:5px;border-bottom:2px solid var(--text-primary);">${escapeHtml(text)}</div>`;
 
     const html = `
         <div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正しいランク＆参加者の予想</div>
-        <div style="display:flex;align-items:center;margin-bottom:6px;">
-            <div style="flex:1;min-width:0;">${colBadge(target.displayName + 'の正解ランク')}</div>
+        <div style="display:flex;align-items:flex-end;margin-bottom:6px;">
+            <div style="flex:1;min-width:0;">${colLabel(target.displayName + 'の正解')}</div>
             <div style="width:${CONN_W}px;"></div>
-            <div style="flex:1;min-width:0;">${colBadge((gPlayer?.displayName || '') + 'の予想ランク')}</div>
-            <div style="width:${SCORE_W}px;"></div>
+            <div style="flex:1;min-width:0;">${colLabel((gPlayer?.displayName || '') + 'の予想')}</div>
         </div>
         <div class="pair-result-wrap">
             <div class="pair-result-col">${leftHtml}</div>
@@ -2186,7 +2194,6 @@ function showOnlinePersonResult(targetId) {
                 <svg width="${CONN_W}" height="${TOTAL_H}" style="display:block;">${svgLines}</svg>
             </div>
             <div class="pair-result-col">${rightHtml}</div>
-            <div class="pair-result-score-col" style="width:${SCORE_W}px;">${scoreHtml}</div>
         </div>`;
 
     document.getElementById('resultPersonDetail').innerHTML = html;
