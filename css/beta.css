@@ -1168,7 +1168,7 @@ input, textarea { font-family: inherit; }
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
 }
 .pair-result-card {
   height: 80px;

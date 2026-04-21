@@ -2096,7 +2096,8 @@ function showOnlinePersonResult(targetId) {
     const guessers = Object.entries(data.players || {}).filter(([id]) => id !== targetId);
     const SUFFIXES = ['st','nd','rd','th','th'];
     const CARD_H = 80;
-    const CARD_GAP = 10;
+    const CARD_GAP = 12;
+    const HEADER_H = 20;
     const CONN_W = 40;
     const TOTAL_H = 5 * CARD_H + 4 * CARD_GAP;
 
@@ -2128,42 +2129,46 @@ function showOnlinePersonResult(targetId) {
     for (let rank = 1; rank <= 5; rank++) {
         const gRank = correctToGuess[rank];
         if (!gRank) continue;
-        const y1 = (rank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
-        const y2 = (gRank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
+        const y1 = (rank - 1) * (CARD_H + CARD_GAP) + HEADER_H / 2;
+        const y2 = (gRank - 1) * (CARD_H + CARD_GAP) + HEADER_H / 2;
         const color = RANK_COLORS[rank - 1];
         const diff = Math.abs(rank - gRank);
         if (diff === 0) {
             // あたり: 太線
             svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="3.5" stroke-opacity="0.9"/>`;
         } else if (diff === 1) {
-            // おしい: 二重線（線方向に対して垂直オフセット）
-            const dxL = CONN_W, dyL = y2 - y1;
-            const lenL = Math.sqrt(dxL * dxL + dyL * dyL) || 1;
-            const ox = (-dyL / lenL) * 2.5, oy = (dxL / lenL) * 2.5;
-            svgLines += `<line x1="${ox.toFixed(2)}" y1="${(y1+oy).toFixed(2)}" x2="${(CONN_W+ox).toFixed(2)}" y2="${(y2+oy).toFixed(2)}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.85"/>`;
-            svgLines += `<line x1="${(-ox).toFixed(2)}" y1="${(y1-oy).toFixed(2)}" x2="${(CONN_W-ox).toFixed(2)}" y2="${(y2-oy).toFixed(2)}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.85"/>`;
+            // おしい: 中太線
+            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="2.5" stroke-opacity="0.85"/>`;
         } else if (diff === 2) {
             // ちかい: 普通線
-            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="2" stroke-opacity="0.8"/>`;
+            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.8"/>`;
         } else if (diff === 3) {
             // かすり: 破線
-            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="2" stroke-dasharray="6,4" stroke-opacity="0.75"/>`;
+            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="1.5" stroke-dasharray="6,4" stroke-opacity="0.75"/>`;
         } else {
             // はずれ: 点線
-            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="2" stroke-dasharray="2,5" stroke-opacity="0.7"/>`;
+            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="1.5" stroke-dasharray="2,5" stroke-opacity="0.7"/>`;
         }
     }
+
+    const pairCardFontInfo = (text) => {
+        const len = text.length;
+        if (len <= 10) return { fs: '14px', clamp: 2 };
+        if (len <= 22) return { fs: '11px', clamp: 3 };
+        return { fs: '9px', clamp: 4 };
+    };
 
     // 左列（正解ランク）- 上部カラー帯（順位のみ白抜き）+ 白ボディ
     let leftHtml = '';
     for (let rank = 1; rank <= 5; rank++) {
         const item = correct[String(rank)] || '';
+        const fi = pairCardFontInfo(item);
         leftHtml += `<div class="pair-result-card">
             <div class="pair-result-card__header" style="background:${RANK_COLORS[rank-1]};">
                 <span class="pair-result-card__rank">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></span>
             </div>
             <div class="pair-result-card__body">
-                <div class="pair-result-card__text">${escapeHtml(item)}</div>
+                <div class="pair-result-card__text" style="font-size:${fi.fs};-webkit-line-clamp:${fi.clamp};">${escapeHtml(item)}</div>
             </div>
         </div>`;
     }
@@ -2178,13 +2183,14 @@ function showOnlinePersonResult(targetId) {
         const { icon, label: scoreLabel } = correctRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ' };
         const pt = correctRank > 0 ? calcItemScore(diff) : 0;
         const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
+        const fi = pairCardFontInfo(guessItem);
         rightHtml += `<div class="pair-result-card">
             <div class="pair-result-card__header" style="background:${headerBg};">
                 <span class="pair-result-card__rank">${gRank}<span class="pair-result-card__sfx">${SUFFIXES[gRank-1]}</span></span>
                 <span class="pair-result-card__score-tag">${icon}${scoreLabel} ${ptDisplay}</span>
             </div>
             <div class="pair-result-card__body">
-                <div class="pair-result-card__text">${escapeHtml(guessItem)}</div>
+                <div class="pair-result-card__text" style="font-size:${fi.fs};-webkit-line-clamp:${fi.clamp};">${escapeHtml(guessItem)}</div>
             </div>
         </div>`;
     }
