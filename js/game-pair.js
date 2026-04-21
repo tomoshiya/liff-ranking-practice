@@ -2125,30 +2125,24 @@ function showOnlinePersonResult(targetId) {
     }
 
     // SVG 連結線（正解順位の色 × スコアのズレで線種変更）
+    const OVERLAP = 5;
     let svgLines = '';
     for (let rank = 1; rank <= 5; rank++) {
         const gRank = correctToGuess[rank];
         if (!gRank) continue;
-        const y1 = (rank - 1) * (CARD_H + CARD_GAP) + HEADER_H / 2;
-        const y2 = (gRank - 1) * (CARD_H + CARD_GAP) + HEADER_H / 2;
+        const y1 = (rank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
+        const y2 = (gRank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
         const color = RANK_COLORS[rank - 1];
         const diff = Math.abs(rank - gRank);
-        if (diff === 0) {
-            // あたり: 太線
-            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="3.5" stroke-opacity="0.9"/>`;
-        } else if (diff === 1) {
-            // おしい: 中太線
-            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="2.5" stroke-opacity="0.85"/>`;
-        } else if (diff === 2) {
-            // ちかい: 普通線
-            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="1.5" stroke-opacity="0.8"/>`;
-        } else if (diff === 3) {
-            // かすり: 破線
-            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="1.5" stroke-dasharray="6,4" stroke-opacity="0.75"/>`;
-        } else {
-            // はずれ: 点線
-            svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="1.5" stroke-dasharray="2,5" stroke-opacity="0.7"/>`;
-        }
+        let strokeW, opacity, dashAttr;
+        if (diff === 0)      { strokeW = 3.5; opacity = 0.9;  dashAttr = ''; }
+        else if (diff === 1) { strokeW = 2.5; opacity = 0.85; dashAttr = ''; }
+        else if (diff === 2) { strokeW = 1.5; opacity = 0.8;  dashAttr = ''; }
+        else if (diff === 3) { strokeW = 1.5; opacity = 0.75; dashAttr = ' stroke-dasharray="6,4"'; }
+        else                 { strokeW = 1.5; opacity = 0.7;  dashAttr = ' stroke-dasharray="2,5"'; }
+        svgLines += `<line x1="${-OVERLAP}" y1="${y1}" x2="${CONN_W + OVERLAP}" y2="${y2}" stroke="${color}" stroke-width="${strokeW}"${dashAttr} stroke-opacity="${opacity}"/>`;
+        svgLines += `<circle cx="${-OVERLAP}" cy="${y1}" r="3" fill="${color}" fill-opacity="${opacity}"/>`;
+        svgLines += `<circle cx="${CONN_W + OVERLAP}" cy="${y2}" r="3" fill="${color}" fill-opacity="${opacity}"/>`;
     }
 
     const pairCardFontInfo = (text) => {
@@ -2207,8 +2201,8 @@ function showOnlinePersonResult(targetId) {
         </div>
         <div class="pair-result-wrap">
             <div class="pair-result-col">${leftHtml}</div>
-            <div style="position:relative;width:${CONN_W}px;height:${TOTAL_H}px;flex-shrink:0;">
-                <svg width="${CONN_W}" height="${TOTAL_H}" style="display:block;">${svgLines}</svg>
+            <div style="position:relative;z-index:1;width:${CONN_W}px;height:${TOTAL_H}px;flex-shrink:0;">
+                <svg width="${CONN_W}" height="${TOTAL_H}" style="display:block;overflow:visible;">${svgLines}</svg>
             </div>
             <div class="pair-result-col">${rightHtml}</div>
         </div>`;
