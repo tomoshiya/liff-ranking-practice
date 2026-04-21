@@ -2094,38 +2094,90 @@ function showOnlinePersonResult(targetId) {
     if (!correct || !target) return;
 
     const guessers = Object.entries(data.players || {}).filter(([id]) => id !== targetId);
-
-    let html = `<div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正しいランク＆参加者の予想</div>`;
-
     const SUFFIXES = ['st','nd','rd','th','th'];
+    const CARD_H = 72;
+    const CARD_GAP = 4;
+    const CONN_W = 28;
+    const TOTAL_H = 5 * CARD_H + 4 * CARD_GAP;
+
+    const gEntry = guessers[0];
+    const gId = gEntry?.[0];
+    const gPlayer = gEntry?.[1];
+    const guess = gId ? (data.guesses?.[gId]?.[targetId] || null) : null;
+
+    // correctRank → gRank の対応マップを構築
+    const correctToGuess = {};
+    const guessToCorrect = {};
     for (let rank = 1; rank <= 5; rank++) {
         const item = correct[String(rank)];
-        html += `<div class="card" style="margin-bottom:6px;">
-            <div style="display:flex;align-items:center;margin-bottom:8px;gap:8px;">
-                <span style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:900;font-style:italic;color:var(--text-primary);min-width:28px;">${rank}<span style="font-size:10px;">${SUFFIXES[rank-1]}</span></span>
-                <span style="font-size:14px;font-weight:700;word-break:break-all;overflow-wrap:break-word;">${escapeHtml(item)}</span>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border);padding-top:6px;">
-                ${guessers.map(([gId, g]) => {
-                    const guess = data.guesses?.[gId]?.[targetId];
-                    let gRank = 0;
-                    if (guess) for (let r = 1; r <= 5; r++) { if (guess[String(r)] === item) { gRank = r; break; } }
-                    const diff = gRank > 0 ? Math.abs(gRank - rank) : 99;
-                    const { icon, label, color } = gRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ', color: '#334155' };
-                    const pt = gRank > 0 ? calcItemScore(diff) : 0;
-                    const rankDisplay = gRank > 0 ? `${gRank}${SUFFIXES[gRank-1]}` : '-';
-                    const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
-                    // 全要素右寄せ: 名前 → 何位と予想 → ラベル → +pt
-                    return `<div style="display:flex;align-items:center;justify-content:flex-end;font-size:12px;gap:6px;">
-                        <span style="font-weight:700;color:var(--text-primary);">${escapeHtml(g.displayName)}</span>
-                        <span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;font-style:italic;color:var(--text-primary);">${rankDisplay}</span>
-                        <span style="color:${color};font-weight:700;font-size:11px;">${icon} ${label}</span>
-                        <span style="color:${color};font-weight:800;min-width:36px;text-align:right;">${ptDisplay}</span>
-                    </div>`;
-                }).join('')}
-            </div>
+        if (!item) continue;
+        for (let r = 1; r <= 5; r++) {
+            if (guess?.[String(r)] === item) {
+                correctToGuess[rank] = r;
+                guessToCorrect[r] = rank;
+                break;
+            }
+        }
+    }
+
+    // SVG 連結線（コネクタ幅内で描画: x=0が左列右端、x=CONN_Wが右列左端）
+    let svgLines = '';
+    for (let rank = 1; rank <= 5; rank++) {
+        const gRank = correctToGuess[rank];
+        if (!gRank) continue;
+        const y1 = (rank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
+        const y2 = (gRank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
+        const diff = Math.abs(rank - gRank);
+        const { color } = diff <= 3 ? getScoreLabel(diff) : { color: '#4B5563' };
+        svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="2" stroke-opacity="0.75"/>`;
+    }
+
+    // 左列（正解ランク）
+    let leftHtml = '';
+    for (let rank = 1; rank <= 5; rank++) {
+        const item = correct[String(rank)] || '';
+        leftHtml += `<div class="pair-result-card">
+            <div class="pair-result-card__rank">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></div>
+            <div class="pair-result-card__text">${escapeHtml(item)}</div>
         </div>`;
     }
+
+    // 右列（予想ランク＋スコアラベル）
+    let rightHtml = '';
+    for (let gRank = 1; gRank <= 5; gRank++) {
+        const guessItem = guess?.[String(gRank)] || '';
+        const correctRank = guessToCorrect[gRank] || 0;
+        const diff = correctRank > 0 ? Math.abs(gRank - correctRank) : 99;
+        const { icon, label, color } = correctRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ', color: '#4B5563' };
+        const pt = correctRank > 0 ? calcItemScore(diff) : 0;
+        const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
+        rightHtml += `<div class="pair-result-card" style="border-color:${color}55;">
+            <div class="pair-result-card__rank" style="color:${color};">${gRank}<span class="pair-result-card__sfx">${SUFFIXES[gRank-1]}</span></div>
+            <div class="pair-result-card__text">${escapeHtml(guessItem)}</div>
+            <div class="pair-result-card__score" style="color:${color};">${icon}${label} <span style="font-weight:800;">${ptDisplay}</span></div>
+        </div>`;
+    }
+
+    const html = `
+        <div style="display:flex;margin-bottom:6px;">
+            <div style="flex:1;text-align:center;">
+                <div style="font-size:10px;font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(target.displayName)}</div>
+                <div style="font-size:9px;color:var(--text-secondary);">正解</div>
+            </div>
+            <div style="width:${CONN_W}px;"></div>
+            <div style="flex:1;text-align:center;">
+                <div style="font-size:10px;font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(gPlayer?.displayName || '')}</div>
+                <div style="font-size:9px;color:var(--text-secondary);">予想</div>
+            </div>
+        </div>
+        <div class="pair-result-wrap">
+            <div class="pair-result-col">${leftHtml}</div>
+            <div style="position:relative;width:${CONN_W}px;height:${TOTAL_H}px;flex-shrink:0;">
+                <svg width="${CONN_W}" height="${TOTAL_H}" style="display:block;">${svgLines}</svg>
+            </div>
+            <div class="pair-result-col">${rightHtml}</div>
+        </div>`;
+
     document.getElementById('resultPersonDetail').innerHTML = html;
 }
 
