@@ -2199,11 +2199,11 @@ function showOnlinePersonResult(targetId) {
             <div style="flex:1;min-width:0;">${colLabel((gPlayer?.displayName || '') + 'の予想')}</div>
         </div>
         <div class="pair-result-wrap">
-            <div class="pair-result-col">${leftHtml}</div>
+            <div class="pair-result-col" style="position:relative;z-index:0;">${leftHtml}</div>
             <div style="position:relative;z-index:1;width:${CONN_W}px;height:${TOTAL_H}px;flex-shrink:0;">
-                <svg width="${CONN_W}" height="${TOTAL_H}" style="display:block;">${svgLines}</svg>
+                <svg width="${CONN_W}" height="${TOTAL_H}" style="display:block;overflow:visible;">${svgLines}</svg>
             </div>
-            <div class="pair-result-col">${rightHtml}</div>
+            <div class="pair-result-col" style="position:relative;z-index:0;">${rightHtml}</div>
         </div>`;
 
     document.getElementById('resultPersonDetail').innerHTML = html;
