@@ -2122,15 +2122,15 @@ function showOnlinePersonResult(guesserId) {
         }
     }
 
-    // SVG 連結線（左=予想位置, 右=正解位置）
+    // SVG 連結線（左=正解位置, 右=予想位置）色は正解ランク基準
     let svgLines = '';
-    for (let gRank = 1; gRank <= 5; gRank++) {
-        const rank = guessToCorrect[gRank];
-        if (!rank) continue;
-        const y1 = (gRank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
-        const y2 = (rank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
-        const color = RANK_COLORS[gRank - 1];
-        const diff = Math.abs(gRank - rank);
+    for (let rank = 1; rank <= 5; rank++) {
+        const gRank = correctToGuess[rank];
+        if (!gRank) continue;
+        const y1 = (rank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
+        const y2 = (gRank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
+        const color = RANK_COLORS[rank - 1];
+        const diff = Math.abs(rank - gRank);
         let strokeW, opacity, dashAttr;
         if (diff === 0)      { strokeW = 3.5; opacity = 0.9;  dashAttr = ''; }
         else if (diff === 1) { strokeW = 2.5; opacity = 0.85; dashAttr = ''; }
@@ -2149,18 +2149,33 @@ function showOnlinePersonResult(guesserId) {
         return { fs: '9px', clamp: 4 };
     };
 
-    // 左列（予想ランク＋スコア）
+    // 左列（正解ランク）- 色は正解ランク基準（固定）
     let leftHtml = '';
+    for (let rank = 1; rank <= 5; rank++) {
+        const item = correct[String(rank)] || '';
+        const fi = pairCardFontInfo(item);
+        leftHtml += `<div class="pair-result-card">
+            <div class="pair-result-card__header" style="background:${RANK_COLORS[rank-1]};">
+                <span class="pair-result-card__rank">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></span>
+            </div>
+            <div class="pair-result-card__body">
+                <div class="pair-result-card__text" style="font-size:${fi.fs};-webkit-line-clamp:${fi.clamp};">${escapeHtml(item)}</div>
+            </div>
+        </div>`;
+    }
+
+    // 右列（予想ランク＋スコア）- 色は対応する正解ランク基準
+    let rightHtml = '';
     for (let gRank = 1; gRank <= 5; gRank++) {
         const guessItem = guess?.[String(gRank)] || '';
         const correctRank = guessToCorrect[gRank] || 0;
-        const headerBg = RANK_COLORS[gRank - 1];
+        const headerBg = correctRank > 0 ? RANK_COLORS[correctRank - 1] : '#6B7280';
         const diff = correctRank > 0 ? Math.abs(gRank - correctRank) : 99;
         const { icon, label: scoreLabel } = correctRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ' };
         const pt = correctRank > 0 ? calcItemScore(diff) : 0;
         const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
         const fi = pairCardFontInfo(guessItem);
-        leftHtml += `<div class="pair-result-card">
+        rightHtml += `<div class="pair-result-card">
             <div class="pair-result-card__header" style="background:${headerBg};">
                 <span class="pair-result-card__rank">${gRank}<span class="pair-result-card__sfx">${SUFFIXES[gRank-1]}</span></span>
                 <span class="pair-result-card__score-tag">${icon}${scoreLabel} ${ptDisplay}</span>
@@ -2171,30 +2186,14 @@ function showOnlinePersonResult(guesserId) {
         </div>`;
     }
 
-    // 右列（正解ランク）
-    let rightHtml = '';
-    for (let rank = 1; rank <= 5; rank++) {
-        const item = correct[String(rank)] || '';
-        const fi = pairCardFontInfo(item);
-        const rightBg = correctToGuess[rank] ? RANK_COLORS[correctToGuess[rank] - 1] : '#6B7280';
-        rightHtml += `<div class="pair-result-card">
-            <div class="pair-result-card__header" style="background:${rightBg};">
-                <span class="pair-result-card__rank">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></span>
-            </div>
-            <div class="pair-result-card__body">
-                <div class="pair-result-card__text" style="font-size:${fi.fs};-webkit-line-clamp:${fi.clamp};">${escapeHtml(item)}</div>
-            </div>
-        </div>`;
-    }
-
     // カラム見出し（2行・下線スタイル・中央寄せ）
     const colLabel = (name, suffix) => `<div style="text-align:center;font-size:10px;font-weight:700;color:var(--text-secondary);padding-bottom:4px;border-bottom:1px solid var(--border);">${escapeHtml(name)}<br>${suffix}</div>`;
 
     const html = `
         <div style="display:flex;align-items:flex-end;margin-bottom:6px;">
-            <div style="flex:1;min-width:0;">${colLabel(guesser.displayName + 'の', '予想＆スコア')}</div>
-            <div style="width:${CONN_W}px;"></div>
             <div style="flex:1;min-width:0;">${colLabel((target?.displayName || '') + 'の', '正しいランク')}</div>
+            <div style="width:${CONN_W}px;"></div>
+            <div style="flex:1;min-width:0;">${colLabel(guesser.displayName + 'の', '予想＆スコア')}</div>
         </div>
         <div class="pair-result-wrap">
             <div class="pair-result-col" style="position:relative;z-index:0;">${leftHtml}</div>
