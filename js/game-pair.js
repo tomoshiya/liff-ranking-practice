@@ -2104,8 +2104,8 @@ function showOnlinePersonResult(guesserId) {
     const CONN_W = 40;
     const TOTAL_H = 5 * CARD_H + 4 * CARD_GAP;
 
-    // 正解順位ごとの識別カラー（同系色・彩度を落としてグレーへグラデーション）
-    const RANK_COLORS = ['#7B1D2E', '#6B3040', '#5C464F', '#4E4D55', '#3D3D3D'];
+    // 正解順位ごとの識別カラー（鮮やかな赤→バーガンディ→チャコールへグラデーション）
+    const RANK_COLORS = ['#C1121F', '#9B2231', '#7A3340', '#55424C', '#3D3D3D'];
 
     // correctRank → gRank の対応マップを構築
     const correctToGuess = {};
