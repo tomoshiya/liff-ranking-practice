@@ -2107,16 +2107,18 @@ function showOnlinePersonResult(guesserId) {
     // 正解順位ごとの識別カラー（深紅→バーガンディ→ウォームチャコールへグラデーション）
     const RANK_COLORS = ['#A8192B', '#882031', '#6B2F3C', '#4D3C45', '#3A3334'];
 
-    // correctRank → gRank の対応マップを構築
+    // correctRank → gRank の対応マップを構築（使用済みスロットの再利用を防ぐ）
     const correctToGuess = {};
     const guessToCorrect = {};
+    const usedGRanks = new Set();
     for (let rank = 1; rank <= 5; rank++) {
         const item = correct[String(rank)];
         if (!item) continue;
         for (let r = 1; r <= 5; r++) {
-            if (guess?.[String(r)] === item) {
+            if (!usedGRanks.has(r) && guess?.[String(r)] === item) {
                 correctToGuess[rank] = r;
                 guessToCorrect[r] = rank;
+                usedGRanks.add(r);
                 break;
             }
         }
