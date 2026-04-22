@@ -974,7 +974,7 @@ startRoomListener 内のトリガー
 - bypass rules and merge で main にマージ完了
 - 本番環境（GitHub Pages）への反映開始
 
-### [NEW] ふたりモード結果画面 デザイン改善・バグ修正（2026-04-21）
+### [NEW] ふたりモード結果画面 デザイン改善・バグ修正（2026-04-21〜22）
 - **バグ**: CSS `.pair-result-col { gap: 4px }` が JS の `CARD_GAP=10` と不一致のまま放置されていた
   - **原因**: JS側でCARD_GAPを変更した際にCSSの更新を忘れた
   - **影響**: SVG高さ計算と実レイアウトがずれて連結線の位置が狂い、「テーマを変えてもう一度あそぶ」ボタン上に謎スペースが発生
@@ -986,7 +986,19 @@ startRoomListener 内のトリガー
 - **バグ**: 結節点がカードの下（shadow の下）に隠れる z-index 問題
   - **原因**: card column に明示的な z-index がなく、ブラウザの描画順制御が意図通りに動作しなかった
   - **対応**: card column に `position:relative; z-index:0`、SVGコンテナに `z-index:1` + SVG要素に `overflow:visible` を設定
+- **改善（2026-04-22）**: ふたりモード結果発表の視点フリップ
+  - 左カラム：ターゲット（正解者）の正しいランク、右カラム：予想者の予想＆スコア
+  - カラーリングは左カラム（正解側）の RANK_COLORS を基準に統一
+  - カラムヘッダーを「〇〇の\n正しいランク」「〇〇の\n予想＆スコア」の2行表示に変更
+  - タブラベルを「個人詳細」→「個人スコアの詳細」に変更
+  - 全体タイトル「〇〇さんの正しいランク＆参加者の予想」を削除
+  - RANK_COLORS: 1st を落ち着いた赤（`#C0392B`）、5th を緑みのない暖かいチャコール（`#3A3334`）に調整
+- **バグ（2026-04-22）**: 同一テキストを複数ランクに入力するとSVG連結線が1点に収束する
+  - **原因**: `showOnlinePersonResult()` のテキストベースマッチングで `correctToGuess` マップが同一テキストのgRankを後から上書きしていた
+  - **対応**: `usedGRanks` Set を導入し、一度使用した gRank スロットを再利用しないよう制御
+  - **スコアリング関数への適用**: `calcMultiScores()`・`calcUnderstandingRanking()`・`showPairResult()` 内ループにも同様の `usedGRanks` Set を適用し、表示ロジックとスコアリングロジックを完全に統一
 - **関連ファイル**: `js/game-pair.js`, `css/beta.css`
+- **デザインFIX日**: 2026-04-22（ユーザー確認済み）
 
 ---
 
