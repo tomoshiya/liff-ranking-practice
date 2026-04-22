@@ -2049,13 +2049,13 @@ function renderOnlineResultScreen(data) {
             </div>
         </div>
         <div style="padding:8px 20px;">
-            <div style="font-size:16px;font-weight:900;color:var(--text-primary);margin-bottom:8px;">個人詳細</div>
+            <div style="font-size:16px;font-weight:900;color:var(--text-primary);margin-bottom:8px;">個人スコアの詳細</div>
             <div class="person-tabs" id="resultTabs" style="margin-bottom:12px;"></div>
             <div id="resultPersonDetail"></div>
         </div>
         <div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="${isHost ? "if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()" : 'showGuestWaitModal()'}">テーマを変えてもう一度あそぶ</button></div>`;
 
-    // 個人詳細タブ
+    // 個人スコア詳細タブ（予想者視点）
     document.getElementById('resultTabs').innerHTML = players.map(([id, p], i) => `
         <div class="person-tab${i === 0 ? ' person-tab--active' : ''}"
              id="resultTab_${id}" onclick="showOnlinePersonResult('${id}')">${escapeHtml(p.displayName)}</div>
@@ -2084,30 +2084,28 @@ function confirmGoHome() {
     handleExitRequest();
 }
 
-function showOnlinePersonResult(targetId) {
+function showOnlinePersonResult(guesserId) {
     document.querySelectorAll('#resultTabs .person-tab').forEach(el => el.classList.remove('person-tab--active'));
-    document.getElementById(`resultTab_${targetId}`)?.classList.add('person-tab--active');
+    document.getElementById(`resultTab_${guesserId}`)?.classList.add('person-tab--active');
 
     const data = room.data;
-    const target = data.players?.[targetId];
+    const guesser = data.players?.[guesserId];
+    // 予想された相手（ターゲット）を特定
+    const targetEntry = Object.entries(data.players || {}).find(([id]) => id !== guesserId);
+    const targetId = targetEntry?.[0];
+    const target = targetEntry?.[1];
     const correct = data.rankings?.[targetId];
-    if (!correct || !target) return;
+    const guess = data.guesses?.[guesserId]?.[targetId] || null;
+    if (!correct || !guesser) return;
 
-    const guessers = Object.entries(data.players || {}).filter(([id]) => id !== targetId);
     const SUFFIXES = ['st','nd','rd','th','th'];
     const CARD_H = 80;
     const CARD_GAP = 12;
-    const HEADER_H = 20;
     const CONN_W = 40;
     const TOTAL_H = 5 * CARD_H + 4 * CARD_GAP;
 
     // 正解順位ごとの識別カラー（同系色・彩度を落としてグレーへグラデーション）
     const RANK_COLORS = ['#7B1D2E', '#6B3040', '#5C464F', '#4E4D55', '#3D3D3D'];
-
-    const gEntry = guessers[0];
-    const gId = gEntry?.[0];
-    const gPlayer = gEntry?.[1];
-    const guess = gId ? (data.guesses?.[gId]?.[targetId] || null) : null;
 
     // correctRank → gRank の対応マップを構築
     const correctToGuess = {};
@@ -2124,15 +2122,15 @@ function showOnlinePersonResult(targetId) {
         }
     }
 
-    // SVG 連結線（正解順位の色 × スコアのズレで線種変更）
+    // SVG 連結線（左=予想位置, 右=正解位置）
     let svgLines = '';
-    for (let rank = 1; rank <= 5; rank++) {
-        const gRank = correctToGuess[rank];
-        if (!gRank) continue;
-        const y1 = (rank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
-        const y2 = (gRank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
+    for (let gRank = 1; gRank <= 5; gRank++) {
+        const rank = guessToCorrect[gRank];
+        if (!rank) continue;
+        const y1 = (gRank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
+        const y2 = (rank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
         const color = RANK_COLORS[rank - 1];
-        const diff = Math.abs(rank - gRank);
+        const diff = Math.abs(gRank - rank);
         let strokeW, opacity, dashAttr;
         if (diff === 0)      { strokeW = 3.5; opacity = 0.9;  dashAttr = ''; }
         else if (diff === 1) { strokeW = 2.5; opacity = 0.85; dashAttr = ''; }
@@ -2151,23 +2149,8 @@ function showOnlinePersonResult(targetId) {
         return { fs: '9px', clamp: 4 };
     };
 
-    // 左列（正解ランク）- 上部カラー帯（順位のみ白抜き）+ 白ボディ
+    // 左列（予想ランク＋スコア）
     let leftHtml = '';
-    for (let rank = 1; rank <= 5; rank++) {
-        const item = correct[String(rank)] || '';
-        const fi = pairCardFontInfo(item);
-        leftHtml += `<div class="pair-result-card">
-            <div class="pair-result-card__header" style="background:${RANK_COLORS[rank-1]};">
-                <span class="pair-result-card__rank">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></span>
-            </div>
-            <div class="pair-result-card__body">
-                <div class="pair-result-card__text" style="font-size:${fi.fs};-webkit-line-clamp:${fi.clamp};">${escapeHtml(item)}</div>
-            </div>
-        </div>`;
-    }
-
-    // 右列（予想ランク）- 上部カラー帯に順位＋スコアを白抜きで表示
-    let rightHtml = '';
     for (let gRank = 1; gRank <= 5; gRank++) {
         const guessItem = guess?.[String(gRank)] || '';
         const correctRank = guessToCorrect[gRank] || 0;
@@ -2177,7 +2160,7 @@ function showOnlinePersonResult(targetId) {
         const pt = correctRank > 0 ? calcItemScore(diff) : 0;
         const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
         const fi = pairCardFontInfo(guessItem);
-        rightHtml += `<div class="pair-result-card">
+        leftHtml += `<div class="pair-result-card">
             <div class="pair-result-card__header" style="background:${headerBg};">
                 <span class="pair-result-card__rank">${gRank}<span class="pair-result-card__sfx">${SUFFIXES[gRank-1]}</span></span>
                 <span class="pair-result-card__score-tag">${icon}${scoreLabel} ${ptDisplay}</span>
@@ -2188,15 +2171,29 @@ function showOnlinePersonResult(targetId) {
         </div>`;
     }
 
-    // カラム見出し（下線スタイル・中央寄せ・細く薄い線）
-    const colLabel = (text) => `<div style="text-align:center;font-size:10px;font-weight:700;color:var(--text-secondary);padding-bottom:4px;border-bottom:1px solid var(--border);">${escapeHtml(text)}</div>`;
+    // 右列（正解ランク）
+    let rightHtml = '';
+    for (let rank = 1; rank <= 5; rank++) {
+        const item = correct[String(rank)] || '';
+        const fi = pairCardFontInfo(item);
+        rightHtml += `<div class="pair-result-card">
+            <div class="pair-result-card__header" style="background:${RANK_COLORS[rank-1]};">
+                <span class="pair-result-card__rank">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></span>
+            </div>
+            <div class="pair-result-card__body">
+                <div class="pair-result-card__text" style="font-size:${fi.fs};-webkit-line-clamp:${fi.clamp};">${escapeHtml(item)}</div>
+            </div>
+        </div>`;
+    }
+
+    // カラム見出し（2行・下線スタイル・中央寄せ）
+    const colLabel = (name, suffix) => `<div style="text-align:center;font-size:10px;font-weight:700;color:var(--text-secondary);padding-bottom:4px;border-bottom:1px solid var(--border);">${escapeHtml(name)}<br>${suffix}</div>`;
 
     const html = `
-        <div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正しいランク＆参加者の予想</div>
         <div style="display:flex;align-items:flex-end;margin-bottom:6px;">
-            <div style="flex:1;min-width:0;">${colLabel(target.displayName + 'の正しいランク')}</div>
+            <div style="flex:1;min-width:0;">${colLabel(guesser.displayName, 'の予想＆スコア')}</div>
             <div style="width:${CONN_W}px;"></div>
-            <div style="flex:1;min-width:0;">${colLabel((gPlayer?.displayName || '') + 'の予想')}</div>
+            <div style="flex:1;min-width:0;">${colLabel(target?.displayName || '', 'の正しいランク')}</div>
         </div>
         <div class="pair-result-wrap">
             <div class="pair-result-col" style="position:relative;z-index:0;">${leftHtml}</div>
