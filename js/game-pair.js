@@ -2129,7 +2129,7 @@ function showOnlinePersonResult(guesserId) {
         if (!rank) continue;
         const y1 = (gRank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
         const y2 = (rank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
-        const color = RANK_COLORS[rank - 1];
+        const color = RANK_COLORS[gRank - 1];
         const diff = Math.abs(gRank - rank);
         let strokeW, opacity, dashAttr;
         if (diff === 0)      { strokeW = 3.5; opacity = 0.9;  dashAttr = ''; }
@@ -2154,7 +2154,7 @@ function showOnlinePersonResult(guesserId) {
     for (let gRank = 1; gRank <= 5; gRank++) {
         const guessItem = guess?.[String(gRank)] || '';
         const correctRank = guessToCorrect[gRank] || 0;
-        const headerBg = correctRank > 0 ? RANK_COLORS[correctRank - 1] : '#6B7280';
+        const headerBg = RANK_COLORS[gRank - 1];
         const diff = correctRank > 0 ? Math.abs(gRank - correctRank) : 99;
         const { icon, label: scoreLabel } = correctRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ' };
         const pt = correctRank > 0 ? calcItemScore(diff) : 0;
@@ -2176,8 +2176,9 @@ function showOnlinePersonResult(guesserId) {
     for (let rank = 1; rank <= 5; rank++) {
         const item = correct[String(rank)] || '';
         const fi = pairCardFontInfo(item);
+        const rightBg = correctToGuess[rank] ? RANK_COLORS[correctToGuess[rank] - 1] : '#6B7280';
         rightHtml += `<div class="pair-result-card">
-            <div class="pair-result-card__header" style="background:${RANK_COLORS[rank-1]};">
+            <div class="pair-result-card__header" style="background:${rightBg};">
                 <span class="pair-result-card__rank">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></span>
             </div>
             <div class="pair-result-card__body">
@@ -2191,9 +2192,9 @@ function showOnlinePersonResult(guesserId) {
 
     const html = `
         <div style="display:flex;align-items:flex-end;margin-bottom:6px;">
-            <div style="flex:1;min-width:0;">${colLabel(guesser.displayName, 'の予想＆スコア')}</div>
+            <div style="flex:1;min-width:0;">${colLabel(guesser.displayName + 'の', '予想＆スコア')}</div>
             <div style="width:${CONN_W}px;"></div>
-            <div style="flex:1;min-width:0;">${colLabel(target?.displayName || '', 'の正しいランク')}</div>
+            <div style="flex:1;min-width:0;">${colLabel((target?.displayName || '') + 'の', '正しいランク')}</div>
         </div>
         <div class="pair-result-wrap">
             <div class="pair-result-col" style="position:relative;z-index:0;">${leftHtml}</div>
