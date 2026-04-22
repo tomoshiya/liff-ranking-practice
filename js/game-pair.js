@@ -1635,13 +1635,15 @@ function calcMultiScores(data) {
             if (guesserId === targetId) return;
             const guess = data.guesses?.[guesserId]?.[targetId];
             if (!guess) return;
+            const usedGRanks = new Set();
             for (let rank = 1; rank <= 5; rank++) {
                 const item = correct[String(rank)];
                 let gRank = 0;
                 for (let r = 1; r <= 5; r++) {
-                    if (guess[String(r)] === item) { gRank = r; break; }
+                    if (!usedGRanks.has(r) && guess[String(r)] === item) { gRank = r; break; }
                 }
                 if (gRank > 0) {
+                    usedGRanks.add(gRank);
                     const diff = Math.abs(gRank - rank);
                     const pt = calcItemScore(diff);
                     scores[guesserId].yomi += pt;
@@ -1671,10 +1673,12 @@ function calcUnderstandingRanking(targetId, data, allPlayers) {
         const guess = data.guesses?.[guesserId]?.[targetId];
         if (!guess) return;
         let pts = 0;
+        const usedGRanks = new Set();
         for (let rank = 1; rank <= 5; rank++) {
             const item = correct[String(rank)];
             for (let r = 1; r <= 5; r++) {
-                if (guess[String(r)] === item) {
+                if (!usedGRanks.has(r) && guess[String(r)] === item) {
+                    usedGRanks.add(r);
                     pts += calcItemScore(Math.abs(r - rank));
                     break;
                 }
@@ -1962,13 +1966,15 @@ function renderOnlineResultScreen(data) {
             const correct = data.rankings?.[targetId];
             const guess = data.guesses?.[guesserId]?.[targetId];
             if (!correct || !guess) return;
+            const usedGRanks = new Set();
             for (let rank = 1; rank <= 5; rank++) {
                 const item = correct[String(rank)];
                 let gRank = 0;
                 for (let r = 1; r <= 5; r++) {
-                    if (guess[String(r)] === item) { gRank = r; break; }
+                    if (!usedGRanks.has(r) && guess[String(r)] === item) { gRank = r; break; }
                 }
                 if (gRank > 0) {
+                    usedGRanks.add(gRank);
                     const diff = Math.abs(gRank - rank);
                     totalScore += calcItemScore(diff);
                     if (diff <= 3) breakdown[diff]++;
