@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+    <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>RankNow</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,24 +14,24 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
   <!-- LIFF SDK -->
-  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <!-- SortableJS -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
-
-<!-- ========================================
+    
+    <!-- ========================================
      ローディング
-     ======================================== -->
+         ======================================== -->
 <div id="loading">
   <div class="loading__spinner"></div>
   <div class="loading__message">読み込み中...</div>
   <div id="loadingError" style="display:none;">読み込みに失敗しました。<br>LINEアプリから開き直してください。</div>
 </div>
-
-<!-- ========================================
+    
+    <!-- ========================================
      トップ画面
-     ======================================== -->
+         ======================================== -->
 <div id="topScreen" class="screen">
 
   <!-- ヒーロー -->
@@ -49,8 +49,8 @@
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
         </svg>
       </div>
-    </div>
-
+        </div>
+        
     <!-- ロゴ -->
     <div class="logo-area">
       <div class="logo-sub">ランクナウ</div>
@@ -58,8 +58,8 @@
         <div class="logo-main">RankNow</div>
       </div>
       <div class="logo-catch">価値観を読み合うコミュニケーションゲーム</div>
-    </div>
-
+        </div>
+        
     <!-- ？ボタン（ヒーロー右下） -->
     <button class="help-btn" onclick="openHelpSheet()">?</button>
   </div>
@@ -70,7 +70,7 @@
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
     </svg>
-  </button>
+                </button>
 
   <!-- モード選択 -->
   <div class="content">
@@ -92,8 +92,8 @@
         <div class="mode-arrow">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
-      </div>
-
+            </div>
+            
       <!-- みんなであそぶ -->
       <div class="mode-card" onclick="startMultiMode()">
         <div class="mode-icon">
@@ -105,7 +105,7 @@
             <path d="M22 21v-1.5A3.5 3.5 0 0 0 18.5 16h-1"/>
             <path d="M8.5 21v-1a3.5 3.5 0 0 1 7 0v1"/>
           </svg>
-        </div>
+                </div>
         <div class="mode-text">
           <div class="mode-name">みんなであそぶ</div>
           <div class="mode-sub">3〜10人用 · 各自のスマホを使用</div>
@@ -113,8 +113,8 @@
         <div class="mode-arrow">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
-      </div>
-
+            </div>
+            
 
     </div>
 
@@ -122,11 +122,11 @@
     <button class="tl-entry-btn" onclick="showThemeListScreen()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       テーマ一覧・過去の回答を見る
-    </button>
+                    </button>
 
-  </div>
-</div>
-
+                </div>
+            </div>
+            
 <!-- フッターリンク（topScreenのみ表示・固定） -->
 <div class="top-footer-links" id="topFooterLinks" style="display:none;">
   <a href="./terms-of-service.html" target="_blank">利用規約</a>
@@ -134,11 +134,11 @@
   <a href="./privacy-policy.html" target="_blank">プライバシーポリシー</a>
   <span class="top-footer-sep">|</span>
   <a href="https://tomoshiya.com" target="_blank">運営元</a>
-</div>
-
-<!-- ========================================
+        </div>
+        
+        <!-- ========================================
      みんなで / ふたり：部屋作成・参加選択
-     ======================================== -->
+             ======================================== -->
 <div id="roomSelectScreen" class="screen">
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
@@ -146,8 +146,8 @@
     <div class="logo-area">
       <div class="logo-sub" id="roomSelectModeLabel">みんなであそぶ</div>
       <div style="font-size:20px;font-weight:900;color:#fff;margin-top:4px;">部屋を選ぶ</div>
-    </div>
-  </div>
+                    </div>
+                    </div>
   <div class="content">
     <div class="mode-cards">
       <div class="mode-card" onclick="createRoom()">
@@ -156,15 +156,15 @@
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
-        </div>
+                </div>
         <div class="mode-text">
           <div class="mode-name">部屋をつくる</div>
           <div class="mode-sub">部屋番号を発行してメンバーを招待</div>
-        </div>
+                    </div>
         <div class="mode-arrow">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A8A49C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </div>
+                    </div>
+                </div>
       <div class="mode-card" onclick="showScreen('roomJoinScreen')">
         <div class="mode-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -183,24 +183,24 @@
       </div>
     </div>
   </div>
-</div>
-
-<!-- ========================================
+        </div>
+        
+        <!-- ========================================
      部屋に入る（コード入力）
-     ======================================== -->
+             ======================================== -->
 <div id="roomJoinScreen" class="screen">
   <div class="hero">
     <div class="hero__bubble hero__bubble--1"></div>
     <button class="hero-back-btn" onclick="showScreen('roomSelectScreen')">← HOME</button>
     <div style="font-size:20px;font-weight:900;color:#fff;">部屋に入る</div>
-  </div>
+            </div>
   <div class="content" style="gap:16px;">
     <div>
       <div class="input-label" id="roomCodeLabel">部屋番号（4桁）</div>
       <input type="tel" id="roomCodeInput" class="input-field" maxlength="4" placeholder="1234"
         style="font-family:'DM Sans',sans-serif;font-size:32px;font-weight:900;font-style:italic;text-align:center;letter-spacing:0.1em;"
         oninput="onRoomCodeInput(this)">
-    </div>
+            </div>
     <div>
       <div class="input-label">あなたの名前</div>
       <input type="text" id="joinNameInput" class="input-field" maxlength="10" placeholder="表示名" oninput="onJoinNameInput()">
@@ -237,15 +237,15 @@
         <button onclick="addDummyPlayer()"
           style="font-size:11px;font-weight:700;color:var(--text-muted);border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;background:var(--surface);">
           ＋ ダミー追加
-        </button>
+            </button>
       </div>
     </div>
     <div class="bottom-bar">
       <button id="startGameBtn" class="btn btn--primary" onclick="hostStartGame()" disabled>このメンバーでゲームを始める</button>
     </div>
   </div>
-</div>
-
+        </div>
+        
 <!-- ========================================
      待機室（ゲスト視点）
      ======================================== -->
@@ -266,8 +266,8 @@
     <div class="section-label">参加中のメンバー</div>
     <div id="waitingRoomPlayerListGuest" style="display:flex;flex-direction:column;gap:8px;"></div>
   </div>
-</div>
-
+            </div>
+            
 <!-- ========================================
      開始待機（ゲスト：テーマ選択待ち）
      ======================================== -->
@@ -283,33 +283,33 @@
       <div class="step-item"><div class="step-dot"></div><div class="step-label">ランク予想</div></div>
       <div class="step-sep"></div>
       <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
-    </div>
+                </div>
     <div class="waiting-dots" style="margin-bottom:10px;">
       <div class="waiting-dot"></div><div class="waiting-dot"></div><div class="waiting-dot"></div>
-    </div>
+                </div>
     <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.6);">ホストのテーマ選択を待っています</div>
-  </div>
+                </div>
   <div class="content">
     <div style="display:flex;flex-direction:column;gap:10px;">
       <div class="card">
         <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;">Point 01</div>
         <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">正直に自分のTOP5を答えよう</div>
         <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;">考えすぎず思ったままの順番で入力するほど結果発表が盛り上がります</div>
-      </div>
+                </div>
       <div class="card">
         <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;">Point 02</div>
         <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">伏せたいものは書かなくてOK</div>
         <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;">どうしても公開したくないものは書かなくて大丈夫。自分が楽しめる範囲で</div>
-      </div>
+                </div>
       <div class="card">
         <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;">Point 03</div>
         <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">ズレや会話を楽しもう</div>
         <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;">「なんでそれが1位？」がこのゲームの醍醐味です</div>
-      </div>
+            </div>
     </div>
   </div>
-</div>
-
+        </div>
+        
 <!-- ========================================
      テーマ選択（全モード共通・ワイヤーフレームベース）
      ======================================== -->
@@ -333,14 +333,14 @@
     <div id="themeGuestBanner" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(255,255,255,0.12);border-radius:8px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.75);line-height:1.5;">
       ホストと同じテーマ一覧を表示中です。テーマ選びの参考にしてください。
     </div>
-  </div>
-
+            </div>
+            
   <!-- モード切替 -->
   <div id="themeModeToggle" class="theme-mode-toggle">
     <button class="theme-mode-btn theme-mode-btn--active" onclick="setThemeInputMode('pack')">パックから選ぶ</button>
     <button class="theme-mode-btn" onclick="setThemeInputMode('custom')">自分でつくる</button>
-  </div>
-
+        </div>
+        
   <!-- パックモード -->
   <div id="themePackSection" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
     <!-- パックタブ -->
@@ -353,14 +353,14 @@
     <div class="scroll-indicator-row" id="scrollIndicatorRow">
       <span class="scroll-counter-text" id="scrollCounterText">1 / 1</span>
       <div class="scroll-bar-track"><div class="scroll-bar-fill" id="scrollBarFill" style="width:100%"></div></div>
-    </div>
+                </div>
     <!-- 情報パネル -->
     <div class="theme-info-panel" id="themeInfoPanel">
       <div class="theme-info-label">選択中のテーマ</div>
       <div class="theme-info-text" id="themeInfoText"></div>
     </div>
-  </div>
-
+            </div>
+            
   <!-- カスタムモード -->
   <div id="themeCustomSection" style="display:none;flex:1;overflow:hidden;">
     <div class="custom-theme-section">
@@ -372,17 +372,17 @@
       <div class="custom-char-bar-wrap">
         <div class="custom-char-bar-bg"><div class="custom-char-bar-fill" id="customCharBarFill"></div></div>
         <span class="custom-char-lbl" id="customCharLbl">0 / 50</span>
-      </div>
+                </div>
       <div class="custom-char-hint">「〇〇TOP5」の形にすると答えやすくなります。<br>例：最近ハマっているものTOP5</div>
-    </div>
-  </div>
-
+            </div>
+            </div>
+            
   <!-- 確定ボタン -->
   <div class="bottom-bar">
     <button id="confirmThemeBtn" class="btn btn--primary" onclick="confirmTheme()" disabled>このテーマでスタート</button>
-  </div>
-</div>
-
+        </div>
+                </div>
+                
 <!-- ========================================
      ランキング入力（全モード共通）
      ======================================== -->
@@ -399,7 +399,7 @@
       <div class="step-item"><div class="step-dot"></div><div class="step-label">ランク予想</div></div>
       <div class="step-sep"></div>
       <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
-    </div>
+            </div>
     <div class="hero-title">ランク入力</div>
     <!-- 1台モード用プレイヤー名（online時は非表示） -->
     <div id="inputPlayerName" style="display:none;font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;"></div>
@@ -410,17 +410,17 @@
       <div class="progress-pill" onclick="toggleProgressDropdown()">
         <span class="progress-pill__text" id="inputProgressText">0 / ? 人が入力完了</span>
         <span class="progress-pill__arrow">▼</span>
-      </div>
+                </div>
       <div class="progress-dropdown" id="inputProgressDropdown"></div>
-    </div>
-  </div>
+            </div>
+        </div>
   <div class="content" id="rankingInputContent">
     <div id="inputStatusMsg" style="font-size:12px;color:var(--text-muted);margin-bottom:12px;"></div>
     <!-- 送信完了バナー（送信後に表示） -->
     <div class="submitted-banner" id="inputSubmittedBanner" style="display:none;">
       <span class="submitted-banner__text">入力完了！他の人を待っています</span>
       <span class="submitted-banner__edit" onclick="editMyRanking()">修正する</span>
-    </div>
+            </div>
     <!-- 送信後ランキングプレビュー -->
     <div id="submittedRankingPreview" style="display:none;margin-bottom:12px;"></div>
     <!-- 入力フォーム -->
@@ -431,9 +431,9 @@
         <button id="submitRankingBtn" class="btn btn--primary" onclick="submitRanking()" disabled>あなたのTOP5を確定する</button>
       </div>
     </div>
-  </div>
-</div>
-
+                </div>
+            </div>
+            
 <!-- ========================================
      ランキング予想
      ======================================== -->
@@ -450,7 +450,7 @@
       <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">ランク予想</div></div>
       <div class="step-sep"></div>
       <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
-    </div>
+                </div>
     <div class="hero-title">ランク予想</div>
     <div class="hero-desc">参加者のランダムなTOP5を予想して並べ替えてください</div>
     <div class="hero__theme" id="guessThemeCard"></div>
@@ -458,16 +458,16 @@
       <div class="progress-pill" onclick="toggleGuessProgressDropdown()">
         <span class="progress-pill__text" id="guessProgressText">0 / ? 人が予想完了</span>
         <span class="progress-pill__arrow">▼</span>
-      </div>
+                </div>
       <div class="progress-dropdown" id="guessProgressDropdown"></div>
-    </div>
-  </div>
+                </div>
+                </div>
   <div class="content">
     <!-- 確定完了バナー（コンテンツ上部） -->
     <div class="submitted-banner" id="guessSubmittedBanner" style="display:none;">
       <span class="submitted-banner__text">予想完了！他の人を待っています</span>
       <span class="submitted-banner__edit" onclick="editMyGuess()">修正する</span>
-    </div>
+                </div>
     <!-- 確定後のロック表示 -->
     <div id="guessLockedPreview" style="display:none;margin-bottom:12px;"></div>
     <!-- 予想エリア -->
@@ -479,18 +479,18 @@
       <div id="guessSortList" style="margin-bottom:16px;"></div>
       <!-- 確定ボタン（非固定・コンテンツ末尾） -->
       <button id="submitGuessBtn" class="btn btn--primary" onclick="submitGuess()" disabled style="margin-bottom:40px;">予想を確定する</button>
-    </div>
-  </div>
-</div>
-
+            </div>
+        </div>
+            </div>
+            
 <!-- ========================================
      結果発表（JS動的レンダリング）
      ======================================== -->
 <div id="resultScreen" class="screen">
   <div class="hero" id="resultHero"></div>
   <div class="content" id="resultContent" style="padding:0 0 40px;overflow-y:auto;"></div>
-</div>
-
+            </div>
+            
 <!-- ========================================
      1台であそぶ：セットアップ
      ======================================== -->
@@ -500,16 +500,16 @@
     <button class="hero-back-btn" onclick="showScreen('topScreen')">← HOME</button>
     <div style="font-size:20px;font-weight:900;color:#fff;">1台であそぶ</div>
     <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">参加者の名前を入力してください</div>
-  </div>
+                </div>
   <div class="content">
     <div id="localPlayerInputs" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
     <button class="btn btn--outline btn--sm" onclick="localAddPlayer()" id="localAddPlayerBtn">＋ 参加者を追加</button>
     <div class="bottom-bar">
       <button id="localStartBtn" class="btn btn--primary" onclick="localStartGame()" disabled>ゲームを始める</button>
-    </div>
-  </div>
-</div>
-
+            </div>
+            </div>
+        </div>
+        
 <!-- ========================================
      1台であそぶ：受け渡し画面
      ======================================== -->
@@ -519,9 +519,9 @@
     <div id="localHandoffTitle" style="font-size:22px;font-weight:900;color:#fff;margin-bottom:12px;"></div>
     <div id="localHandoffMessage" style="font-size:14px;color:rgba(255,255,255,0.6);line-height:1.7;margin-bottom:32px;white-space:pre-line;"></div>
     <button id="localHandoffBtn" class="btn btn--primary" onclick="localHandoffContinue()"></button>
-  </div>
-</div>
-
+            </div>
+        </div>
+        
 <!-- ========================================
      1台であそぶ：ランキング予想
      ======================================== -->
@@ -536,20 +536,20 @@
       <div class="step-item"><div class="step-dot step-dot--active"></div><div class="step-label step-label--active">ランク予想</div></div>
       <div class="step-sep"></div>
       <div class="step-item"><div class="step-dot"></div><div class="step-label">結果発表</div></div>
-    </div>
+            </div>
     <div id="localGuessTitle" style="font-size:16px;font-weight:900;color:#fff;margin-bottom:6px;"></div>
     <div style="font-size:12px;color:rgba(255,255,255,0.5);">正しい順番を予想して並べ替えてください</div>
     <div class="hero__theme" id="localGuessThemeCard" style="margin-top:8px;"></div>
-  </div>
+        </div>
   <div class="content">
     <div class="person-tabs" id="localGuessTabs"></div>
     <div id="localGuessSortList" style="margin-bottom:80px;"></div>
     <div class="bottom-bar">
       <button id="localSubmitGuessBtn" class="btn btn--primary" onclick="localSubmitGuess()">予想を確定する</button>
-    </div>
-  </div>
-</div>
-
+            </div>
+            </div>
+        </div>
+        
 <!-- ========================================
      1台であそぶ：結果発表待機
      ======================================== -->
@@ -559,19 +559,19 @@
     <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:12px;">回答＆予想が出揃いました</div>
     <div style="font-size:13px;color:rgba(255,255,255,0.6);line-height:1.7;margin-bottom:32px;">ボタンを押すとゲーム結果を表示します</div>
     <button class="btn btn--primary" onclick="localShowResult()">結果発表に進む</button>
-  </div>
-</div>
-
-<!-- ========================================
+            </div>
+        </div>
+        
+        <!-- ========================================
      1台であそぶ：結果
-     ======================================== -->
+             ======================================== -->
 <div id="localResultScreen" class="screen">
   <div class="hero" style="text-align:center;">
     <div class="hero__bubble hero__bubble--1"></div>
     <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);margin-bottom:8px;">結果発表</div>
     <div id="localResultThemeCard" class="hero__theme"></div>
     <div id="localResultRanking" style="margin-top:16px;"></div>
-  </div>
+            </div>
   <div class="content">
     <div class="section-label">個人の詳細</div>
     <div class="person-tabs" id="localResultTabs"></div>
@@ -583,8 +583,8 @@
       <button class="btn btn--outline" onclick="showScreen('topScreen')">HOMEにもどる</button>
     </div>
   </div>
-</div>
-
+            </div>
+            
 <!-- ========================================
      ランク送信確認モーダル
      ======================================== -->
@@ -596,8 +596,8 @@
     <button id="rankConfirmOkBtn" class="btn btn--primary" style="margin-bottom:8px;">確定する</button>
     <button class="btn btn--outline" onclick="document.getElementById('rankConfirmModal').classList.remove('modal-overlay--active')">キャンセル</button>
   </div>
-</div>
-
+        </div>
+        
 <!-- ========================================
      予想送信確認モーダル
      ======================================== -->
@@ -609,8 +609,8 @@
     <button id="guessConfirmOkBtn" class="btn btn--primary" style="margin-bottom:8px;">確定する</button>
     <button class="btn btn--outline" onclick="document.getElementById('guessConfirmModal').classList.remove('modal-overlay--active')">キャンセル</button>
   </div>
-</div>
-
+            </div>
+            
 <!-- ========================================
      名前入力モーダル
      ======================================== -->
@@ -621,8 +621,8 @@
     <input type="text" id="nameModalInput" class="input-field" maxlength="10" placeholder="10文字以内" style="margin-bottom:16px;">
     <button class="btn btn--primary" onclick="saveDisplayName_()">この名前であそぶ</button>
     <button id="nameCancelBtn" class="btn btn--outline" onclick="document.getElementById('nameModal').classList.remove('modal-overlay--active')" style="margin-top:8px;">キャンセル</button>
-  </div>
-</div>
+        </div>
+    </div>
 
 <!-- BETAボタン（全画面常時表示） -->
 <button class="beta-hero-btn" id="betaHeroBtn" onclick="openBetaModal()">BETA</button>
@@ -782,6 +782,14 @@
       <button class="help-nav-btn" id="helpNextBtn" onclick="helpGoTo(helpCurrentSlide + 1)">▶</button>
     </div>
 
+    <!-- ゲームの流れをもう一度見る -->
+    <div style="padding:10px 20px 4px;border-top:1px solid var(--border);margin-top:4px;">
+      <button onclick="closeHelpSheetDirect();showOnboarding(null);"
+        style="width:100%;height:40px;border-radius:10px;border:1.5px solid var(--border);background:none;font-size:12px;font-weight:700;color:var(--text-secondary);font-family:'Noto Sans JP',sans-serif;cursor:pointer;">
+        ゲームの流れをもう一度見る
+      </button>
+    </div>
+
   </div>
 </div>
 
@@ -861,6 +869,7 @@
 <script src="js/storage.js"></script>
 <script src="js/themes.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/onboarding.js"></script>
 <script src="js/app.js"></script>
 <script src="js/game-pair.js"></script>
 <script src="js/game-multi.js"></script>

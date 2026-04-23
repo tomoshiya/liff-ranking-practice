@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>RankNow — オンボーディング v7</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Sans:ital,opsz,wght@0,9..40,700;0,9..40,900;1,9..40,900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/beta.css">
+<style>
+html, body { height: auto !important; overflow: auto !important; }
+*, *::before, *::after { user-select: none !important; -webkit-user-select: none !important; }
+body {
+  background: #DDDBD4;
+  display: flex; justify-content: center; align-items: flex-start;
+  min-height: 100vh; padding: 32px 16px 64px;
+  font-family: 'Noto Sans JP', sans-serif;
+  overflow: auto !important;
+}
+.phone {
+  width: 390px; height: 844px; background: var(--bg);
+  border-radius: 44px; overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06);
+  display: flex; flex-direction: column; flex-shrink: 0;
+}
+.status-bar {
+  background: var(--hero); padding: 14px 28px 8px;
+  display: flex; justify-content: space-between;
+  font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); flex-shrink: 0;
+}
+.ob-wrap { flex: 1; overflow: hidden; position: relative; }
+.ob-slides { display: flex; height: 100%; transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1); }
+.ob-slide { min-width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.ob-slide, .ob-slide * { pointer-events: none !important; }
+.ob-footer { pointer-events: auto !important; }
+.ob-footer * { pointer-events: auto !important; }
+
+.ob-footer { flex-shrink: 0; background: #fff; padding: 6px 20px 28px; border-top: 1px solid var(--border); }
+.ob-dots-row { display: flex; justify-content: center; gap: 6px; padding: 4px 0 8px; }
+.ob-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); transition: all 0.25s; }
+.ob-dot--active { width: 20px; border-radius: 4px; background: var(--text-primary); }
+.ob-btn-row { display: flex; align-items: center; gap: 10px; }
+.ob-back-btn { flex-shrink: 0; font-size: 13px; font-weight: 700; color: var(--text-secondary); background: none; border: none; cursor: pointer; padding: 0 2px; font-family: 'Noto Sans JP', sans-serif; white-space: nowrap; }
+.ob-back-btn:disabled { opacity: 0.2; }
+.ob-next-btn { flex: 1; height: 48px; border-radius: 14px; border: none; cursor: pointer; font-size: 14px; font-weight: 900; font-family: 'Noto Sans JP', sans-serif; background: var(--text-primary); color: #fff; }
+.ob-cta-btn { flex: 1; height: 48px; border-radius: 14px; border: none; cursor: pointer; font-size: 13px; font-weight: 900; font-family: 'Noto Sans JP', sans-serif; background: linear-gradient(135deg, #7C4DFF, #5c35cc); color: #fff; }
+
+/* 共通ヒーロー */
+.s-hero { background: var(--hero); padding: 12px 24px 14px; position: relative; overflow: hidden; flex-shrink: 0; }
+.s-hb { position: absolute; border-radius: 50%; pointer-events: none; }
+.s-hb--1 { width: 160px; height: 160px; top: -60px; right: -40px; background: rgba(255,255,255,0.04); }
+.s-howto-badge { display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 50px; padding: 2px 10px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.85); letter-spacing: .06em; margin-bottom: 5px; }
+.s-step { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 3px; }
+.s-title { font-size: 20px; font-weight: 900; color: #fff; line-height: 1.3; margin-bottom: 0; }
+.s-title em { font-style: normal; color: #fff; }
+.s-hero-desc { font-size: 11px; color: rgba(255,255,255,0.7); line-height: 1.65; margin-top: 6px; }
+
+/* ===== SLIDE 1 ===== */
+.slide1 { background: var(--hero); }
+.s1-visual { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 28px; position: relative; overflow: hidden; }
+.s1-bg { position: absolute; border-radius: 50%; pointer-events: none; }
+.s1-bg--1 { width: 300px; height: 300px; top: -120px; right: -80px; background: rgba(124,77,255,0.07); }
+.s1-bg--2 { width: 160px; height: 160px; bottom: -40px; left: -50px; background: rgba(255,255,255,0.03); }
+
+/* 棒グラフ（白系・カジュアル・ポディウム順 5,3,1,2,4） */
+.s1-podium { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.s1-bars { display: flex; align-items: flex-end; gap: 10px; }
+.s1-bar-wrap { display: flex; flex-direction: column; align-items: center; }
+.s1-bar-num { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 900; font-style: italic; margin-bottom: 6px; line-height: 1; }
+.s1-bar-num small { font-size: 7px; font-style: normal; opacity: 0.8; }
+.s1-bar { width: 46px; border-radius: 8px 8px 0 0; transform-origin: bottom; animation: growBar 0.7s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
+/* 順序: 5位, 3位, 1位（中央・最大）, 2位, 4位 */
+.s1-bar--rank5 { height: 42px;  background: rgba(255,255,255,0.28); animation-delay: 0.36s; }
+.s1-bar--rank3 { height: 88px;  background: rgba(255,255,255,0.55); animation-delay: 0.18s; }
+.s1-bar--rank1 { height: 148px; background: rgba(255,255,255,0.90); animation-delay: 0s; }
+.s1-bar--rank2 { height: 114px; background: rgba(255,255,255,0.72); animation-delay: 0.09s; }
+.s1-bar--rank4 { height: 62px;  background: rgba(255,255,255,0.40); animation-delay: 0.27s; }
+/* 文字色を各バーの opacity に合わせる */
+.s1-n5 { color: rgba(255,255,255,0.45); }
+.s1-n3 { color: rgba(255,255,255,0.65); }
+.s1-n1 { color: rgba(255,255,255,0.95); }
+.s1-n2 { color: rgba(255,255,255,0.80); }
+.s1-n4 { color: rgba(255,255,255,0.52); }
+@keyframes growBar { from { transform: scaleY(0); opacity: 0.3; } to { transform: scaleY(1); opacity: 1; } }
+.s1-podium-base { width: 280px; height: 3px; background: rgba(255,255,255,0.18); border-radius: 2px; margin-top: 0; }
+
+.s1-text { background: #fff; border-radius: 24px 24px 0 0; padding: 20px 28px 16px; flex-shrink: 0; }
+.s1-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #7C4DFF; margin-bottom: 8px; }
+.s1-title { font-size: 22px; font-weight: 900; line-height: 1.3; color: var(--text-primary); margin-bottom: 6px; white-space: nowrap; }
+.s1-title em { font-style: normal; color: #7C4DFF; }
+.s1-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
+
+/* ===== SLIDE 2 ===== */
+.slide2 { background: var(--bg); }
+.s2-scroll-area { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; padding: 6px 0; overflow: hidden; background: var(--bg); }
+.s2-row { padding: 4px 0; /* overflow:hidden 除去 → 親がclip */ }
+.s2-row-inner { display: flex; gap: 12px; width: max-content; padding: 5px 20px; align-items: flex-start; }
+/* テーマカードの影を控えめに（shadow clip対策） */
+.s2-row .theme-card { box-shadow: 0 3px 12px rgba(0,0,0,0.2), 0 1px 4px rgba(0,0,0,0.1); }
+.s2-row--l  .s2-row-inner { animation: mLeft  28s linear infinite; }
+.s2-row--r  .s2-row-inner { animation: mRight 32s linear infinite; }
+.s2-row--l2 .s2-row-inner { animation: mLeft2 26s linear infinite; }
+.s2-row--r2 .s2-row-inner { animation: mRight2 30s linear infinite; }
+@keyframes mLeft   { 0%{transform:translateX(0)}     100%{transform:translateX(-50%)} }
+@keyframes mRight  { 0%{transform:translateX(-50%)}  100%{transform:translateX(0)} }
+@keyframes mLeft2  { 0%{transform:translateX(-10%)}  100%{transform:translateX(-60%)} }
+@keyframes mRight2 { 0%{transform:translateX(-40%)}  100%{transform:translateX(10%)} }
+
+/* ===== SLIDE 3 & 4 ===== */
+.slide3, .slide4 { background: var(--bg); overflow: hidden; }
+.s34-hero { background: var(--hero); flex-shrink: 0; padding: 10px 20px 14px; position: relative; overflow: hidden; }
+.s34-hero .s-hb--1 { width: 160px; height: 160px; top: -60px; right: -40px; background: rgba(255,255,255,0.04); }
+.s34-header-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0; }
+.s34-header-left { flex: 1; }
+.s34-theme-card { width: 158px; height: 86px; border-radius: 11px; position: relative; overflow: hidden; flex-shrink: 0; box-shadow: 0 6px 20px rgba(0,0,0,0.4); margin-left: 12px; }
+.s34-tc-white { position: absolute; clip-path: polygon(40px 0%, 100% 0%, 100% 100%, 22px 100%); inset: 0; background: rgba(255,255,255,0.94); display: flex; align-items: center; padding: 6px 9px 6px 40px; }
+.s34-tc-text { font-size: 9.5px; font-weight: 700; color: #1A1917; line-height: 1.45; word-break: break-all; white-space: pre-line; }
+/* beta.css と同じ vertical テキスト */
+.s34-tc-pack { position: absolute; bottom: 8px; left: 12px; font-family: 'DM Sans', sans-serif; font-size: 6px; font-weight: 800; color: rgba(255,255,255,0.42); text-transform: uppercase; letter-spacing: .08em; writing-mode: vertical-rl; transform: rotate(180deg); }
+
+.s-rank-body { flex: 1; padding: 10px 16px 6px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+.s-rank-list-label { font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: .05em; margin-bottom: 7px; }
+.s-rank-body .rank-char-count { display: none !important; }
+.s-rank-body .rank-item { margin-bottom: 6px; cursor: default; }
+.s-rank-body .rank-input { pointer-events: none; }
+.ri-ph { color: var(--text-muted); font-size: 13px; font-weight: 400; }
+.ri-typed { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+.s3-confirm-btn { width: 100%; height: 46px; border-radius: 12px; border: none; font-size: 13px; font-weight: 900; font-family: 'Noto Sans JP', sans-serif; background: var(--surface-2); color: var(--text-muted); margin-top: 4px; flex-shrink: 0; transition: background 0.3s, color 0.3s; }
+.s3-confirm-btn.active { background: var(--hero); color: #fff; }
+.s3-confirm-btn.pressed { transform: scale(0.97); opacity: 0.85; }
+.ob-touch-dot { position: absolute; width: 26px; height: 26px; border-radius: 50%; background: rgba(210,40,40,0.55); box-shadow: 0 0 0 8px rgba(210,40,40,0.15); pointer-events: none; opacity: 0; z-index: 50; transition: top 0.5s cubic-bezier(0.4,0,0.2,1), left 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.25s; }
+@keyframes dotTap { 0%,100%{transform:scale(1)} 40%{transform:scale(0.82)} }
+.ob-touch-dot.tap { animation: dotTap 0.3s ease; }
+.s3-cursor { display: inline-block; width: 1.5px; height: 14px; background: var(--text-primary); margin-left: 1px; animation: blink 1s step-end infinite; vertical-align: middle; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.s-rank-body .rank-drag-handle svg { fill: var(--text-muted); }
+
+/* ===== SLIDE 5 ===== */
+.slide5 { background: var(--bg); }
+.s5-hero { background: var(--hero); padding: 10px 20px 10px; flex-shrink: 0; position: relative; overflow: hidden; }
+.s5-hb { position: absolute; border-radius: 50%; pointer-events: none; }
+.s5-hb--1 { width: 200px; height: 200px; top: -80px; right: -60px; background: rgba(255,255,255,0.03); }
+.s5-theme-center { display: flex; justify-content: center; margin: 8px 0 10px; }
+.s5-score-row { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.09); border-radius: 12px; padding: 8px 14px; }
+.s5-score-name { font-size: 13px; font-weight: 900; color: #fff; }
+.s5-score-pt { margin-left: auto; font-family: 'DM Sans', sans-serif; font-size: 19px; font-weight: 900; font-style: italic; color: #FFD700; }
+.s5-score-pt small { font-size: 10px; font-style: normal; font-weight: 500; color: rgba(255,255,255,0.35); }
+.s5-score-row-2 { display: flex; align-items: center; gap: 12px; padding: 6px 14px 0; }
+.s5-score-name-2 { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.6); }
+.s5-score-pt-2 { margin-left: auto; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 900; font-style: italic; color: rgba(255,255,255,0.45); }
+.s5-score-pt-2 small { font-size: 9px; font-style: normal; color: rgba(255,255,255,0.25); }
+.s5-content { flex: 1; overflow: hidden; padding: 8px 14px 4px; position: relative; }
+.s5-col-headers { display: flex; gap: 0; margin-bottom: 6px; }
+.s5-col-header { flex: 1; font-size: 10px; font-weight: 700; color: var(--text-muted); line-height: 1.35; text-align: center; }
+.s5-pair-area { display: flex; position: relative; }
+.s5-pair-col { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.s5-pair-spacer { width: 28px; flex-shrink: 0; }
+.s5-lines-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: visible; z-index: 5; }
+.s5-pcard { height: 64px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.06); display: flex; flex-direction: column; flex-shrink: 0; background: var(--surface); }
+.s5-pcard__hd { height: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 7px; gap: 3px; }
+.s5-pcard__rank { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 900; font-style: italic; color: #fff; line-height: 1; }
+.s5-pcard__rank small { font-size: 7px; font-style: normal; }
+.s5-pcard__tag { font-size: 7.5px; font-weight: 700; color: rgba(255,255,255,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.s5-pcard__body { flex: 1; padding: 2px 7px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.s5-pcard__text { font-size: 10px; font-weight: 600; color: var(--text-primary); line-height: 1.3; text-align: center; overflow: hidden; word-break: break-all; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; width: 100%; }
+
+/* ===== SLIDE 6 ===== */
+.slide6 { background: var(--hero); }
+.s6-visual { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 28px 10px; position: relative; overflow: hidden; }
+.s6-bg { position: absolute; border-radius: 50%; pointer-events: none; }
+.s6-bg--1 { width: 280px; height: 280px; top: -80px; left: -80px; background: rgba(255,255,255,0.03); }
+.s6-bg--2 { width: 140px; height: 140px; bottom: 10px; right: -30px; background: rgba(124,77,255,0.08); }
+.s6-catch { font-size: 22px; font-weight: 900; color: #fff; line-height: 1.4; text-align: center; margin-bottom: 5px; position: relative; z-index: 10; }
+.s6-catch em { font-style: normal; background: linear-gradient(90deg, #a78bfa, #7C4DFF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.s6-sub { font-size: 12px; color: rgba(255,255,255,0.5); text-align: center; line-height: 1.7; margin-bottom: 20px; position: relative; z-index: 10; }
+.s6-section-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.35); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; width: 100%; text-align: center; position: relative; z-index: 10; }
+.s6-modes { display: flex; gap: 10px; width: 100%; margin-bottom: 6px; position: relative; z-index: 10; }
+.s6-mode { flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 11px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.s6-mode__icon { width: 32px; height: 32px; background: rgba(255,255,255,0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.s6-mode__name { font-size: 11px; font-weight: 900; color: #fff; }
+.s6-mode__count { font-size: 9px; color: rgba(255,255,255,0.4); }
+.s6-scenes-wrap { width: 100%; position: relative; z-index: 10; }
+.s6-scenes { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; }
+.s6-scene { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 50px; padding: 6px 13px; font-size: 11px; color: rgba(255,255,255,0.85); display: flex; align-items: center; gap: 5px; }
+.s6-scene__icon { font-size: 13px; }
+.s6-text { background: #fff; border-radius: 24px 24px 0 0; padding: 18px 28px 14px; flex-shrink: 0; }
+.s6-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #7C4DFF; margin-bottom: 6px; }
+.s6-title { font-size: 19px; font-weight: 900; color: var(--text-primary); line-height: 1.3; margin-bottom: 4px; }
+.s6-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+  <div class="ob-wrap" id="obWrap">
+    <div class="ob-slides" id="obSlides">
+
+      <!-- ======== SLIDE 1: コンセプト ======== -->
+      <div class="ob-slide slide1">
+        <div class="s1-visual">
+          <div class="s1-bg s1-bg--1"></div>
+          <div class="s1-bg s1-bg--2"></div>
+          <!-- 棒グラフ順: 5位, 3位, 1位（中央・最大）, 2位, 4位 -->
+          <div class="s1-podium">
+            <div class="s1-bars">
+              <div class="s1-bar-wrap">
+                <div class="s1-bar-num s1-n5">5<small>th</small></div>
+                <div class="s1-bar s1-bar--rank5"></div>
+              </div>
+              <div class="s1-bar-wrap">
+                <div class="s1-bar-num s1-n3">3<small>rd</small></div>
+                <div class="s1-bar s1-bar--rank3"></div>
+              </div>
+              <div class="s1-bar-wrap">
+                <div class="s1-bar-num s1-n1">1<small>st</small></div>
+                <div class="s1-bar s1-bar--rank1"></div>
+              </div>
+              <div class="s1-bar-wrap">
+                <div class="s1-bar-num s1-n2">2<small>nd</small></div>
+                <div class="s1-bar s1-bar--rank2"></div>
+              </div>
+              <div class="s1-bar-wrap">
+                <div class="s1-bar-num s1-n4">4<small>th</small></div>
+                <div class="s1-bar s1-bar--rank4"></div>
+              </div>
+            </div>
+            <div class="s1-podium-base"></div>
+          </div>
+        </div>
+        <div class="s1-text">
+          <div class="s1-eyebrow">What is RankNow?</div>
+          <div class="s1-title">あなたの<em>価値観</em>がクイズになる</div>
+          <div class="s1-desc">あなたの好き・嫌いや体験談をランキングにして、<br>お互いに読み合うコミュニケーションゲームです</div>
+        </div>
+      </div>
+
+      <!-- ======== SLIDE 2: テーマを選ぶ（Firebaseデータ使用・4行）======== -->
+      <div class="ob-slide slide2">
+        <div class="s-hero">
+          <div class="s-hb s-hb--1"></div>
+          <div class="s-howto-badge">ゲームの流れ</div>
+          <div class="s-step">STEP 1 / 4</div>
+          <div class="s-title">テーマを<em>選ぶ</em></div>
+          <div class="s-hero-desc">気になるテーマを選んでゲームスタート。アプリが用意したテーマだけでなく、オリジナルのテーマで遊ぶことも。</div>
+        </div>
+        <div class="s2-scroll-area" id="s2ScrollArea">
+          <!-- Row1: CASUAL 左スクロール（JS生成） -->
+          <div class="s2-row s2-row--l" id="s2Row1"><div class="s2-row-inner" id="s2Inner1"></div></div>
+          <!-- Row2: PRIVATE 右スクロール -->
+          <div class="s2-row s2-row--r" id="s2Row2"><div class="s2-row-inner" id="s2Inner2"></div></div>
+          <!-- Row3: IF 左スクロール -->
+          <div class="s2-row s2-row--l2" id="s2Row3"><div class="s2-row-inner" id="s2Inner3"></div></div>
+          <!-- Row4: LOVE 右スクロール -->
+          <div class="s2-row s2-row--r2" id="s2Row4"><div class="s2-row-inner" id="s2Inner4"></div></div>
+        </div>
+      </div>
+
+      <!-- ======== SLIDE 3: TOP5を書く ======== -->
+      <div class="ob-slide slide3">
+        <div class="s34-hero">
+          <div class="s-hb s-hb--1"></div>
+          <div class="s34-header-row">
+            <div class="s34-header-left">
+              <div class="s-howto-badge">ゲームの流れ</div>
+              <div class="s-step">STEP 2 / 4</div>
+              <div class="s-title">TOP5を<em>自由に書く</em></div>
+              <div class="s-hero-desc">テーマに沿って、自分のTOP5を自由に入力しよう。</div>
+            </div>
+            <div class="s34-theme-card" style="background:#5A3015;">
+              <div class="s34-tc-white"><span class="s34-tc-text">お金を出し惜しみ
+したくないもの・こと
+TOP5</span></div>
+              <span class="s34-tc-pack">PRIVATE</span>
+            </div>
+          </div>
+        </div>
+        <div class="s-rank-body" id="s3Body">
+          <div class="s-rank-list-label">My rank is...</div>
+          <div class="rank-item" id="s3r1">
+            <div class="rank-badge-area"><div class="rank-badge" id="s3b1"><span style="font-size:17px;line-height:1;">1</span><span style="font-size:9px;opacity:0.6;">st</span></div></div>
+            <div id="s3t1" style="flex:1;min-width:0;padding:1px 0;"><span class="ri-ph">1位を入力</span></div>
+            <div class="rank-drag-handle"><svg width="14" height="20" viewBox="0 0 12 18" fill="currentColor" style="display:block;"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="8.5" cy="3.5" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="14.5" r="1.6"/><circle cx="8.5" cy="14.5" r="1.6"/></svg></div>
+          </div>
+          <div class="rank-item" id="s3r2">
+            <div class="rank-badge-area"><div class="rank-badge" id="s3b2"><span style="font-size:17px;line-height:1;">2</span><span style="font-size:9px;opacity:0.6;">nd</span></div></div>
+            <div id="s3t2" style="flex:1;min-width:0;padding:1px 0;"><span class="ri-ph">2位を入力</span></div>
+            <div class="rank-drag-handle"><svg width="14" height="20" viewBox="0 0 12 18" fill="currentColor" style="display:block;"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="8.5" cy="3.5" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="14.5" r="1.6"/><circle cx="8.5" cy="14.5" r="1.6"/></svg></div>
+          </div>
+          <div class="rank-item" id="s3r3">
+            <div class="rank-badge-area"><div class="rank-badge" id="s3b3"><span style="font-size:17px;line-height:1;">3</span><span style="font-size:9px;opacity:0.6;">rd</span></div></div>
+            <div id="s3t3" style="flex:1;min-width:0;padding:1px 0;"><span class="ri-ph">3位を入力</span></div>
+            <div class="rank-drag-handle"><svg width="14" height="20" viewBox="0 0 12 18" fill="currentColor" style="display:block;"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="8.5" cy="3.5" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="14.5" r="1.6"/><circle cx="8.5" cy="14.5" r="1.6"/></svg></div>
+          </div>
+          <div class="rank-item" id="s3r4">
+            <div class="rank-badge-area"><div class="rank-badge" id="s3b4"><span style="font-size:17px;line-height:1;">4</span><span style="font-size:9px;opacity:0.6;">th</span></div></div>
+            <div id="s3t4" style="flex:1;min-width:0;padding:1px 0;"><span class="ri-ph">4位を入力</span></div>
+            <div class="rank-drag-handle"><svg width="14" height="20" viewBox="0 0 12 18" fill="currentColor" style="display:block;"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="8.5" cy="3.5" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="14.5" r="1.6"/><circle cx="8.5" cy="14.5" r="1.6"/></svg></div>
+          </div>
+          <div class="rank-item" id="s3r5">
+            <div class="rank-badge-area"><div class="rank-badge" id="s3b5"><span style="font-size:17px;line-height:1;">5</span><span style="font-size:9px;opacity:0.6;">th</span></div></div>
+            <div id="s3t5" style="flex:1;min-width:0;padding:1px 0;"><span class="ri-ph">5位を入力</span></div>
+            <div class="rank-drag-handle"><svg width="14" height="20" viewBox="0 0 12 18" fill="currentColor" style="display:block;"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="8.5" cy="3.5" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="14.5" r="1.6"/><circle cx="8.5" cy="14.5" r="1.6"/></svg></div>
+          </div>
+          <button class="s3-confirm-btn" id="s3ConfirmBtn">あなたのTOP5を確定する</button>
+          <div class="ob-touch-dot" id="s3Dot"></div>
+        </div>
+      </div>
+
+      <!-- ======== SLIDE 4: 予想する ======== -->
+      <div class="ob-slide slide4">
+        <div class="s34-hero">
+          <div class="s-hb s-hb--1"></div>
+          <div class="s34-header-row">
+            <div class="s34-header-left">
+              <div class="s-howto-badge">ゲームの流れ</div>
+              <div class="s-step">STEP 3 / 4</div>
+              <div class="s-title">相手のTOP5を<em>予想</em></div>
+              <div class="s-hero-desc">バラバラに表示された相手のTOP5を正しい順番に並び替えよう</div>
+            </div>
+            <div class="s34-theme-card" style="background:#5A3015;">
+              <div class="s34-tc-white"><span class="s34-tc-text">お金を出し惜しみ
+したくないもの・こと
+TOP5</span></div>
+              <span class="s34-tc-pack">PRIVATE</span>
+            </div>
+          </div>
+        </div>
+        <div class="s-rank-body" id="s4Body">
+          <div class="s-rank-list-label">Your rank is...</div>
+          <div class="rank-item" id="s4r1">
+            <div class="rank-badge-area"><div class="rank-badge" id="s4b1"><span style="font-size:17px;line-height:1;">1</span><span style="font-size:9px;opacity:0.6;">st</span></div></div>
+            <div style="flex:1;min-width:0;font-size:13px;font-weight:500;padding:1px 0;word-break:break-all;">旅行</div>
+            <div class="rank-drag-handle"><svg width="14" height="20" viewBox="0 0 12 18" fill="currentColor" style="display:block;"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="8.5" cy="3.5" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="14.5" r="1.6"/><circle cx="8.5" cy="14.5" r="1.6"/></svg></div>
+          </div>
+          <div class="rank-item" id="s4r2">
+            <div class="rank-badge-area"><div class="rank-badge" id="s4b2"><span style="font-size:17px;line-height:1;">2</span><span style="font-size:9px;opacity:0.6;">nd</span></div></div>
+            <div style="flex:1;min-width:0;font-size:13px;font-weight:500;padding:1px 0;word-break:break-all;">自己研鑽</div>
+            <div class="rank-drag-handle"><svg width="14" height="20" viewBox="0 0 12 18" fill="currentColor" style="display:block;"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="8.5" cy="3.5" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="14.5" r="1.6"/><circle cx="8.5" cy="14.5" r="1.6"/></svg></div>
+          </div>
+          <div class="rank-item" id="s4r3">
+            <div class="rank-badge-area"><div class="rank-badge" id="s4b3"><span style="font-size:17px;line-height:1;">3</span><span style="font-size:9px;opacity:0.6;">rd</span></div></div>
+            <div style="flex:1;min-width:0;font-size:13px;font-weight:500;padding:1px 0;word-break:break-all;">ゲーム</div>
+            <div class="rank-drag-handle"><svg width="14" height="20" viewBox="0 0 12 18" fill="currentColor" style="display:block;"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="8.5" cy="3.5" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="14.5" r="1.6"/><circle cx="8.5" cy="14.5" r="1.6"/></svg></div>
+          </div>
+          <div class="rank-item" id="s4r4">
+            <div class="rank-badge-area"><div class="rank-badge" id="s4b4"><span style="font-size:17px;line-height:1;">4</span><span style="font-size:9px;opacity:0.6;">th</span></div></div>
+            <div style="flex:1;min-width:0;font-size:13px;font-weight:500;padding:1px 0;word-break:break-all;">アウトドア用品</div>
+            <div class="rank-drag-handle"><svg width="14" height="20" viewBox="0 0 12 18" fill="currentColor" style="display:block;"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="8.5" cy="3.5" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="14.5" r="1.6"/><circle cx="8.5" cy="14.5" r="1.6"/></svg></div>
+          </div>
+          <div class="rank-item" id="s4r5">
+            <div class="rank-badge-area"><div class="rank-badge" id="s4b5"><span style="font-size:17px;line-height:1;">5</span><span style="font-size:9px;opacity:0.6;">th</span></div></div>
+            <div style="flex:1;min-width:0;font-size:13px;font-weight:500;padding:1px 0;word-break:break-all;">カフェ</div>
+            <div class="rank-drag-handle"><svg width="14" height="20" viewBox="0 0 12 18" fill="currentColor" style="display:block;"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="8.5" cy="3.5" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="14.5" r="1.6"/><circle cx="8.5" cy="14.5" r="1.6"/></svg></div>
+          </div>
+          <button class="s3-confirm-btn active" style="margin-top:4px;">予想を確定する</button>
+          <div class="ob-touch-dot" id="s4Dot"></div>
+        </div>
+      </div>
+
+      <!-- ======== SLIDE 5: 結果発表（ふたりモード）======== -->
+      <!-- たくの予想: 美容(1→あたり), カフェ(2→かすり), 本(3→おしい), 旅行(4→ちかい), 飲み会(5→ちかい) = 23pt -->
+      <!-- ゆかが1位 34pt -->
+      <div class="ob-slide slide5">
+        <div class="s5-hero">
+          <div class="s5-hb s5-hb--1"></div>
+          <div class="s-howto-badge">ゲームの流れ</div>
+          <div class="s-step" style="margin-bottom:2px;">STEP 4 / 4</div>
+          <div class="s-title" style="margin-bottom:4px;">結果発表！</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.62);line-height:1.55;margin-bottom:0;">
+            正しいランクと予想とのズレが少ないほど高いスコアに。<br>結果をもとに会話を楽しもう！
+          </div>
+          <!-- テーマカード 中央配置 -->
+          <div class="s5-theme-center">
+            <div class="s34-theme-card" style="background:#5A3015;margin:0;">
+              <div class="s34-tc-white"><span class="s34-tc-text">お金を出し惜しみ
+したくないもの・こと
+TOP5</span></div>
+              <span class="s34-tc-pack">PRIVATE</span>
+            </div>
+          </div>
+          <!-- スコアサマリー（ゆかが1位） -->
+          <div class="s5-score-row">
+            <div>🏆</div>
+            <div><div class="s5-score-name">ゆか</div></div>
+            <div class="s5-score-pt">34<small>pt</small></div>
+          </div>
+          <div class="s5-score-row-2">
+            <div class="s5-score-name-2">たく</div>
+            <div class="s5-score-pt-2">23<small>pt</small></div>
+          </div>
+        </div>
+        <!-- ペア結果 -->
+        <div class="s5-content">
+          <div class="s5-col-headers">
+            <div class="s5-col-header">ゆかの<br>正しいランク</div>
+            <div style="width:28px;flex-shrink:0;"></div>
+            <div class="s5-col-header">たくの<br>予想＆スコア</div>
+          </div>
+          <div class="s5-pair-area" id="s5PairArea">
+            <!-- 左列：ゆかの正しいランク（1=美容, 2=旅行, 3=飲み会, 4=本, 5=カフェ） -->
+            <div class="s5-pair-col" id="s5Left">
+              <div class="s5-pcard" id="s5l1">
+                <div class="s5-pcard__hd" style="background:#A8192B;"><span class="s5-pcard__rank">1<small>st</small></span></div>
+                <div class="s5-pcard__body"><div class="s5-pcard__text">美容</div></div>
+              </div>
+              <div class="s5-pcard" id="s5l2">
+                <div class="s5-pcard__hd" style="background:#882031;"><span class="s5-pcard__rank">2<small>nd</small></span></div>
+                <div class="s5-pcard__body"><div class="s5-pcard__text">旅行</div></div>
+              </div>
+              <div class="s5-pcard" id="s5l3">
+                <div class="s5-pcard__hd" style="background:#6B2F3C;"><span class="s5-pcard__rank">3<small>rd</small></span></div>
+                <div class="s5-pcard__body"><div class="s5-pcard__text">飲み会</div></div>
+              </div>
+              <div class="s5-pcard" id="s5l4">
+                <div class="s5-pcard__hd" style="background:#4D3C45;"><span class="s5-pcard__rank">4<small>th</small></span></div>
+                <div class="s5-pcard__body"><div class="s5-pcard__text">本</div></div>
+              </div>
+              <div class="s5-pcard" id="s5l5">
+                <div class="s5-pcard__hd" style="background:#3A3334;"><span class="s5-pcard__rank">5<small>th</small></span></div>
+                <div class="s5-pcard__body"><div class="s5-pcard__text">カフェ</div></div>
+              </div>
+            </div>
+            <div class="s5-pair-spacer">
+              <svg class="s5-lines-svg" id="s5Svg" xmlns="http://www.w3.org/2000/svg"></svg>
+            </div>
+            <!-- 右列：たくの予想（美容1→あたり, カフェ2→かすり, 本3→おしい, 旅行4→ちかい, 飲み会5→ちかい） -->
+            <div class="s5-pair-col" id="s5Right">
+              <!-- 1st予想: 美容（正解1st, diff=0）→ あたり ◎ -->
+              <div class="s5-pcard" id="s5r1">
+                <div class="s5-pcard__hd" style="background:#A8192B;"><span class="s5-pcard__rank">1<small>st</small></span><span class="s5-pcard__tag">◎あたり +10pt</span></div>
+                <div class="s5-pcard__body"><div class="s5-pcard__text">美容</div></div>
+              </div>
+              <!-- 2nd予想: カフェ（正解5th, diff=3）→ かすり ▽ -->
+              <div class="s5-pcard" id="s5r2">
+                <div class="s5-pcard__hd" style="background:#3A3334;"><span class="s5-pcard__rank">2<small>nd</small></span><span class="s5-pcard__tag">▽かすり +1pt</span></div>
+                <div class="s5-pcard__body"><div class="s5-pcard__text">カフェ</div></div>
+              </div>
+              <!-- 3rd予想: 本（正解4th, diff=1）→ おしい ○ -->
+              <div class="s5-pcard" id="s5r3">
+                <div class="s5-pcard__hd" style="background:#4D3C45;"><span class="s5-pcard__rank">3<small>rd</small></span><span class="s5-pcard__tag">○おしい +6pt</span></div>
+                <div class="s5-pcard__body"><div class="s5-pcard__text">本</div></div>
+              </div>
+              <!-- 4th予想: 旅行（正解2nd, diff=2）→ ちかい △ -->
+              <div class="s5-pcard" id="s5r4">
+                <div class="s5-pcard__hd" style="background:#882031;"><span class="s5-pcard__rank">4<small>th</small></span><span class="s5-pcard__tag">△ちかい +3pt</span></div>
+                <div class="s5-pcard__body"><div class="s5-pcard__text">旅行</div></div>
+              </div>
+              <!-- 5th予想: 飲み会（正解3rd, diff=2）→ ちかい △ -->
+              <div class="s5-pcard" id="s5r5">
+                <div class="s5-pcard__hd" style="background:#6B2F3C;"><span class="s5-pcard__rank">5<small>th</small></span><span class="s5-pcard__tag">△ちかい +3pt</span></div>
+                <div class="s5-pcard__body"><div class="s5-pcard__text">飲み会</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== SLIDE 6: さあ、始めよう！ ======== -->
+      <div class="ob-slide slide6">
+        <div class="s6-visual">
+          <div class="s6-bg s6-bg--1"></div>
+          <div class="s6-bg s6-bg--2"></div>
+          <div class="s6-catch">お互いのこと、<br><em>本当にわかってる？</em></div>
+          <div class="s6-sub">正解しても外れても、それが話題になる。<br>意外な一面を見つけよう。</div>
+          <div class="s6-section-label">プレイ人数</div>
+          <div class="s6-modes" style="margin-bottom:16px;">
+            <div class="s6-mode">
+              <div class="s6-mode__icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="8" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                  <circle cx="17" cy="7" r="3"/><path d="M22 21v-2a3 3 0 0 0-2-2.83"/>
+                </svg>
+              </div>
+              <div class="s6-mode__name">ふたりで</div>
+              <div class="s6-mode__count">2人専用</div>
+            </div>
+            <div class="s6-mode">
+              <div class="s6-mode__icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="5.5" cy="8" r="2.5"/><circle cx="12" cy="6" r="2.5"/><circle cx="18.5" cy="8" r="2.5"/>
+                  <path d="M2 21v-1.5A3.5 3.5 0 0 1 5.5 16h1"/>
+                  <path d="M22 21v-1.5A3.5 3.5 0 0 0 18.5 16h-1"/>
+                  <path d="M9 21v-2a3 3 0 0 1 3-3h0a3 3 0 0 1 3 3v2"/>
+                </svg>
+              </div>
+              <div class="s6-mode__name">みんなで</div>
+              <div class="s6-mode__count">3〜10人</div>
+            </div>
+          </div>
+          <div class="s6-section-label">利用シーン</div>
+          <div class="s6-scenes-wrap">
+            <div class="s6-scenes">
+              <div class="s6-scene"><span class="s6-scene__icon">💑</span>デート</div>
+              <div class="s6-scene"><span class="s6-scene__icon">🍺</span>飲み会・合コン</div>
+              <div class="s6-scene"><span class="s6-scene__icon">✈️</span>旅行・おでかけ</div>
+              <div class="s6-scene"><span class="s6-scene__icon">🤝</span>自己紹介・交流</div>
+            </div>
+          </div>
+        </div>
+        <div class="s6-text">
+          <div class="s6-eyebrow">Let's start!</div>
+          <div class="s6-title">まずニックネームを設定しよう</div>
+          <div class="s6-desc">あとからいつでも変更できます。</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ob-footer" id="obFooter">
+    <div class="ob-dots-row" id="obDotsRow">
+      <div class="ob-dot ob-dot--active"></div>
+      <div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div>
+    </div>
+    <div class="ob-btn-row">
+      <button class="ob-back-btn" id="obBackBtn" onclick="obGoTo(obCurrent-1)" disabled>← 戻る</button>
+      <button class="ob-next-btn" id="obNextBtn" onclick="obGoTo(obCurrent+1)">次へ →</button>
+      <button class="ob-cta-btn" id="obCtaBtn" style="display:none" onclick="alert('→ openFirstTimeNameModal()')">ニックネームを設定して始める！</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ======================================================
+   Slide 2: Firebaseデータ（firebase_items.jsonの実データ）
+   ====================================================== */
+const PACK_DEFS = {
+  casual:  { color: '#1B4A72', label: 'CASUAL' },
+  private: { color: '#5A3015', label: 'PRIVATE' },
+  if:      { color: '#2D1B4E', label: 'IF' },
+  love:    { color: '#5C1A35', label: 'LOVE' }
+};
+
+const THEME_ITEMS = {
+  casual: [
+    'いつも選びがちな\n好きなお寿司のネタ\nTOP5',
+    'お酒のオトモはこれ！\n居酒屋の定番おつまみ\nTOP5',
+    '今のわたしを育てた\n思い出のマンガ・アニメ\nTOP5',
+    '今でも心に残っている\n大好きな映画・ドラマ\nTOP5',
+    '生活の質が高まった\nお気に入りの家具・家電\nTOP5',
+    'スマホ内の1軍はこれ！\nお気に入りのアプリ\nTOP5',
+  ],
+  private: [
+    '大切にしている\n言葉・名言・座右の銘\nTOP5',
+    'お金を出し惜しみ\nしたくないもの・こと\nTOP5',
+    'ついつい出ちゃう\nわたしの変なクセ・習慣\nTOP5',
+    'わたしが思う\nわたしの素敵なところ\nTOP5',
+    '落ち込んだときはコレ！\nよくやる気分転換の方法\nTOP5',
+    '今のわたしを作った\n忘れられない経験・体験\nTOP5',
+  ],
+  if: [
+    '現実社会で手に入れたい\n超能力・特殊スキル\nTOP5',
+    'タイムマシンで\n行ってみたい時代・年代\nTOP5',
+    '会えるなら会ってみたい\nアニメ・マンガのキャラ\nTOP5',
+    '宝くじで5億円が当選！\n何にお金を使いたい？\nTOP5',
+    '身体を改良できるなら\nどこをどう変えたい？\nTOP5',
+    '過去をやり直せるなら\n何をどう変えたい？\nTOP5',
+  ],
+  love: [
+    'こういうのに弱い！\nキュンとする異性の仕草\nTOP5',
+    '絶対に付き合う前に\n相手と確認したいこと\nTOP5',
+    'これは譲りたくない\n結婚相手の条件\nTOP5',
+    'ここに行きたい！\n理想のデート場所・内容\nTOP5',
+    'これまでの恋愛での\nやらかし・失敗談\nTOP5',
+    '仲の良いカップルに\n共通していると思うこと\nTOP5',
+  ]
+};
+
+function buildThemeCard(text, pack) {
+  const p = PACK_DEFS[pack];
+  return `<div class="theme-card" style="background:${p.color};flex-shrink:0;">` +
+    `<div class="theme-card__white"><span class="theme-card__text">${text}</span></div>` +
+    `<span class="theme-card__pack">${p.label}</span></div>`;
+}
+
+function populateRow(innerId, pack) {
+  const el = document.getElementById(innerId);
+  if (!el) return;
+  const items = THEME_ITEMS[pack];
+  let html = '';
+  // ×2 for seamless loop
+  for (let r = 0; r < 2; r++) items.forEach(t => { html += buildThemeCard(t, pack); });
+  el.innerHTML = html;
+}
+
+populateRow('s2Inner1', 'casual');
+populateRow('s2Inner2', 'private');
+populateRow('s2Inner3', 'if');
+populateRow('s2Inner4', 'love');
+
+/* ======================================================
+   Navigation
+   ====================================================== */
+let obCurrent = 0;
+const OB_TOTAL = 6;
+const slidesEl = document.getElementById('obSlides');
+const allDots  = document.getElementById('obDotsRow').querySelectorAll('.ob-dot');
+const backBtn  = document.getElementById('obBackBtn');
+const nextBtn  = document.getElementById('obNextBtn');
+const ctaBtn   = document.getElementById('obCtaBtn');
+
+function obGoTo(n) {
+  n = Math.max(0, Math.min(OB_TOTAL - 1, n));
+  obCurrent = n;
+  slidesEl.style.transform = `translateX(-${n * 100}%)`;
+  allDots.forEach((d, i) => d.classList.toggle('ob-dot--active', i === n));
+  backBtn.disabled = (n === 0);
+  const isLast = (n === OB_TOTAL - 1);
+  nextBtn.style.display = isLast ? 'none' : '';
+  ctaBtn.style.display  = isLast ? '' : 'none';
+  if (n === 0) startS1();
+  if (n === 2) startS3();
+  if (n === 3) startS4();
+  if (n === 4) startS5();
+}
+
+let _tx = 0;
+document.getElementById('obWrap').addEventListener('touchstart', e => { _tx = e.touches[0].clientX; }, {passive:true});
+document.getElementById('obWrap').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - _tx;
+  if (Math.abs(dx) > 40) obGoTo(obCurrent + (dx < 0 ? 1 : -1));
+}, {passive:true});
+
+/* ======================================================
+   Slide 1: 棒グラフ アニメーション再起動
+   ====================================================== */
+function startS1() {
+  document.querySelectorAll('.s1-bar').forEach(bar => {
+    bar.style.animation = 'none';
+    void bar.offsetHeight;
+    bar.style.animation = '';
+  });
+}
+
+/* ======================================================
+   Slide 3: タイピング → 2回スワイプ → 確定 → クリア → 繰り返し
+   【修正】
+   - runS3冒頭でclearS3Timers（旧タイマー残留バグ解消）
+   - doS3ContentSwap: clearAfterを相対時間520msに統一
+   - doS3ContentSwap: アニメ開始前にバッジ更新、完了後にバッジ&テキスト復元
+   ====================================================== */
+const S3_TEXTS = ['美容', '旅行', '飲み会', '本', 'カフェ'];
+const SUFF = ['st','nd','rd','th','th'];
+let s3TimerIds = [];
+
+function clearS3Timers() { s3TimerIds.forEach(clearTimeout); s3TimerIds = []; }
+function s3At(fn, ms) { const id = setTimeout(fn, ms); s3TimerIds.push(id); return id; }
+
+function badgeHtml(n) {
+  return `<span style="font-size:17px;line-height:1;">${n}</span><span style="font-size:9px;opacity:0.6;">${SUFF[n-1]}</span>`;
+}
+
+function startS3() {
+  clearS3Timers();
+  resetS3();
+  s3At(runS3, 300);
+}
+
+function resetS3() {
+  for (let i = 1; i <= 5; i++) {
+    const tEl = document.getElementById(`s3t${i}`);
+    const rEl = document.getElementById(`s3r${i}`);
+    const bEl = document.getElementById(`s3b${i}`);
+    if (tEl) tEl.innerHTML = `<span class="ri-ph">${i}位を入力</span>`;
+    if (rEl) { rEl.style.transition = 'none'; rEl.style.transform = ''; rEl.style.borderColor = ''; rEl.style.opacity = '1'; }
+    if (bEl) bEl.innerHTML = badgeHtml(i);
+  }
+  const btn = document.getElementById('s3ConfirmBtn');
+  if (btn) btn.className = 's3-confirm-btn';
+  const dot = document.getElementById('s3Dot');
+  if (dot) { dot.style.transition = 'none'; dot.style.opacity = '0'; }
+}
+
+function runS3() {
+  clearS3Timers(); // 旧タイマー残留を確実に防止
+
+  let delay = 0;
+  // フェーズ1: 全アイテムにタイピング
+  for (let i = 0; i < 5; i++) {
+    const text = S3_TEXTS[i];
+    const tEl = document.getElementById(`s3t${i+1}`);
+    const rEl = document.getElementById(`s3r${i+1}`);
+    s3At(() => {
+      for (let j = 1; j <= 5; j++) { const r = document.getElementById(`s3r${j}`); if (r) r.style.borderColor = ''; }
+      if (rEl) rEl.style.borderColor = 'var(--text-primary)';
+      if (tEl) tEl.innerHTML = '<span class="s3-cursor"></span>';
+    }, delay);
+    for (let c = 0; c < text.length; c++) {
+      s3At(((ch, el) => () => {
+        if (!el) return;
+        const typed = el.querySelector('.ri-typed');
+        const cur = typed ? typed.textContent : '';
+        el.innerHTML = `<span class="ri-typed">${cur}${ch}</span><span class="s3-cursor"></span>`;
+      })(text[c], tEl), delay + 100 + c * 120);
+    }
+    s3At(() => {
+      if (!tEl) return;
+      tEl.innerHTML = `<span class="ri-typed">${text}</span>`;
+      if (rEl) rEl.style.borderColor = '';
+    }, delay + 100 + text.length * 120 + 100);
+    delay += 100 + text.length * 120 + 260;
+  }
+
+  // フェーズ2: 確定ボタン アクティブ化
+  s3At(() => { const btn = document.getElementById('s3ConfirmBtn'); if (btn) btn.classList.add('active'); }, delay);
+  delay += 400;
+
+  // フェーズ3: スワップ1（2位↔3位：飲み会が上に）
+  s3At(() => showS3Dot('s3r3'), delay);
+  s3At(() => doS3ContentSwap(2, 3), delay + 300);
+  delay += 300 + 520 + 350;
+
+  // フェーズ4: スワップ2（4位↔5位：カフェが上に）
+  s3At(() => showS3Dot('s3r5'), delay);
+  s3At(() => doS3ContentSwap(4, 5), delay + 300);
+  delay += 300 + 520 + 400;
+
+  // フェーズ5: 確定ボタンタッチ
+  s3At(() => {
+    const dot = document.getElementById('s3Dot');
+    const btn = document.getElementById('s3ConfirmBtn');
+    const body = document.getElementById('s3Body');
+    if (!dot || !btn || !body) return;
+    const br = body.getBoundingClientRect();
+    const btnR = btn.getBoundingClientRect();
+    dot.style.cssText = `opacity:1;left:${btnR.left - br.left + btnR.width/2 - 13}px;top:${btnR.top - br.top + btnR.height/2 - 13}px;transition:opacity 0.2s;`;
+    dot.classList.add('tap');
+    setTimeout(() => dot.classList.remove('tap'), 300);
+    btn.classList.add('pressed');
+    setTimeout(() => btn.classList.remove('pressed'), 300);
+  }, delay);
+
+  // フェーズ6: フェードアウト
+  s3At(() => {
+    const dot = document.getElementById('s3Dot');
+    if (dot) { dot.style.transition = 'opacity 0.3s'; dot.style.opacity = '0'; }
+    for (let i = 1; i <= 5; i++) {
+      const rEl = document.getElementById(`s3r${i}`); if (rEl) { rEl.style.transition = 'opacity 0.35s'; rEl.style.opacity = '0'; }
+    }
+  }, delay + 400);
+
+  // フェーズ7: リセット & ループ
+  s3At(() => {
+    resetS3();
+    for (let i = 1; i <= 5; i++) {
+      const rEl = document.getElementById(`s3r${i}`); if (rEl) rEl.style.opacity = '0';
+    }
+    requestAnimationFrame(() => {
+      for (let i = 1; i <= 5; i++) {
+        const rEl = document.getElementById(`s3r${i}`); if (rEl) { rEl.style.transition = 'opacity 0.4s'; rEl.style.opacity = '1'; }
+      }
+    });
+    s3At(runS3, 600);
+  }, delay + 850);
+}
+
+function showS3Dot(itemId) {
+  const dot = document.getElementById('s3Dot');
+  const rEl = document.getElementById(itemId);
+  const body = document.getElementById('s3Body');
+  if (!dot || !rEl || !body) return;
+  const br = body.getBoundingClientRect();
+  const rr = rEl.getBoundingClientRect();
+  const dh = rEl.querySelector('.rank-drag-handle');
+  const dhr = dh ? dh.getBoundingClientRect() : rr;
+  dot.style.cssText = `opacity:1;left:${dhr.left - br.left + dhr.width/2 - 13}px;top:${rr.top - br.top + rr.height/2 - 13}px;transition:opacity 0.2s;`;
+  dot.classList.add('tap');
+  setTimeout(() => dot.classList.remove('tap'), 300);
+}
+
+/**
+ * コンテンツスワップ（DOM並び替えなし）
+ * - アニメ開始前: バッジを視覚的な位置に合わせて更新（idxBのバッジ↔idxAのバッジ）
+ * - 520ms後: transform解除 → テキスト内容を入れ替え → バッジをDOM位置に戻す
+ */
+function doS3ContentSwap(idxA, idxB) {
+  const rA = document.getElementById(`s3r${idxA}`);
+  const rB = document.getElementById(`s3r${idxB}`);
+  const bA = document.getElementById(`s3b${idxA}`);
+  const bB = document.getElementById(`s3b${idxB}`);
+  const dot = document.getElementById('s3Dot');
+  const body = document.getElementById('s3Body');
+  if (!rA || !rB) return;
+
+  const itemH = rA.offsetHeight + 6;
+  const diff = idxB - idxA; // 正 → rBはrAより下
+
+  // Step1: アニメ開始前にバッジを視覚位置に合わせ更新
+  if (bA) bA.innerHTML = badgeHtml(idxB); // rAはidxBの位置へ行く
+  if (bB) bB.innerHTML = badgeHtml(idxA); // rBはidxAの位置へ行く
+
+  // Step2: アニメーション開始
+  rA.style.transition = rB.style.transition = 'transform 0.5s ease, border-color 0.2s';
+  rA.style.transform = `translateY(${diff * itemH}px)`;   // rA下へ
+  rB.style.transform = `translateY(${-diff * itemH}px)`; // rB上へ
+  rA.style.borderColor = rB.style.borderColor = 'var(--text-primary)';
+
+  if (dot && body) {
+    const br = body.getBoundingClientRect();
+    const rAr = rA.getBoundingClientRect();
+    dot.style.transition = 'top 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.2s';
+    dot.style.top = `${rAr.top - br.top + rAr.height/2 - 13}px`;
+  }
+
+  // Step3: 520ms後（アニメ完了）: transform解除 → テキスト入れ替え → バッジをDOM位置に戻す
+  const tid = setTimeout(() => {
+    rA.style.transition = rB.style.transition = 'none';
+    rA.style.transform = rB.style.transform = '';
+    rA.style.borderColor = rB.style.borderColor = '';
+
+    // テキスト内容を入れ替え（DOMの並び替えなし）
+    const tA = document.getElementById(`s3t${idxA}`);
+    const tB = document.getElementById(`s3t${idxB}`);
+    if (tA && tB) { const tmp = tA.innerHTML; tA.innerHTML = tB.innerHTML; tB.innerHTML = tmp; }
+
+    // バッジをDOM位置（=新しい内容に対応した正しい順位）に戻す
+    if (bA) bA.innerHTML = badgeHtml(idxA);
+    if (bB) bB.innerHTML = badgeHtml(idxB);
+
+    if (dot) { dot.style.transition = 'opacity 0.25s'; dot.style.opacity = '0'; }
+  }, 520);
+  s3TimerIds.push(tid);
+}
+
+/* ======================================================
+   Slide 4: スワップアニメーション
+   ====================================================== */
+const S4_INIT_TEXTS = ['旅行', '自己研鑽', 'ゲーム', 'アウトドア用品', 'カフェ'];
+let s4TimerIds = [];
+function clearS4Timers() { s4TimerIds.forEach(clearTimeout); s4TimerIds = []; }
+function s4At(fn, ms) { const id = setTimeout(fn, ms); s4TimerIds.push(id); return id; }
+
+function startS4() {
+  clearS4Timers();
+  resetS4();
+  s4At(runS4, 400);
+}
+
+function resetS4() {
+  S4_INIT_TEXTS.forEach((text, i) => {
+    const rEl = document.getElementById(`s4r${i+1}`);
+    const bEl = document.getElementById(`s4b${i+1}`);
+    if (!rEl) return;
+    rEl.style.cssText = '';
+    const textEl = rEl.children[1]; // 0:badge-area, 1:text, 2:handle
+    if (textEl) textEl.textContent = text;
+    if (bEl) bEl.innerHTML = badgeHtml(i+1);
+  });
+  const dot = document.getElementById('s4Dot');
+  if (dot) { dot.style.transition = 'none'; dot.style.opacity = '0'; }
+}
+
+function runS4() {
+  clearS4Timers();
+  // スワップ1: 1位↔2位（自己研鑽が1位へ）
+  s4At(() => showS4Dot('s4r2'), 0);
+  s4At(() => doS4ContentSwap(1, 2), 300);
+
+  // スワップ2: 3位↔4位（アウトドア用品が3位へ）
+  s4At(() => showS4Dot('s4r4'), 1450);
+  s4At(() => doS4ContentSwap(3, 4), 1750);
+
+  // 確定ボタンタッチ
+  s4At(() => {
+    const dot = document.getElementById('s4Dot');
+    const btn = document.querySelector('#s4Body .s3-confirm-btn');
+    const body = document.getElementById('s4Body');
+    if (!dot || !btn || !body) return;
+    const br = body.getBoundingClientRect();
+    const btnR = btn.getBoundingClientRect();
+    dot.style.cssText = `opacity:1;left:${btnR.left - br.left + btnR.width/2 - 13}px;top:${btnR.top - br.top + btnR.height/2 - 13}px;transition:opacity 0.2s;`;
+    dot.classList.add('tap');
+    setTimeout(() => dot.classList.remove('tap'), 300);
+    btn.classList.add('pressed');
+    setTimeout(() => btn.classList.remove('pressed'), 300);
+  }, 2750);
+
+  s4At(() => {
+    const dot = document.getElementById('s4Dot');
+    if (dot) { dot.style.transition = 'opacity 0.3s'; dot.style.opacity = '0'; }
+    for (let i = 1; i <= 5; i++) {
+      const rEl = document.getElementById(`s4r${i}`); if (rEl) { rEl.style.transition = 'opacity 0.35s'; rEl.style.opacity = '0'; }
+    }
+  }, 3150);
+
+  s4At(() => {
+    resetS4();
+    for (let i = 1; i <= 5; i++) {
+      const rEl = document.getElementById(`s4r${i}`); if (rEl) rEl.style.opacity = '0';
+    }
+    requestAnimationFrame(() => {
+      for (let i = 1; i <= 5; i++) {
+        const rEl = document.getElementById(`s4r${i}`); if (rEl) { rEl.style.transition = 'opacity 0.4s'; rEl.style.opacity = '1'; }
+      }
+    });
+    s4At(runS4, 600);
+  }, 3600);
+}
+
+function showS4Dot(itemId) {
+  const dot = document.getElementById('s4Dot');
+  const rEl = document.getElementById(itemId);
+  const body = document.getElementById('s4Body');
+  if (!dot || !rEl || !body) return;
+  const br = body.getBoundingClientRect();
+  const rr = rEl.getBoundingClientRect();
+  const dh = rEl.querySelector('.rank-drag-handle');
+  const dhr = dh ? dh.getBoundingClientRect() : rr;
+  dot.style.cssText = `opacity:1;left:${dhr.left - br.left + dhr.width/2 - 13}px;top:${rr.top - br.top + rr.height/2 - 13}px;transition:opacity 0.2s;`;
+  dot.classList.add('tap');
+  setTimeout(() => dot.classList.remove('tap'), 300);
+}
+
+function doS4ContentSwap(idxA, idxB) {
+  const rA = document.getElementById(`s4r${idxA}`);
+  const rB = document.getElementById(`s4r${idxB}`);
+  const bA = document.getElementById(`s4b${idxA}`);
+  const bB = document.getElementById(`s4b${idxB}`);
+  const dot = document.getElementById('s4Dot');
+  const body = document.getElementById('s4Body');
+  if (!rA || !rB) return;
+  const itemH = rA.offsetHeight + 6;
+  const diff = idxB - idxA;
+
+  if (bA) bA.innerHTML = badgeHtml(idxB);
+  if (bB) bB.innerHTML = badgeHtml(idxA);
+
+  rA.style.transition = rB.style.transition = 'transform 0.5s ease, border-color 0.2s';
+  rA.style.transform = `translateY(${diff * itemH}px)`;
+  rB.style.transform = `translateY(${-diff * itemH}px)`;
+  rA.style.borderColor = rB.style.borderColor = 'var(--text-primary)';
+
+  if (dot && body) {
+    const br = body.getBoundingClientRect();
+    const rAr = rA.getBoundingClientRect();
+    dot.style.transition = 'top 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.2s';
+    dot.style.top = `${rAr.top - br.top + rAr.height/2 - 13}px`;
+  }
+
+  const tid = setTimeout(() => {
+    rA.style.transition = rB.style.transition = 'none';
+    rA.style.transform = rB.style.transform = '';
+    rA.style.borderColor = rB.style.borderColor = '';
+    const tA = rA.children[1];
+    const tB = rB.children[1];
+    if (tA && tB) { const tmp = tA.textContent; tA.textContent = tB.textContent; tB.textContent = tmp; }
+    if (bA) bA.innerHTML = badgeHtml(idxA);
+    if (bB) bB.innerHTML = badgeHtml(idxB);
+    if (dot) { dot.style.transition = 'opacity 0.25s'; dot.style.opacity = '0'; }
+  }, 520);
+  s4TimerIds.push(tid);
+}
+
+/* ======================================================
+   Slide 5: ペア結果の接続線（新スコアデータ）
+   ゆかの正解: 美容(1), 旅行(2), 飲み会(3), 本(4), カフェ(5)
+   たくの予想: 美容(1→あたり), カフェ(2→かすり), 本(3→おしい), 旅行(4→ちかい), 飲み会(5→ちかい)
+   接続:
+     左1(美容/1st) → 右1(美容/pred1): diff=0, sw=3.5, color=#A8192B
+     左2(旅行/2nd) → 右4(旅行/pred4): diff=2, sw=1.5, color=#882031
+     左3(飲み会/3rd) → 右5(飲み会/pred5): diff=2, sw=1.5, color=#6B2F3C
+     左4(本/4th) → 右3(本/pred3): diff=1, sw=2.5, color=#4D3C45
+     左5(カフェ/5th) → 右2(カフェ/pred2): diff=3, sw=1.5, color=#3A3334
+   ====================================================== */
+function startS5() { setTimeout(drawS5Lines, 100); }
+
+function drawS5Lines() {
+  const svg = document.getElementById('s5Svg');
+  if (!svg) return;
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  // 線の色: 左カード（正しいランク）のヘッダー色を基準色とする
+  // 線の太さ・破線: diffに基づく（getScoreLineStyle準拠）
+  //   diff=0 あたり: sw=3.5 実線
+  //   diff=1 おしい: sw=2.5 実線
+  //   diff=2 ちかい: sw=1.5 実線
+  //   diff=3 かすり: sw=1.5 破線(6,4)
+  const connections = [
+    { left:'s5l1', right:'s5r1', color:'#A8192B', sw:3.5, dash:''    }, // 美容→美容: diff=0 あたり
+    { left:'s5l2', right:'s5r4', color:'#882031', sw:1.5, dash:''    }, // 旅行→旅行: diff=2 ちかい
+    { left:'s5l3', right:'s5r5', color:'#6B2F3C', sw:1.5, dash:''    }, // 飲み会→飲み会: diff=2 ちかい
+    { left:'s5l4', right:'s5r3', color:'#4D3C45', sw:2.5, dash:''    }, // 本→本: diff=1 おしい
+    { left:'s5l5', right:'s5r2', color:'#3A3334', sw:1.5, dash:'6,4' }, // カフェ→カフェ: diff=3 かすり（破線）
+  ];
+  const svgRect = svg.getBoundingClientRect();
+  connections.forEach(({ left, right, color, sw, dash }) => {
+    const lEl = document.getElementById(left);
+    const rEl = document.getElementById(right);
+    if (!lEl || !rEl) return;
+    const lr = lEl.getBoundingClientRect();
+    const rr = rEl.getBoundingClientRect();
+    const x1 = lr.right - svgRect.left;
+    const y1 = lr.top + lr.height/2 - svgRect.top;
+    const x2 = rr.left - svgRect.left;
+    const y2 = rr.top + rr.height/2 - svgRect.top;
+    const c1 = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c1.setAttribute('cx',x1);c1.setAttribute('cy',y1);c1.setAttribute('r','3.5');c1.setAttribute('fill',color);c1.setAttribute('opacity','0.85');
+    svg.appendChild(c1);
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x1);line.setAttribute('y1',y1);line.setAttribute('x2',x2);line.setAttribute('y2',y2);
+    line.setAttribute('stroke',color);line.setAttribute('stroke-width',sw);line.setAttribute('stroke-opacity','0.8');
+    if (dash) line.setAttribute('stroke-dasharray', dash);
+    svg.appendChild(line);
+    const c2 = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c2.setAttribute('cx',x2);c2.setAttribute('cy',y2);c2.setAttribute('r','3.5');c2.setAttribute('fill',color);c2.setAttribute('opacity','0.85');
+    svg.appendChild(c2);
+  });
+}
+
+// 初期表示
+startS1();
+</script>
+</body>
+</html>

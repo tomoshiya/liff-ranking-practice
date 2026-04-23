@@ -97,13 +97,20 @@ async function onLiffReady() {
             showRejoinModal(rejoinData);
         }
 
-        // 10. 初回訪問（LocalStorageに名前がない）なら名前入力を強制
-        if (!savedName) {
-            openFirstTimeNameModal();
-        }
+        // 10. 初回訪問: オンボーディングを表示（未実施ユーザーのみ）
+        //     オンボーディング完了後にニックネーム入力を促す
+        const isFirstOnboard = !localStorage.getItem(OB_STORAGE_KEY);
+        if (isFirstOnboard) {
+            showOnboarding(() => {
+                if (!savedName) openFirstTimeNameModal();
+            });
+        } else {
+            // 既にオンボーディング済み: 従来フロー
+            if (!savedName) openFirstTimeNameModal();
 
-        // 11. β版モーダル（初回のみ自動表示）
-        checkBetaModal();
+            // 11. β版モーダル（初回のみ自動表示、オンボーディング済みユーザーのみ）
+            checkBetaModal();
+        }
 
     } catch (err) {
         console.error('初期化エラー:', err);

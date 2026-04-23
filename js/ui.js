@@ -121,11 +121,42 @@ function calcItemScore(diff) {
     return 0;
 }
 
-// スコアラベル（5色: 赤系/グレー/青系）
+/**
+ * スコアラベル定義（ソース・オブ・トゥルース）
+ *
+ * diff = |予想順位 - 正解順位|
+ *
+ * | diff | label  | icon | color   | 得点 | 線スタイル             |
+ * |------|--------|------|---------|------|------------------------|
+ * |  0   | あたり  | ◎   | #EF4444 | 10pt | 実線  sw=3.5           |
+ * |  1   | おしい  | ○   | #F87171 |  6pt | 実線  sw=2.5           |
+ * |  2   | ちかい  | △   | #9CA3AF |  3pt | 実線  sw=1.5           |
+ * |  3   | かすり  | ▽   | #60A5FA |  1pt | 破線(6,4) sw=1.5       |
+ * | 4+   | はずれ  | ×   | #1D4ED8 |  0pt | 破線(2,5) sw=1.5       |
+ *
+ * 結果発表の接続線の「色」は左カード（正しいランク）のヘッダー色を基準とする。
+ * 線の「太さ・破線スタイル」は上表の diff に基づく。
+ * → getScoreLineStyle(diff) 参照
+ *
+ * ランクヘッダー色（左カード / 右カード共通）:
+ *   1st: #A8192B / 2nd: #882031 / 3rd: #6B2F3C / 4th: #4D3C45 / 5th: #3A3334
+ */
 function getScoreLabel(diff) {
-    if (diff === 0) return { label: 'あたり', icon: '◎', color: '#EF4444' }; // 赤
-    if (diff === 1) return { label: 'おしい', icon: '○', color: '#F87171' }; // 薄い赤
-    if (diff === 2) return { label: 'ちかい', icon: '△', color: '#9CA3AF' }; // グレー
-    if (diff === 3) return { label: 'かすり', icon: '▽', color: '#60A5FA' }; // 薄い青
-    return { label: 'はずれ', icon: '×', color: '#1D4ED8' };               // 濃い青
+    if (diff === 0) return { label: 'あたり', icon: '◎', color: '#EF4444' };
+    if (diff === 1) return { label: 'おしい', icon: '○', color: '#F87171' };
+    if (diff === 2) return { label: 'ちかい', icon: '△', color: '#9CA3AF' };
+    if (diff === 3) return { label: 'かすり', icon: '▽', color: '#60A5FA' };
+    return { label: 'はずれ', icon: '×', color: '#1D4ED8' };
+}
+
+/**
+ * 結果発表の接続線スタイル（strokeWidth・dasharray）
+ * 線の「色」は呼び出し元で左カードのランクヘッダー色を指定すること。
+ */
+function getScoreLineStyle(diff) {
+    if (diff === 0) return { strokeWidth: 3.5, dashArray: '' };
+    if (diff === 1) return { strokeWidth: 2.5, dashArray: '' };
+    if (diff === 2) return { strokeWidth: 1.5, dashArray: '' };
+    if (diff === 3) return { strokeWidth: 1.5, dashArray: '6,4' };
+    return { strokeWidth: 1.5, dashArray: '2,5' };
 }
