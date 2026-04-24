@@ -14,7 +14,24 @@ const App = {
     currentUser: null,      // Firebaseに保存したユーザー情報
     displayName: '',        // ゲーム内表示名
     deepLinkThemeId: null,  // URLパラメータ ?themeId=xxx
-    currentMode: null       // 'pair' | 'multi' | 'local'
+    currentMode: null,      // 'pair' | 'multi' | 'local'
+    _devMode: false         // 開発者モード（秘密タップで解放）
+};
+
+// ========================================
+// エラー監視
+// ========================================
+
+window.onerror = function(message, source, lineno, colno, error) {
+    try {
+        trackEvent('error', {
+            message: String(message).slice(0, 200),
+            source: String(source || '').replace(window.location.origin, ''),
+            line: lineno,
+            col: colno,
+            stack: error?.stack ? String(error.stack).slice(0, 500) : ''
+        });
+    } catch (_) {}
 };
 
 // ========================================
@@ -57,6 +74,7 @@ async function onLiffReady() {
 
         // 4. Firebaseにユーザー情報を保存
         await initializeUserInFirebase();
+        trackEvent('user_login', { displayName: App.userProfile?.displayName || '' });
 
         // 5. テーマデータ取得
         await loadThemes();
@@ -259,12 +277,12 @@ function checkBetaModal() {
 }
 
 function openBetaModal() {
-    document.getElementById('betaModalOverlay').classList.add('bottomsheet-overlay--active');
+    document.getElementById('betaModalOverlay').classList.add('beta-modal-overlay--active');
 }
 
 function closeBetaModal(e) {
     if (!e || e.target === e.currentTarget) {
-        document.getElementById('betaModalOverlay').classList.remove('bottomsheet-overlay--active');
+        document.getElementById('betaModalOverlay').classList.remove('beta-modal-overlay--active');
     }
 }
 

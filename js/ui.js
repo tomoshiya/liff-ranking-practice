@@ -14,6 +14,9 @@ function showScreen(screenId) {
     } else {
         console.warn(`画面が見つかりません: ${screenId}`);
     }
+    // フッターリンクはTOP画面のみ表示
+    const footer = document.getElementById('topFooterLinks');
+    if (footer) footer.style.display = screenId === 'topScreen' ? 'flex' : 'none';
 }
 
 // ローディング表示切替

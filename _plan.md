@@ -451,20 +451,91 @@ beta      ← β版リビルドブランチ（新規作成）
 | Messaging APIチャネル作成 | ✅ 完了 | LIFFアプリ開発Providerに紐づけ |
 | LINE LoginチャネルとMessaging APIリンク | ✅ 完了 | botPromptの準備完了（Aggressive設定は後日） |
 
-### 残タスク（4/8〜4/10）
+### 実施済み対応（2026年4月8日）
+
+| 対応内容 | 状態 | 詳細 |
+|----------|------|------|
+| Firebase APIキー ドメイン制限追加 | ✅ 完了 | `tomoshiya.github.io/*` を許可ドメインに追加 |
+| 本番LIFF作成（GitHub Pages用） | ✅ 完了 | LIFF ID: 2009531665-30BBFxP7 / botPrompt: Aggressive |
+| betaブランチ → mainマージ・push | ✅ 完了 | GitHub Pages（本番環境）にβ版コードを反映 |
+| βモーダル実装 | ✅ 完了 | 中央モーダル・BETAボタン全画面fixed表示・初回自動表示 |
+| お問い合わせフォーム連携 | ✅ 完了 | Googleフォーム（https://forms.gle/Js5FmEs8gcmtSLDW6） |
+| 利用規約・プライバシーポリシー作成 | ✅ 完了 | RankNow版に更新（運営:灯し屋 / contact@tomoshiya.com） |
+| TOP画面フッターリンク追加 | ✅ 完了 | 利用規約 / プライバシーポリシー / 運営元（固定表示） |
+| キャッチコピー変更 | ✅ 完了 | 「価値観を読み合うコミュニケーションゲーム」 |
+| ヘロー上部レイアウト変更 | ✅ 完了 | ニックネーム左上・BETAボタン右上（全画面fixed） |
+
+### 実施済み対応（2026年4月9日）
+
+| 対応内容 | 状態 | 詳細 |
+|----------|------|------|
+| テーマ一覧ページ実装（js/theme-list.js） | ✅ 完了 | 過去TOP5履歴表示・削除機能・LocalStorage `ranknow_history_beta` |
+| テーマ一覧バグ修正 | ✅ 完了 | 1位空白・日付フォーマット・モードラベル・参加者表示・削除モーダルUX |
+| カルーセルループグリッチ修正 | ✅ 完了 | offsetLeft ベースのスクロール計算に変更（15/60問題を解消） |
+| モニタリング環境構築 | ✅ 完了 | Firebase Analytics (GA4)・trackEvent・user_login・window.onerror |
+| trackEvent 強化（themeType/roomId/hostUid/role/env） | ✅ 完了 | game_start / game_complete のペイロードを拡充 |
+| Google Apps Script 全面刷新 | ✅ 完了 | game_log / theme_stats / network_log / daily・weekly・monthly_summary |
+| analytics/events に .indexOn: timestamp 追加 | ✅ 完了 | Apps Script REST API クエリ最適化 |
+| Firebase Security Rules v3.7 | ✅ 完了 | users read/write を auth!=null に統一（lastLoginAt更新の根本修正） |
+| users ノードに env フィールド追加 | ✅ 完了 | beta/production の環境情報をユーザーレコードに記録 |
+
+### 2026-04-10 完了タスク
+
+| タスク | 状態 | 備考 |
+|--------|------|------|
+| TOPから「1台であそぶ」「ライブであそぶ」削除 | ✅ 完了 | beta対象外モードを非表示化 |
+| ダミー追加ボタンを非公開化 | ✅ 完了 | 部屋番号7回タップで開発者モードON |
+| テーマ一覧にゴミ箱アイコンで全履歴削除ボタン追加 | ✅ 完了 | help-btnスタイル・確認モーダル付き |
+| プログレスドロップダウンの表示崩れ修正 | ✅ 完了 | position:fixed + getBoundingClientRect |
+| ゲスト側結果画面にホスト待機ボタン追加 | ✅ 完了 | showGuestWaitModal()でモーダル表示 |
+| テーマデータ全面更新 | ✅ 完了 | basic→private / now→news / work・love追加 |
+| カジュアルパック色変更 | ✅ 完了 | #1E2D3D → #1B4A72（明るめネイビー） |
+| beta → main PR作成・マージ | ✅ 完了 | PR #2 bypass mergeで本番反映 |
+| Firebase・モニタリングシートのクリア案内 | ✅ 完了 | β開始前にusers/events/gameRoomsを削除推奨 |
+
+### 残タスク（β公開後〜）
 
 | タスク | 優先度 | 担当 |
 |--------|--------|------|
-| Firebase users不要データ削除（旧pictureUrl等） | 中 | あなた |
-| botPrompt=Aggressive設定（LIFF設定画面） | 高 | あなた |
-| ベータ版説明文のアプリ内設置 | 高 | 開発 |
-| お問い合わせフォーム設置（Googleフォーム） | 高 | 開発 |
-| テーマ一覧ページ①（ゲーム外でテーマ閲覧） | 中 | 開発 |
-| テーマ一覧ページ②（自分の過去TOP5履歴） | 中 | 開発 |
-| Analytics カスタムイベント設定 | 中 | 開発 |
-| リッチメニュー設定（LINE Official Account Manager） | 中 | あなた |
-| テーマ改善・追加（Firebase直接編集） | 高 | あなた |
-| Netlify本番サイト作成＋LIFF URL更新 | 高 | 両者 |
+| Firebase themes/packs・items インポート（新テーマデータ反映） | 🔴 高 | あなた |
+| NetlifyのURL変更（旧シェアURLを無効化） + LIFF URL更新 | 🔴 高 | あなた |
+| Firebaseデータクリア（users / analytics/events / gameRooms） | 🔴 高 | あなた |
+| モニタリングシートのリセット | 🔴 高 | あなた |
+| α版LIFFアプリの削除（RankQuest α版） | 🟡 中 | あなた |
+| リッチメニュー設定（LINE Official Account Manager） | 🟡 中 | あなた |
+| テストプレイフェーズでの不具合収集・対応 | 🟡 中 | あなた・開発 |
+| Google Sheets モニタリングデータ確認・調整 | 🟡 中 | あなた・開発 |
+
+### 2026-04-21 完了タスク
+
+| タスク | 状態 | 備考 |
+|--------|------|------|
+| 結果画面改善（ふたりモード）| ✅ 完了 | 個人詳細を左右2カラム+SVG連結線レイアウトに変更 |
+| 結果画面 カード間ギャップ修正 | ✅ 完了 | CSS gap が 4px のまま→12px に修正。JS CARD_GAP と同期 |
+| 結果画面 SVG線の起点修正 | ✅ 完了 | カード縦中央（CARD_H/2）起点に統一 |
+| 結果画面 二重線を廃止 | ✅ 完了 | ±1を中太線(2.5px)に変更。太→中太→細→破線→点線の5段階 |
+| 結果画面 動的フォントサイズ | ✅ 完了 | 文字数に応じて 14px(≤10字)・11px(≤22字)・9px(それ以上) を自動切替 |
+| 結果画面 SVG結節点（丸）追加 | ✅ 完了 | 各線の両端に同色・同透明度の circle (r=3.5) を配置 |
+| 結果画面 結節点z-index修正 | ✅ 完了 | card column に z-index:0、SVGに z-index:1 + overflow:visible を設定 |
+
+### β期間中（〜5/10）予定タスク
+
+| タスク | 優先度 | 概要 |
+|--------|--------|------|
+| オンボーディング強化 | 🔴 高 | 初回起動チュートリアル（ニックネーム前）＋ゲスト自動?表示 |
+| ランダムテーマ機能 | 🟡 中 | テーマ一覧から3択をランダム提示する機能 |
+| テーマデータに難易度フィールド追加 | 🟡 中 | firebase_items.json に level フィールドを仕込む |
+| ランク入力時の重複テキスト防止 | 🟡 中 | 同一テキストを複数スロットに送信できないようバリデーション追加。将来の入力候補提示機能と合わせて設計する |
+
+### 正式版（〜6月）予定タスク
+
+| タスク | 優先度 | 概要 |
+|--------|--------|------|
+| ゲーム設定画面 | 🔴 高 | 待機室後またはその中にゲームモード設定UIを追加 |
+| テーマ一覧UI改善（難易度・盛り上がり指標の表示） | 🟡 中 | levelフィールドを使った★表示など |
+| テーマ拡充 | 🟡 中 | テーマ不足の解消 |
+| 固定選択肢テーマの設計・試作 | 🟡 中 | 自由記入に加えて選択肢から選べるテーマ形式 |
+| アイテムID導入（スコアリングの根本改善） | 🟡 中 | 現在のテキストベースマッチングをIDベースに変更。ターゲットのランク送信時に各アイテムにIDを採番し、予想側もIDで並び替えを保存する構造に変更。固定選択肢テーマ実装と同タイミングで設計する。rankings / guesses のFirebase構造変更・スコアリング3関数・予想UIの改修が必要 |
 
 ### セキュリティ設計メモ
 

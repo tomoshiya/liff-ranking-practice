@@ -277,6 +277,37 @@ function closeConfirmModal() {
     document.getElementById('confirmOverlay').style.display = 'none';
 }
 
+function showGuestWaitModal() {
+    showConfirmModal(
+        'ホストの操作をお待ちください',
+        'テーマの変更はホストのみが操作できます。ホストが新しいテーマを選ぶまでお待ちください。',
+        [{ label: '閉じる', cls: 'btn btn--outline', fn: 'closeConfirmModal()' }]
+    );
+}
+
+// 開発者モード：部屋番号を7回タップで解放
+let _devTapCount = 0;
+let _devTapTimer = null;
+function handleDevTap() {
+    _devTapCount++;
+    clearTimeout(_devTapTimer);
+    _devTapTimer = setTimeout(() => { _devTapCount = 0; }, 1500);
+    if (_devTapCount >= 7) {
+        _devTapCount = 0;
+        App._devMode = !App._devMode;
+        const dummyArea = document.getElementById('dummyBtnArea');
+        if (dummyArea && room.data) {
+            const players = Object.keys(room.data.players || {}).length;
+            dummyArea.style.display = (App._devMode && players < (room.data.maxPlayers || 10)) ? 'block' : 'none';
+        }
+        const codeEl = document.getElementById('waitingRoomCode');
+        if (codeEl) {
+            codeEl.style.opacity = '0.4';
+            setTimeout(() => { codeEl.style.opacity = ''; }, 400);
+        }
+    }
+}
+
 // 統一退出処理（ホスト・ゲスト・モード・フェーズを内部で判定）
 async function doExit() {
     closeConfirmModal();
@@ -562,10 +593,10 @@ function renderWaitingRoomHost(data) {
         startBtn.style.display = isMulti ? 'block' : 'none';
     }
 
-    // ダミー追加ボタン（multiのみ・上限未達時のみ表示）
+    // ダミー追加ボタン（multiのみ・上限未達時・開発者モード時のみ表示）
     const dummyArea = document.getElementById('dummyBtnArea');
     if (dummyArea) {
-        dummyArea.style.display = (isMulti && players.length < data.maxPlayers) ? 'block' : 'none';
+        dummyArea.style.display = (isMulti && players.length < data.maxPlayers && App._devMode) ? 'block' : 'none';
     }
 }
 
@@ -631,6 +662,7 @@ function showSharedThemeSelect() {
     setThemeInputMode('pack');
 
     showScreen('themeSelectScreen');
+    setupCarouselLoop('themeCardsScroll');
 }
 
 // onlineホスト用（Firebase listenerから呼ばれる）
@@ -655,11 +687,16 @@ function showGuestThemeBrowse() {
     setThemeInputMode('pack');
 
     showScreen('themeSelectScreen');
+    setupCarouselLoop('themeCardsScroll');
 }
 
 // パックタブ描画
-function renderPackTabs() {
-    // packMetaのorder順でパックを並べ、「すべて」を最後に
+// ctx: { tabsRowId, descAreaId, switchFn, activePack } — 省略時はゲーム用デフォルト
+function renderPackTabs(ctx) {
+    const tabsRowId = (ctx && ctx.tabsRowId) || 'packTabsRow';
+    const switchFn  = (ctx && ctx.switchFn)  || 'switchPackFilter';
+    const active    = (ctx && ctx.activePack !== undefined) ? ctx.activePack : currentPackFilter;
+
     const usedPacks = [...new Set(themes.filter(t => t.pack).map(t => t.pack))];
     const sortedPacks = usedPacks.sort((a, b) => {
         const oa = packMeta[a]?.order ?? 99;
@@ -667,19 +704,19 @@ function renderPackTabs() {
         return oa - ob;
     });
     const packs = [...sortedPacks, 'all'];
-    document.getElementById('packTabsRow').innerHTML = packs.map(p => {
+    document.getElementById(tabsRowId).innerHTML = packs.map(p => {
         const label = p === 'all' ? 'すべて' : (packMeta[p]?.label || p);
-        const isActive = p === currentPackFilter;
+        const isActive = p === active;
         const bgColor = (p !== 'all' && packMeta[p]?.color) ? packMeta[p].color : '#1A1917';
         const activeStyle = isActive ? `background:${bgColor};border-color:${bgColor};` : '';
         return `<div class="pack-tab-item ${isActive ? 'pack-tab-item--active' : ''}"
              style="${activeStyle}"
-             onclick="switchPackFilter('${p}')">${label}</div>`;
+             onclick="${switchFn}('${p}')">${label}</div>`;
     }).join('');
-    renderPackDesc(currentPackFilter);
+    renderPackDesc(active, ctx);
 }
 
-// パックフィルター切替
+// パックフィルター切替（ゲーム専用）
 function switchPackFilter(pack) {
     currentPackFilter = pack;
     sharedSelectedThemeIdx = -1;
@@ -690,11 +727,14 @@ function switchPackFilter(pack) {
     renderPackTabs();
     renderThemeCards(pack);
     renderPackDesc(pack);
+    setupCarouselLoop('themeCardsScroll');
 }
 
 // パック説明文の描画
-function renderPackDesc(pack) {
-    const el = document.getElementById('packDescArea');
+// ctx: { descAreaId } — 省略時はゲーム用デフォルト
+function renderPackDesc(pack, ctx) {
+    const descAreaId = (ctx && ctx.descAreaId) || 'packDescArea';
+    const el = document.getElementById(descAreaId);
     if (!el) return;
     if (pack === 'all' || !packMeta[pack]) {
         el.style.display = 'none';
@@ -710,15 +750,22 @@ function renderPackDesc(pack) {
 }
 
 // テーマカード横スクロール描画
-function renderThemeCards(pack) {
+// ctx: { scrollId, counterId, fillId, idPrefix, onClickFn } — 省略時はゲーム用デフォルト
+function renderThemeCards(pack, ctx) {
+    const scrollId   = (ctx && ctx.scrollId)   || 'themeCardsScroll';
+    const counterId  = (ctx && ctx.counterId)  || 'scrollCounterText';
+    const fillId     = (ctx && ctx.fillId)     || 'scrollBarFill';
+    const idPrefix   = (ctx && ctx.idPrefix)   || 'themeCardItem';
+    const onClickFn  = (ctx && ctx.onClickFn)  || 'selectTheme';
+
     const filtered = pack === 'all' ? themes : themes.filter(t => t.pack === pack);
-    const scroll = document.getElementById('themeCardsScroll');
+    const scroll = document.getElementById(scrollId);
     scroll.innerHTML = filtered.map(t => {
         const origIdx = themes.indexOf(t);
         const color = getPackColor(t.pack);
         const packLabel = getPackLabel(t.pack);
-        return `<div class="theme-card-item" id="themeCardItem_${origIdx}"
-                     onclick="selectTheme(${origIdx})"
+        return `<div class="theme-card-item" id="${idPrefix}_${origIdx}"
+                     onclick="${onClickFn}(${origIdx})"
                      style="background:${color};">
             <div class="theme-card__white">
                 <span class="theme-card__text">${escapeHtml(t.text)}</span>
@@ -728,33 +775,166 @@ function renderThemeCards(pack) {
         </div>`;
     }).join('');
 
-    const counter = document.getElementById('scrollCounterText');
-    const fill = document.getElementById('scrollBarFill');
-    counter.textContent = filtered.length > 0 ? `1 / ${filtered.length}` : '0 / 0';
-    fill.style.width = filtered.length > 1 ? `${100 / filtered.length}%` : '100%';
+    const counter = document.getElementById(counterId);
+    const fill    = document.getElementById(fillId);
+    if (counter) counter.textContent = filtered.length > 0 ? `1 / ${filtered.length}` : '0 / 0';
+    if (fill)    fill.style.width    = filtered.length > 1  ? `${100 / filtered.length}%` : '100%';
 
     scroll.scrollLeft = 0;
 }
 
-// スクロールインジケーター更新
+// スクロールインジケーター更新（ゲーム専用）
 function onThemeCardsScroll() {
-    const scroll = document.getElementById('themeCardsScroll');
-    const pack = currentPackFilter;
+    updateCarouselIndicator('themeCardsScroll', 'scrollCounterText', 'scrollBarFill', currentPackFilter);
+}
+
+// インジケーター更新（共通）: DOM実座標で最近傍の実カードを探す
+function updateCarouselIndicator(scrollId, counterId, fillId, pack) {
+    const scroll = document.getElementById(scrollId);
+    if (!scroll) return;
     const filtered = pack === 'all' ? themes : themes.filter(t => t.pack === pack);
     const total = filtered.length;
     if (total <= 1) return;
 
-    const cardWidth = 200 + 12;
-    const current = Math.min(Math.round(scroll.scrollLeft / cardWidth) + 1, total);
-    document.getElementById('scrollCounterText').textContent = `${current} / ${total}`;
-    document.getElementById('scrollBarFill').style.width = `${(current / total) * 100}%`;
+    const scrollPad = parseInt(getComputedStyle(scroll).scrollPaddingLeft) || 20;
+    const pos = scroll.scrollLeft;
+    const allReal = [...scroll.querySelectorAll('.theme-card-item:not([data-carousel-clone])')];
+    if (allReal.length === 0) return;
+
+    // 実カードの中で最もスナップ位置に近いものを探す
+    let closestIdx = 0, minDist = Infinity;
+    allReal.forEach((card, i) => {
+        const dist = Math.abs(pos - (card.offsetLeft - scrollPad));
+        if (dist < minDist) { minDist = dist; closestIdx = i; }
+    });
+
+    const current = closestIdx + 1;
+    const counter = document.getElementById(counterId);
+    const fill    = document.getElementById(fillId);
+    if (counter) counter.textContent = `${current} / ${total}`;
+    if (fill)    fill.style.width = `${(current / total) * 100}%`;
+}
+
+// ループカルーセル初期化（両スクロールで共用）
+function setupCarouselLoop(scrollId) {
+    const scroll = document.getElementById(scrollId);
+    if (!scroll) return;
+
+    // 前回のリスナーを先に除去（参照を削除する前に必ず removeEventListener）
+    if (scroll._carouselListener) {
+        scroll.removeEventListener('scrollend', scroll._carouselListener);
+    }
+    if (scroll._carouselListenerFallback) {
+        scroll.removeEventListener('scroll', scroll._carouselListenerFallback);
+    }
+    delete scroll._carouselListener;
+    delete scroll._carouselListenerFallback;
+
+    // 前回のcloneを除去して再初期化
+    scroll.querySelectorAll('[data-carousel-clone]').forEach(el => el.remove());
+    delete scroll.dataset.cloneCount;
+
+    const realItems = [...scroll.querySelectorAll('.theme-card-item')];
+    const N = realItems.length;
+    if (N < 2) return;
+
+    const CLONE = Math.min(3, N);
+    const CARD_W = 200 + 12;
+
+    // 末尾カードのcloneを先頭に追加（順序維持: [clone_N-2, clone_N-1, clone_N, real_1, ...]）
+    const preFragment = document.createDocumentFragment();
+    realItems.slice(-CLONE).forEach(item => {
+        const c = item.cloneNode(true);
+        c.removeAttribute('id');
+        c.setAttribute('data-carousel-clone', 'pre');
+        preFragment.appendChild(c);
+    });
+    scroll.insertBefore(preFragment, scroll.firstChild);
+
+    // 先頭カードのcloneを末尾に追加（順序維持: [..., real_N, clone_1, clone_2, clone_3]）
+    realItems.slice(0, CLONE).forEach(item => {
+        const c = item.cloneNode(true);
+        c.removeAttribute('id');
+        c.setAttribute('data-carousel-clone', 'post');
+        scroll.appendChild(c);
+    });
+
+    scroll.dataset.cloneCount = CLONE;
+
+    // 先頭のcloneをスキップして実カード1枚目を表示（DOM描画後に実座標を使う）
+    requestAnimationFrame(() => {
+        const firstReal = scroll.querySelector('.theme-card-item:not([data-carousel-clone])');
+        if (firstReal) {
+            const scrollPad = parseInt(getComputedStyle(scroll).scrollPaddingLeft) || 20;
+            scroll.style.scrollSnapType = 'none';
+            scroll.scrollLeft = firstReal.offsetLeft - scrollPad;
+            requestAnimationFrame(() => { scroll.style.scrollSnapType = ''; });
+        }
+    });
+
+    // ループ処理: N*CARD_W計算ではなく実DOM座標でジャンプ先を特定する
+    function checkLoop() {
+        if (scroll._isLoopJumping) return;
+
+        const scrollPad = parseInt(getComputedStyle(scroll).scrollPaddingLeft) || 20;
+        const pos = scroll.scrollLeft;
+
+        const allReal = [...scroll.querySelectorAll('.theme-card-item:not([data-carousel-clone])')];
+        if (allReal.length === 0) return;
+
+        const realStart = allReal[0].offsetLeft - scrollPad;
+        const realEnd   = allReal[allReal.length - 1].offsetLeft - scrollPad;
+
+        let targetPos = null;
+
+        if (pos < realStart - 5) {
+            // pre-clone領域: 末尾側の実カードにジャンプ
+            const preClones = [...scroll.querySelectorAll('[data-carousel-clone="pre"]')];
+            const firstPreSnap = preClones[0] ? preClones[0].offsetLeft - scrollPad : 0;
+            const interval = preClones.length > 1
+                ? (preClones[preClones.length - 1].offsetLeft - preClones[0].offsetLeft) / (preClones.length - 1)
+                : 212;
+            const cloneIdx = Math.max(0, Math.min(CLONE - 1, Math.round((pos - firstPreSnap) / interval)));
+            const realIdx  = allReal.length - CLONE + cloneIdx;
+            targetPos = allReal[Math.max(0, Math.min(allReal.length - 1, realIdx))].offsetLeft - scrollPad;
+
+        } else if (pos > realEnd + 5) {
+            // post-clone領域: 先頭側の実カードにジャンプ
+            const postClones = [...scroll.querySelectorAll('[data-carousel-clone="post"]')];
+            const firstPostSnap = postClones[0] ? postClones[0].offsetLeft - scrollPad : realEnd + 212;
+            const interval = postClones.length > 1
+                ? (postClones[postClones.length - 1].offsetLeft - postClones[0].offsetLeft) / (postClones.length - 1)
+                : 212;
+            const cloneIdx = Math.max(0, Math.min(CLONE - 1, Math.round((pos - firstPostSnap) / interval)));
+            targetPos = allReal[Math.max(0, Math.min(allReal.length - 1, cloneIdx))].offsetLeft - scrollPad;
+        }
+
+        if (targetPos !== null) {
+            scroll._isLoopJumping = true;
+            scroll.style.scrollSnapType = 'none';
+            scroll.scrollLeft = targetPos;
+            setTimeout(() => {
+                scroll.style.scrollSnapType = '';
+                setTimeout(() => { delete scroll._isLoopJumping; }, 100);
+            }, 20);
+        }
+    }
+
+    if ('onscrollend' in window) {
+        scroll._carouselListener = checkLoop;
+        scroll.addEventListener('scrollend', checkLoop);
+    } else {
+        let t;
+        scroll._carouselListenerFallback = () => { clearTimeout(t); t = setTimeout(checkLoop, 200); };
+        scroll.addEventListener('scroll', scroll._carouselListenerFallback);
+    }
 }
 
 // テーマ選択
 function selectTheme(idx) {
     if (isGuestReadOnlyTheme) return;
     sharedSelectedThemeIdx = idx;
-    document.querySelectorAll('.theme-card-item').forEach(el => el.classList.remove('theme-card-item--selected'));
+    document.querySelectorAll('#themeSelectScreen .theme-card-item').forEach(el => el.classList.remove('theme-card-item--selected'));
     document.getElementById(`themeCardItem_${idx}`)?.classList.add('theme-card-item--selected');
 
     const theme = themes[idx];
@@ -811,6 +991,14 @@ async function confirmTheme() {
     if (App.currentMode === 'local') {
         localGame.theme = theme;
         localGame.currentRankingPlayerIdx = 0;
+        trackEvent('game_start', {
+            themeId: theme.id || '',
+            themeText: theme.text,
+            themeType: theme.id ? 'pack' : 'original',
+            mode: 'local',
+            playerCount: localGame.players ? localGame.players.length : 1,
+            players: (localGame.players || []).map(p => ({ uid: String(p.id), name: p.name }))
+        });
         localStartRankingInput();
         return;
     }
@@ -825,6 +1013,13 @@ async function confirmTheme() {
             rankings: null,
             guesses: null,
             lastActivityAt: Date.now()
+        });
+        trackEvent('game_start', {
+            themeId: theme.id || '',
+            themeText: theme.text,
+            themeType: theme.id ? 'pack' : 'original',
+            mode: App.currentMode,
+            roomId: room.roomId || ''
         });
     } catch (err) {
         showToast('テーマの確定に失敗しました', 'error');
@@ -1128,8 +1323,15 @@ function updateInputProgress(data) {
 }
 
 function toggleProgressDropdown() {
+    const pill = document.querySelector('#inputProgressArea .progress-pill');
     const dropdown = document.getElementById('inputProgressDropdown');
-    if (dropdown) dropdown.classList.toggle('progress-dropdown--open');
+    if (!dropdown) return;
+    if (!dropdown.classList.contains('progress-dropdown--open') && pill) {
+        const rect = pill.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 6) + 'px';
+        dropdown.style.left = rect.left + 'px';
+    }
+    dropdown.classList.toggle('progress-dropdown--open');
 }
 
 // ========================================
@@ -1399,8 +1601,15 @@ function updateGuessSubmitBtnState(targets) {
 }
 
 function toggleGuessProgressDropdown() {
+    const pill = document.querySelector('#rankingGuessScreen .progress-pill');
     const dropdown = document.getElementById('guessProgressDropdown');
-    if (dropdown) dropdown.classList.toggle('progress-dropdown--open');
+    if (!dropdown) return;
+    if (!dropdown.classList.contains('progress-dropdown--open') && pill) {
+        const rect = pill.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 6) + 'px';
+        dropdown.style.left = rect.left + 'px';
+    }
+    dropdown.classList.toggle('progress-dropdown--open');
 }
 
 // ========================================
@@ -1426,13 +1635,15 @@ function calcMultiScores(data) {
             if (guesserId === targetId) return;
             const guess = data.guesses?.[guesserId]?.[targetId];
             if (!guess) return;
+            const usedGRanks = new Set();
             for (let rank = 1; rank <= 5; rank++) {
                 const item = correct[String(rank)];
                 let gRank = 0;
                 for (let r = 1; r <= 5; r++) {
-                    if (guess[String(r)] === item) { gRank = r; break; }
+                    if (!usedGRanks.has(r) && guess[String(r)] === item) { gRank = r; break; }
                 }
                 if (gRank > 0) {
+                    usedGRanks.add(gRank);
                     const diff = Math.abs(gRank - rank);
                     const pt = calcItemScore(diff);
                     scores[guesserId].yomi += pt;
@@ -1462,10 +1673,12 @@ function calcUnderstandingRanking(targetId, data, allPlayers) {
         const guess = data.guesses?.[guesserId]?.[targetId];
         if (!guess) return;
         let pts = 0;
+        const usedGRanks = new Set();
         for (let rank = 1; rank <= 5; rank++) {
             const item = correct[String(rank)];
             for (let r = 1; r <= 5; r++) {
-                if (guess[String(r)] === item) {
+                if (!usedGRanks.has(r) && guess[String(r)] === item) {
+                    usedGRanks.add(r);
                     pts += calcItemScore(Math.abs(r - rank));
                     break;
                 }
@@ -1531,7 +1744,7 @@ function renderMultiResultScreen(data) {
             <div class="person-tabs" id="resultTabs" style="margin-bottom:12px;"></div>
             <div id="resultPersonDetail"></div>
         </div>
-        ${isHost ? `<div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()">テーマを変えてもう一度あそぶ</button></div>` : ''}`;
+        <div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="${isHost ? "if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()" : 'showGuestWaitModal()'}">テーマを変えてもう一度あそぶ</button></div>`;
 
     document.getElementById('resultTabs').innerHTML = players.map(([id, p], i) => `
         <div class="person-tab${i === 0 ? ' person-tab--active' : ''}"
@@ -1725,6 +1938,18 @@ function showMultiPersonResult(targetId) {
 }
 
 function renderOnlineResultScreen(data) {
+    const myUid = App.currentUser?.userId || App.userProfile?.userId || '';
+    trackEvent('game_complete', {
+        themeId: data.themeId || '',
+        themeText: data.theme || '',
+        themeType: data.themeId ? 'pack' : 'original',
+        mode: data.gameMode || 'pair',
+        roomId: room.roomId || '',
+        hostUid: data.hostId || '',
+        role: data.hostId && data.hostId === myUid ? 'host' : 'guest',
+        playerCount: Object.keys(data.players || {}).length,
+        players: Object.entries(data.players || {}).map(([uid, p]) => ({ uid, name: p.displayName || '' }))
+    });
     if (data.gameMode === 'multi') {
         renderMultiResultScreen(data);
         return;
@@ -1741,13 +1966,15 @@ function renderOnlineResultScreen(data) {
             const correct = data.rankings?.[targetId];
             const guess = data.guesses?.[guesserId]?.[targetId];
             if (!correct || !guess) return;
+            const usedGRanks = new Set();
             for (let rank = 1; rank <= 5; rank++) {
                 const item = correct[String(rank)];
                 let gRank = 0;
                 for (let r = 1; r <= 5; r++) {
-                    if (guess[String(r)] === item) { gRank = r; break; }
+                    if (!usedGRanks.has(r) && guess[String(r)] === item) { gRank = r; break; }
                 }
                 if (gRank > 0) {
+                    usedGRanks.add(gRank);
                     const diff = Math.abs(gRank - rank);
                     totalScore += calcItemScore(diff);
                     if (diff <= 3) breakdown[diff]++;
@@ -1828,13 +2055,13 @@ function renderOnlineResultScreen(data) {
             </div>
         </div>
         <div style="padding:8px 20px;">
-            <div style="font-size:16px;font-weight:900;color:var(--text-primary);margin-bottom:8px;">個人詳細</div>
+            <div style="font-size:16px;font-weight:900;color:var(--text-primary);margin-bottom:8px;">個人スコアの詳細</div>
             <div class="person-tabs" id="resultTabs" style="margin-bottom:12px;"></div>
             <div id="resultPersonDetail"></div>
         </div>
-        ${isHost ? `<div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()">テーマを変えてもう一度あそぶ</button></div>` : ''}`;
+        <div style="padding:0 20px;margin-top:8px;padding-bottom:60px;"><button class="btn btn--primary" onclick="${isHost ? "if(confirm('テーマを変えてもう一度あそびますか？'))playAgain()" : 'showGuestWaitModal()'}">テーマを変えてもう一度あそぶ</button></div>`;
 
-    // 個人詳細タブ
+    // 個人スコア詳細タブ（予想者視点）
     document.getElementById('resultTabs').innerHTML = players.map(([id, p], i) => `
         <div class="person-tab${i === 0 ? ' person-tab--active' : ''}"
              id="resultTab_${id}" onclick="showOnlinePersonResult('${id}')">${escapeHtml(p.displayName)}</div>
@@ -1863,48 +2090,127 @@ function confirmGoHome() {
     handleExitRequest();
 }
 
-function showOnlinePersonResult(targetId) {
+function showOnlinePersonResult(guesserId) {
     document.querySelectorAll('#resultTabs .person-tab').forEach(el => el.classList.remove('person-tab--active'));
-    document.getElementById(`resultTab_${targetId}`)?.classList.add('person-tab--active');
+    document.getElementById(`resultTab_${guesserId}`)?.classList.add('person-tab--active');
 
     const data = room.data;
-    const target = data.players?.[targetId];
+    const guesser = data.players?.[guesserId];
+    // 予想された相手（ターゲット）を特定
+    const targetEntry = Object.entries(data.players || {}).find(([id]) => id !== guesserId);
+    const targetId = targetEntry?.[0];
+    const target = targetEntry?.[1];
     const correct = data.rankings?.[targetId];
-    if (!correct || !target) return;
-
-    const guessers = Object.entries(data.players || {}).filter(([id]) => id !== targetId);
-
-    let html = `<div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-secondary);">${escapeHtml(target.displayName)}さんの正しいランク＆参加者の予想</div>`;
+    const guess = data.guesses?.[guesserId]?.[targetId] || null;
+    if (!correct || !guesser) return;
 
     const SUFFIXES = ['st','nd','rd','th','th'];
+    const CARD_H = 80;
+    const CARD_GAP = 12;
+    const CONN_W = 40;
+    const TOTAL_H = 5 * CARD_H + 4 * CARD_GAP;
+
+    // 正解順位ごとの識別カラー（深紅→バーガンディ→ウォームチャコールへグラデーション）
+    const RANK_COLORS = ['#A8192B', '#882031', '#6B2F3C', '#4D3C45', '#3A3334'];
+
+    // correctRank → gRank の対応マップを構築（使用済みスロットの再利用を防ぐ）
+    const correctToGuess = {};
+    const guessToCorrect = {};
+    const usedGRanks = new Set();
     for (let rank = 1; rank <= 5; rank++) {
         const item = correct[String(rank)];
-        html += `<div class="card" style="margin-bottom:6px;">
-            <div style="display:flex;align-items:center;margin-bottom:8px;gap:8px;">
-                <span style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:900;font-style:italic;color:var(--text-primary);min-width:28px;">${rank}<span style="font-size:10px;">${SUFFIXES[rank-1]}</span></span>
-                <span style="font-size:14px;font-weight:700;word-break:break-all;overflow-wrap:break-word;">${escapeHtml(item)}</span>
+        if (!item) continue;
+        for (let r = 1; r <= 5; r++) {
+            if (!usedGRanks.has(r) && guess?.[String(r)] === item) {
+                correctToGuess[rank] = r;
+                guessToCorrect[r] = rank;
+                usedGRanks.add(r);
+                break;
+            }
+        }
+    }
+
+    // SVG 連結線（左=正解位置, 右=予想位置）色は正解ランク基準
+    let svgLines = '';
+    for (let rank = 1; rank <= 5; rank++) {
+        const gRank = correctToGuess[rank];
+        if (!gRank) continue;
+        const y1 = (rank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
+        const y2 = (gRank - 1) * (CARD_H + CARD_GAP) + CARD_H / 2;
+        const color = RANK_COLORS[rank - 1];
+        const diff = Math.abs(rank - gRank);
+        let strokeW, opacity, dashAttr;
+        if (diff === 0)      { strokeW = 3.5; opacity = 0.9;  dashAttr = ''; }
+        else if (diff === 1) { strokeW = 2.5; opacity = 0.85; dashAttr = ''; }
+        else if (diff === 2) { strokeW = 1.5; opacity = 0.8;  dashAttr = ''; }
+        else if (diff === 3) { strokeW = 1.5; opacity = 0.75; dashAttr = ' stroke-dasharray="6,4"'; }
+        else                 { strokeW = 1.5; opacity = 0.7;  dashAttr = ' stroke-dasharray="2,5"'; }
+        svgLines += `<line x1="0" y1="${y1}" x2="${CONN_W}" y2="${y2}" stroke="${color}" stroke-width="${strokeW}"${dashAttr} stroke-opacity="${opacity}"/>`;
+        svgLines += `<circle cx="0" cy="${y1}" r="3.5" fill="${color}" fill-opacity="${opacity}"/>`;
+        svgLines += `<circle cx="${CONN_W}" cy="${y2}" r="3.5" fill="${color}" fill-opacity="${opacity}"/>`;
+    }
+
+    const pairCardFontInfo = (text) => {
+        const len = text.length;
+        if (len <= 10) return { fs: '14px', clamp: 2 };
+        if (len <= 22) return { fs: '11px', clamp: 3 };
+        return { fs: '9px', clamp: 4 };
+    };
+
+    // 左列（正解ランク）- 色は正解ランク基準（固定）
+    let leftHtml = '';
+    for (let rank = 1; rank <= 5; rank++) {
+        const item = correct[String(rank)] || '';
+        const fi = pairCardFontInfo(item);
+        leftHtml += `<div class="pair-result-card">
+            <div class="pair-result-card__header" style="background:${RANK_COLORS[rank-1]};">
+                <span class="pair-result-card__rank">${rank}<span class="pair-result-card__sfx">${SUFFIXES[rank-1]}</span></span>
             </div>
-            <div style="display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border);padding-top:6px;">
-                ${guessers.map(([gId, g]) => {
-                    const guess = data.guesses?.[gId]?.[targetId];
-                    let gRank = 0;
-                    if (guess) for (let r = 1; r <= 5; r++) { if (guess[String(r)] === item) { gRank = r; break; } }
-                    const diff = gRank > 0 ? Math.abs(gRank - rank) : 99;
-                    const { icon, label, color } = gRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ', color: '#334155' };
-                    const pt = gRank > 0 ? calcItemScore(diff) : 0;
-                    const rankDisplay = gRank > 0 ? `${gRank}${SUFFIXES[gRank-1]}` : '-';
-                    const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
-                    // 全要素右寄せ: 名前 → 何位と予想 → ラベル → +pt
-                    return `<div style="display:flex;align-items:center;justify-content:flex-end;font-size:12px;gap:6px;">
-                        <span style="font-weight:700;color:var(--text-primary);">${escapeHtml(g.displayName)}</span>
-                        <span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;font-style:italic;color:var(--text-primary);">${rankDisplay}</span>
-                        <span style="color:${color};font-weight:700;font-size:11px;">${icon} ${label}</span>
-                        <span style="color:${color};font-weight:800;min-width:36px;text-align:right;">${ptDisplay}</span>
-                    </div>`;
-                }).join('')}
+            <div class="pair-result-card__body">
+                <div class="pair-result-card__text" style="font-size:${fi.fs};-webkit-line-clamp:${fi.clamp};">${escapeHtml(item)}</div>
             </div>
         </div>`;
     }
+
+    // 右列（予想ランク＋スコア）- 色は対応する正解ランク基準
+    let rightHtml = '';
+    for (let gRank = 1; gRank <= 5; gRank++) {
+        const guessItem = guess?.[String(gRank)] || '';
+        const correctRank = guessToCorrect[gRank] || 0;
+        const headerBg = correctRank > 0 ? RANK_COLORS[correctRank - 1] : '#6B7280';
+        const diff = correctRank > 0 ? Math.abs(gRank - correctRank) : 99;
+        const { icon, label: scoreLabel } = correctRank > 0 ? getScoreLabel(diff) : { icon: '×', label: 'はずれ' };
+        const pt = correctRank > 0 ? calcItemScore(diff) : 0;
+        const ptDisplay = pt > 0 ? `+${pt}pt` : `${pt}pt`;
+        const fi = pairCardFontInfo(guessItem);
+        rightHtml += `<div class="pair-result-card">
+            <div class="pair-result-card__header" style="background:${headerBg};">
+                <span class="pair-result-card__rank">${gRank}<span class="pair-result-card__sfx">${SUFFIXES[gRank-1]}</span></span>
+                <span class="pair-result-card__score-tag">${icon}${scoreLabel} ${ptDisplay}</span>
+            </div>
+            <div class="pair-result-card__body">
+                <div class="pair-result-card__text" style="font-size:${fi.fs};-webkit-line-clamp:${fi.clamp};">${escapeHtml(guessItem)}</div>
+            </div>
+        </div>`;
+    }
+
+    // カラム見出し（2行・下線スタイル・中央寄せ）
+    const colLabel = (name, suffix) => `<div style="text-align:center;font-size:10px;font-weight:700;color:var(--text-secondary);padding-bottom:4px;border-bottom:1px solid var(--border);">${escapeHtml(name)}<br>${suffix}</div>`;
+
+    const html = `
+        <div style="display:flex;align-items:flex-end;margin-bottom:6px;">
+            <div style="flex:1;min-width:0;">${colLabel((target?.displayName || '') + 'の', '正しいランク')}</div>
+            <div style="width:${CONN_W}px;"></div>
+            <div style="flex:1;min-width:0;">${colLabel(guesser.displayName + 'の', '予想＆スコア')}</div>
+        </div>
+        <div class="pair-result-wrap">
+            <div class="pair-result-col" style="position:relative;z-index:0;">${leftHtml}</div>
+            <div style="position:relative;z-index:1;width:${CONN_W}px;height:${TOTAL_H}px;flex-shrink:0;">
+                <svg width="${CONN_W}" height="${TOTAL_H}" style="display:block;overflow:visible;">${svgLines}</svg>
+            </div>
+            <div class="pair-result-col" style="position:relative;z-index:0;">${rightHtml}</div>
+        </div>`;
+
     document.getElementById('resultPersonDetail').innerHTML = html;
 }
 
