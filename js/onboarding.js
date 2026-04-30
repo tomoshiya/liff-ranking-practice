@@ -180,8 +180,8 @@ function _injectStyles() {
 .ob-s2-row--r2 .ob-s2-inner { animation: obMRight2 30s linear infinite; }
 @keyframes obMLeft   { 0%{transform:translateX(0)}     100%{transform:translateX(-50%)} }
 @keyframes obMRight  { 0%{transform:translateX(-50%)}  100%{transform:translateX(0)} }
-@keyframes obMLeft2  { 0%{transform:translateX(-10%)}  100%{transform:translateX(-60%)} }
-@keyframes obMRight2 { 0%{transform:translateX(-40%)}  100%{transform:translateX(10%)} }
+@keyframes obMLeft2  { 0%{transform:translateX(0)}     100%{transform:translateX(-50%)} }
+@keyframes obMRight2 { 0%{transform:translateX(-50%)}  100%{transform:translateX(0)} }
 
 /* ===== Slide 3 / 4: ランク入力・予想 ===== */
 .ob-s34 { background: var(--bg); overflow: hidden; }
@@ -469,6 +469,7 @@ function _injectHtml() {
             <div class="ob-s6-scene">🍺 飲み会・合コン</div>
             <div class="ob-s6-scene">✈️ 旅行・おでかけ</div>
             <div class="ob-s6-scene">🤝 自己紹介・交流</div>
+            <div class="ob-s6-scene">💼 ミーティング・1on1</div>
           </div>
         </div>
         <div class="ob-s6-text">
