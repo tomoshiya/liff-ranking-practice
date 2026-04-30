@@ -43,6 +43,19 @@ window.addEventListener('load', () => {
 });
 
 function initializeLiff() {
+    // 8秒後: やわらかい警告
+    window._loadingSlowTimer = setTimeout(() => {
+        const el = document.getElementById('loadingSlowMsg');
+        if (el) el.style.display = 'block';
+    }, 8000);
+    // 15秒後: 対処法を表示
+    window._loadingTimeoutTimer = setTimeout(() => {
+        const slow = document.getElementById('loadingSlowMsg');
+        const timeout = document.getElementById('loadingTimeoutMsg');
+        if (slow) slow.style.display = 'none';
+        if (timeout) timeout.style.display = 'block';
+    }, 15000);
+
     liff.init({ liffId: LIFF_ID })
         .then(() => {
             if (liff.isLoggedIn()) {
@@ -97,13 +110,25 @@ async function onLiffReady() {
             showRejoinModal(rejoinData);
         }
 
-        // 10. 初回訪問（LocalStorageに名前がない）なら名前入力を強制
-        if (!savedName) {
-            openFirstTimeNameModal();
-        }
+        // 10. 初回訪問: オンボーディングを表示（未実施ユーザーのみ）
+        //     オンボーディング完了後にニックネーム入力を促す
+        const isFirstOnboard = !localStorage.getItem(OB_STORAGE_KEY);
+        if (isFirstOnboard) {
+            showOnboarding(() => {
+                if (!savedName) {
+                    _pendingBetaCheck = true;
+                    openFirstTimeNameModal();
+                } else {
+                    checkBetaModal();
+                }
+            });
+        } else {
+            // 既にオンボーディング済み: 従来フロー
+            if (!savedName) openFirstTimeNameModal();
 
-        // 11. β版モーダル（初回のみ自動表示）
-        checkBetaModal();
+            // 11. β版モーダル（初回のみ自動表示）
+            checkBetaModal();
+        }
 
     } catch (err) {
         console.error('初期化エラー:', err);
@@ -246,6 +271,8 @@ function openFirstTimeNameModal() {
     setTimeout(() => document.getElementById('nameModalInput').focus(), 100);
 }
 
+let _pendingBetaCheck = false;
+
 function saveDisplayName_() {
     const name = document.getElementById('nameModalInput').value.trim();
     if (!name) return;
@@ -253,6 +280,10 @@ function saveDisplayName_() {
     saveDisplayName(name);
     document.getElementById('nameModal').classList.remove('modal-overlay--active');
     initTopScreen();
+    if (_pendingBetaCheck) {
+        _pendingBetaCheck = false;
+        checkBetaModal();
+    }
 }
 
 // ========================================
