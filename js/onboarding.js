@@ -56,25 +56,18 @@ function _injectStyles() {
 /* ===== オンボーディング オーバーレイ ===== */
 .ob-overlay {
   position: fixed; inset: 0; z-index: 9000;
-  background: rgba(0,0,0,0.6);
-  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  display: flex; flex-direction: column;
   opacity: 0; transition: opacity 0.3s;
   pointer-events: none;
 }
 .ob-overlay--visible { opacity: 1; pointer-events: auto; }
 
 .ob-phone {
-  width: min(390px, 100vw); height: min(844px, 100vh);
-  background: var(--bg); border-radius: min(44px, 5vw);
+  width: 100%; height: 100%;
+  background: var(--bg); border-radius: 0;
   overflow: hidden; display: flex; flex-direction: column;
-  box-shadow: 0 40px 80px rgba(0,0,0,0.35);
   position: relative;
-}
-.ob-status {
-  background: var(--hero); padding: 14px 28px 8px;
-  display: flex; justify-content: space-between;
-  font-size: 12px; font-weight: 600;
-  color: rgba(255,255,255,0.45); flex-shrink: 0;
 }
 .ob-wrap { flex: 1; overflow: hidden; position: relative; }
 .ob-slides-row {
@@ -297,7 +290,6 @@ function _injectHtml() {
     overlay.className = 'ob-overlay';
     overlay.innerHTML = `
 <div class="ob-phone">
-  <div class="ob-status"><span>9:41</span><span>●●●</span></div>
   <div class="ob-wrap" id="obWrap">
     <div class="ob-slides-row" id="obSlidesRow">
 
@@ -342,14 +334,14 @@ function _injectHtml() {
 
       <!-- S3: TOP5を書く -->
       <div class="ob-slide ob-s34" id="obSlide2">
-        <div class="ob-hero">
+        <div class="ob-hero" style="padding:8px 20px 10px;">
           <div class="ob-hero__bg"></div>
           <div class="ob-header-row">
             <div class="ob-header-left">
               <div class="ob-badge">ゲームの流れ</div>
               <div class="ob-step">STEP 2 / 4</div>
-              <div class="ob-title">TOP5を<em>自由に書く</em></div>
-              <div class="ob-desc">テーマに沿って、自分のTOP5を自由に入力しよう。</div>
+              <div class="ob-title">TOP5を<em>入力</em></div>
+              <div class="ob-desc">テーマに沿って自分のTOP5を入力</div>
             </div>
             <div class="ob-tc" style="background:#5A3015;">
               <div class="ob-tc__white"><span class="ob-tc__text">お金を出し惜しみ\nしたくないもの・こと\nTOP5</span></div>
@@ -367,14 +359,14 @@ function _injectHtml() {
 
       <!-- S4: 予想する -->
       <div class="ob-slide ob-s34" id="obSlide3">
-        <div class="ob-hero">
+        <div class="ob-hero" style="padding:8px 20px 10px;">
           <div class="ob-hero__bg"></div>
           <div class="ob-header-row">
             <div class="ob-header-left">
               <div class="ob-badge">ゲームの流れ</div>
               <div class="ob-step">STEP 3 / 4</div>
-              <div class="ob-title">相手のTOP5を<em>予想</em></div>
-              <div class="ob-desc">バラバラに表示された相手のTOP5を正しい順番に並び替えよう</div>
+              <div class="ob-title">TOP5を<em>予想</em></div>
+              <div class="ob-desc">バラバラになった相手のTOP5をスワイプで正しく並び替え</div>
             </div>
             <div class="ob-tc" style="background:#5A3015;">
               <div class="ob-tc__white"><span class="ob-tc__text">お金を出し惜しみ\nしたくないもの・こと\nTOP5</span></div>
@@ -394,19 +386,21 @@ function _injectHtml() {
       <!-- たくの予想: 美容(1→あたり◎+10), カフェ(2→かすり▽+1), 本(3→おしい○+6), 旅行(4→ちかい△+3), 飲み会(5→ちかい△+3) = 23pt -->
       <!-- ゆか 34pt (1位), たく 23pt (2位) -->
       <div class="ob-slide ob-s5" id="obSlide4">
-        <div class="ob-s5-hero">
+        <div class="ob-s5-hero" style="padding:8px 20px 8px;">
           <div class="ob-s5-hero-bg"></div>
-          <div class="ob-badge">ゲームの流れ</div>
-          <div class="ob-step" style="margin-bottom:2px;">STEP 4 / 4</div>
-          <div class="ob-title" style="margin-bottom:4px;">結果発表！</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.62);line-height:1.55;margin-bottom:0;">正しいランクと予想とのズレが少ないほど高いスコアに。<br>結果をもとに会話を楽しもう！</div>
-          <div class="ob-s5-tc-center">
-            <div class="ob-tc" style="background:#5A3015;margin:0;">
+          <div class="ob-header-row" style="align-items:flex-start;">
+            <div style="flex:1;">
+              <div class="ob-badge">ゲームの流れ</div>
+              <div class="ob-step" style="margin-bottom:2px;">STEP 4 / 4</div>
+              <div class="ob-title" style="margin-bottom:3px;">結果発表！</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.62);line-height:1.5;">正しいランクと予想とのズレが少ないほど<br>高いスコアに。結果をもとに会話を楽しもう！</div>
+            </div>
+            <div class="ob-tc" style="background:#5A3015;">
               <div class="ob-tc__white"><span class="ob-tc__text">お金を出し惜しみ\nしたくないもの・こと\nTOP5</span></div>
               <span class="ob-tc__pack">PRIVATE</span>
             </div>
           </div>
-          <div class="ob-s5-score1">
+          <div class="ob-s5-score1" style="margin-top:8px;">
             <div>🏆</div>
             <div><div class="ob-s5-score1-name">ゆか</div></div>
             <div class="ob-s5-score1-pt">34<small>pt</small></div>
@@ -491,7 +485,7 @@ function _injectHtml() {
     <div class="ob-btn-row">
       <button class="ob-back" id="obBackBtn" onclick="obGoTo(_obCurrent-1)" disabled>← 戻る</button>
       <button class="ob-next" id="obNextBtn" onclick="obGoTo(_obCurrent+1)">次へ →</button>
-      <button class="ob-cta"  id="obCtaBtn"  onclick="_obFinish()">ニックネームを設定して始める！</button>
+      <button class="ob-cta"  id="obCtaBtn"  onclick="_obFinish()">さあ、はじめよう！</button>
     </div>
   </div>
 </div>
@@ -586,8 +580,8 @@ function _updateNav() {
     const ctaBtn  = document.getElementById('obCtaBtn');
     if (backBtn) backBtn.disabled = (n === 0);
     const isLast = (n === OB_TOTAL - 1);
-    if (nextBtn) nextBtn.style.display = isLast ? 'none' : '';
-    if (ctaBtn)  ctaBtn.style.display  = isLast ? '' : 'none';
+    if (nextBtn) nextBtn.style.display = isLast ? 'none' : 'block';
+    if (ctaBtn)  ctaBtn.style.display  = isLast ? 'block' : 'none';
 }
 
 function _obFinish() {
