@@ -31,6 +31,8 @@ function showLoading(message = '読み込み中...') {
 function hideLoading() {
     const el = document.getElementById('loading');
     if (el) el.style.display = 'none';
+    if (window._loadingSlowTimer)    { clearTimeout(window._loadingSlowTimer);    window._loadingSlowTimer = null; }
+    if (window._loadingTimeoutTimer) { clearTimeout(window._loadingTimeoutTimer); window._loadingTimeoutTimer = null; }
 }
 
 // エラー表示

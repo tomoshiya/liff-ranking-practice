@@ -43,6 +43,19 @@ window.addEventListener('load', () => {
 });
 
 function initializeLiff() {
+    // 8秒後: やわらかい警告
+    window._loadingSlowTimer = setTimeout(() => {
+        const el = document.getElementById('loadingSlowMsg');
+        if (el) el.style.display = 'block';
+    }, 8000);
+    // 15秒後: 対処法を表示
+    window._loadingTimeoutTimer = setTimeout(() => {
+        const slow = document.getElementById('loadingSlowMsg');
+        const timeout = document.getElementById('loadingTimeoutMsg');
+        if (slow) slow.style.display = 'none';
+        if (timeout) timeout.style.display = 'block';
+    }, 15000);
+
     liff.init({ liffId: LIFF_ID })
         .then(() => {
             if (liff.isLoggedIn()) {
