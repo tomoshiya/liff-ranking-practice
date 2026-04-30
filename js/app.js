@@ -103,12 +103,14 @@ async function onLiffReady() {
         if (isFirstOnboard) {
             showOnboarding(() => {
                 if (!savedName) openFirstTimeNameModal();
+                // 11. β版モーダル（初回のみ自動表示）
+                checkBetaModal();
             });
         } else {
             // 既にオンボーディング済み: 従来フロー
             if (!savedName) openFirstTimeNameModal();
 
-            // 11. β版モーダル（初回のみ自動表示、オンボーディング済みユーザーのみ）
+            // 11. β版モーダル（初回のみ自動表示）
             checkBetaModal();
         }
 
