@@ -102,9 +102,12 @@ async function onLiffReady() {
         const isFirstOnboard = !localStorage.getItem(OB_STORAGE_KEY);
         if (isFirstOnboard) {
             showOnboarding(() => {
-                if (!savedName) openFirstTimeNameModal();
-                // 11. β版モーダル（初回のみ自動表示）
-                checkBetaModal();
+                if (!savedName) {
+                    _pendingBetaCheck = true;
+                    openFirstTimeNameModal();
+                } else {
+                    checkBetaModal();
+                }
             });
         } else {
             // 既にオンボーディング済み: 従来フロー
@@ -255,6 +258,8 @@ function openFirstTimeNameModal() {
     setTimeout(() => document.getElementById('nameModalInput').focus(), 100);
 }
 
+let _pendingBetaCheck = false;
+
 function saveDisplayName_() {
     const name = document.getElementById('nameModalInput').value.trim();
     if (!name) return;
@@ -262,6 +267,10 @@ function saveDisplayName_() {
     saveDisplayName(name);
     document.getElementById('nameModal').classList.remove('modal-overlay--active');
     initTopScreen();
+    if (_pendingBetaCheck) {
+        _pendingBetaCheck = false;
+        checkBetaModal();
+    }
 }
 
 // ========================================
