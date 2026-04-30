@@ -341,9 +341,9 @@ function _injectHtml() {
               <div class="ob-badge">ゲームの流れ</div>
               <div class="ob-step">STEP 2 / 4</div>
               <div class="ob-title">TOP5を<em>入力</em></div>
-              <div class="ob-desc">テーマに沿って自分のTOP5を入力</div>
+              <div class="ob-desc">テーマに沿って<br>あなたのTOP5を考えて入力</div>
             </div>
-            <div class="ob-tc" style="background:#5A3015;">
+            <div class="ob-tc" style="background:#5A3015;align-self:center;">
               <div class="ob-tc__white"><span class="ob-tc__text">お金を出し惜しみ\nしたくないもの・こと\nTOP5</span></div>
               <span class="ob-tc__pack">PRIVATE</span>
             </div>
@@ -366,9 +366,9 @@ function _injectHtml() {
               <div class="ob-badge">ゲームの流れ</div>
               <div class="ob-step">STEP 3 / 4</div>
               <div class="ob-title">TOP5を<em>予想</em></div>
-              <div class="ob-desc">バラバラになった相手のTOP5をスワイプで正しく並び替え</div>
+              <div class="ob-desc">バラバラになった相手のTOP5を<br>スワイプで正しく並び替え</div>
             </div>
-            <div class="ob-tc" style="background:#5A3015;">
+            <div class="ob-tc" style="background:#5A3015;align-self:center;">
               <div class="ob-tc__white"><span class="ob-tc__text">お金を出し惜しみ\nしたくないもの・こと\nTOP5</span></div>
               <span class="ob-tc__pack">PRIVATE</span>
             </div>
@@ -393,9 +393,9 @@ function _injectHtml() {
               <div class="ob-badge">ゲームの流れ</div>
               <div class="ob-step" style="margin-bottom:2px;">STEP 4 / 4</div>
               <div class="ob-title" style="margin-bottom:3px;">結果発表！</div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.62);line-height:1.5;">正しいランクと予想とのズレが少ないほど<br>高いスコアに。結果をもとに会話を楽しもう！</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.62);line-height:1.5;">予想が近いほど高得点に。<br>結果を見ながら会話を楽しもう！</div>
             </div>
-            <div class="ob-tc" style="background:#5A3015;">
+            <div class="ob-tc" style="background:#5A3015;align-self:center;">
               <div class="ob-tc__white"><span class="ob-tc__text">お金を出し惜しみ\nしたくないもの・こと\nTOP5</span></div>
               <span class="ob-tc__pack">PRIVATE</span>
             </div>
@@ -469,7 +469,6 @@ function _injectHtml() {
         <div class="ob-s6-text">
           <div class="ob-s6-eyebrow">Let's start!</div>
           <div class="ob-s6-title">まずニックネームを設定しよう</div>
-          <div class="ob-s6-subdesc">あとからいつでも変更できます。</div>
         </div>
       </div>
 
