@@ -620,6 +620,7 @@ input, textarea { font-family: inherit; }
   background: var(--border); margin: 0 auto 20px;
 }
 .bottomsheet__title { font-size: 16px; font-weight: 900; margin-bottom: 16px; }
+.bottomsheet--help .bottomsheet__title { padding-top: 36px; }
 
 /* --- トースト --- */
 .toast {
@@ -981,9 +982,9 @@ input, textarea { font-family: inherit; }
   background: none;
   border: none;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 20px;
   cursor: pointer;
-  padding: 6px 10px;
+  padding: 10px 16px;
   opacity: 0.8;
   transition: opacity 0.15s;
 }

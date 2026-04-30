@@ -393,7 +393,7 @@ function _injectHtml() {
               <div class="ob-badge">ゲームの流れ</div>
               <div class="ob-step" style="margin-bottom:2px;">STEP 4 / 4</div>
               <div class="ob-title" style="margin-bottom:3px;">結果発表！</div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.62);line-height:1.5;">予想が近いほど高得点に。<br>結果を見ながら会話を楽しもう！</div>
+              <div class="ob-desc">予想が近いほど高得点に。<br>結果を見ながら会話を楽しもう！</div>
             </div>
             <div class="ob-tc" style="background:#5A3015;align-self:center;">
               <div class="ob-tc__white"><span class="ob-tc__text">お金を出し惜しみ\nしたくないもの・こと\nTOP5</span></div>
@@ -468,7 +468,7 @@ function _injectHtml() {
         </div>
         <div class="ob-s6-text">
           <div class="ob-s6-eyebrow">Let's start!</div>
-          <div class="ob-s6-title">まずニックネームを設定しよう</div>
+          <div class="ob-s6-title">ニックネームを設定してスタート！</div>
         </div>
       </div>
 
@@ -865,7 +865,8 @@ function _tapConfirmBtn(dotId, btnId, bodyId, btnEl) {
 // ========================================
 
 function _startS5() {
-    setTimeout(_drawS5Lines, 120);
+    // スライドトランジション(360ms)完了後に描画することでモバイルでの座標ズレを防止
+    setTimeout(_drawS5Lines, 420);
 }
 
 function _drawS5Lines() {
